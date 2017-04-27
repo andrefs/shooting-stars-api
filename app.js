@@ -70,6 +70,9 @@ server.listen(config.server.port, function() {
     log.info(
       `${server.name} v${config.version} running on http://${config.server.host}:${config.server.port} in ${config.env} environment.`
     );
+
+    // add routes
+    require('./routes/users')(server);
   })
 
   global.db = mongoose.connect(config.db.uri);
