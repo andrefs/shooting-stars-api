@@ -69,6 +69,8 @@ server.listen(config.server.port, function() {
 
     // add routes
     require('./routes/users')(server);
+    require('./routes/gameSequences')(server);
+    require('./routes/items')(server);
   });
 
 });
