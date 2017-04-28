@@ -5,22 +5,7 @@ import winston       from 'winston';
 import bunyanWinston from 'bunyan-winston-adapter';
 import mongoose      from 'mongoose';
 import db            from './db';
-
-/**
- * Logging
- */
-global.log = new winston.Logger({
-  transports: [
-    new winston.transports.Console({
-      level: 'info',
-      timestamp: () => {
-        return new Date().toString()
-      },
-      json: false
-    }),
-  ]
-});
-
+import log           from './utils/log';
 
 /**
  * Initialize Server

@@ -1,5 +1,6 @@
 import config   from './config';
 import mongoose from 'mongoose';
+import log      from './utils/log';
 
 // Database connection
 
@@ -12,6 +13,7 @@ if(!mongo_uri && config && config.db && config.db.uri){
 }
 
 let db = mongoose.connect(config.db.uri).connection;
+log.info(`Connection to ${config.db.uri}`);
 db.on('error', function(err) {
   log.error('Mongoose default connection error: ' + err)
   process.exit(1)

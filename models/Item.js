@@ -4,6 +4,9 @@ import mongoose         from 'mongoose';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
+import kcomb            from 'foreach-combination';
+import autoIncrement    from 'mongoose-sequence';
+import _                from 'lodash';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -21,6 +24,32 @@ const ItemSchema = mongoose.Schema({
   imageUrl: {
     type: 'String',
     required: true
+  }
+});
+
+ItemSchema.plugin(autoIncrement, {'inc_field': 'id'});
+
+ItemSchema.pre('save', function(next){
+  this.wasNew = this.isNew;
+  return next();
+});
+
+ItemSchema.post('save', function(doc){
+  const generateTriples = (item, callback) => {
+    let triples = [];
+    item.constructor.find().exec((err, items) => {
+      kcomb(items, 3, (a,b,c) => {
+        triples.push({
+          itemA: a,
+          itemB: b,
+          itemC: c,
+        });
+      });
+      require('./Triple').create(triples, callback);
+    });
+  };
+  if(doc.wasNew){
+    return generateTriples(doc);
   }
 });
 

@@ -2,14 +2,15 @@
 
 import Item from '../models/Item';
 import errors from 'restify-errors';
+import log from '../utils/log';
 
 module.exports = function(app){
 
   app.post('/items', function(req, res, next){
     let item = new Item();
-    item.name = req.body.name;
-    item.description = req.body.description;
-    item.imageUrl = req.body.imageUrl;
+    item.name = req.params.name;
+    item.description = req.params.description;
+    item.imageUrl = req.params.imageUrl;
 
     item.save()
       .then(() => {

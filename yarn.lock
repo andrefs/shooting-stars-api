@@ -28,10 +28,6 @@ async@2.1.4:
   dependencies:
     lodash "^4.14.0"
 
-async@~0.2.10:
-  version "0.2.10"
-  resolved "https://registry.yarnpkg.com/async/-/async-0.2.10.tgz#b6bbe0b0674b9d719708ca38de8c237cb526c3d1"
-
 async@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/async/-/async-1.0.0.tgz#f8fc04ca3a13784ade9e1641af98578cfbd647a9"
@@ -619,6 +615,10 @@ eyes@0.1.x:
   version "0.1.8"
   resolved "https://registry.yarnpkg.com/eyes/-/eyes-0.1.8.tgz#62cf120234c683785d902348a800ef3e0cc20bc0"
 
+foreach-combination@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/foreach-combination/-/foreach-combination-1.0.0.tgz#4d3c42e1a3719cf0f5c8b74a3cc1677e34a7de0a"
+
 formidable@^1.0.14:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/formidable/-/formidable-1.1.1.tgz#96b8886f7c3c3508b932d6bd70c4d3a88f35f1a9"
@@ -752,7 +752,7 @@ lobo-mongodb-fixtures@^1.0.0:
     mongodb "~2.1.20"
     optimist "~0.6.1"
 
-lodash@^4.14.0, lodash@^4.17.4, lodash@^4.2.0, lodash@^4.2.1, lodash@^4.8.0:
+lodash@^4.14.0, lodash@^4.17.4, lodash@^4.2.0, lodash@^4.2.1, lodash@^4.6.1, lodash@^4.8.0:
   version "4.17.4"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 
@@ -855,6 +855,12 @@ mongoose-paginate@^5.0.3:
   dependencies:
     bluebird "3.0.5"
 
+mongoose-sequence@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/mongoose-sequence/-/mongoose-sequence-3.2.0.tgz#389dbf1639e557e7dae67b1cf119c84f329113a8"
+  dependencies:
+    lodash "^4.6.1"
+
 mongoose-type-url@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/mongoose-type-url/-/mongoose-type-url-1.0.2.tgz#361a2809478a759f68ea24a3107ef6aca63d48ff"
@@ -942,12 +948,6 @@ ncp@~2.0.0:
 negotiator@^0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.1.tgz#2b327184e8992101177b28563fb5e7102acd0ca9"
-
-node-mongoose-fixtures@^0.2.4:
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/node-mongoose-fixtures/-/node-mongoose-fixtures-0.2.4.tgz#478c298e3d450f2269d2565d72477a9b324dbfa7"
-  dependencies:
-    async "~0.2.10"
 
 node-uuid@^1.4.1:
   version "1.4.8"

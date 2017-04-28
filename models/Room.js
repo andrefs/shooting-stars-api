@@ -16,11 +16,11 @@ const nextweek = new Date(today.getFullYear(), today.getMonth(), today.getDate()
 const RoomSchema = mongoose.Schema({
   id: {
     type: String,
-    required: false,
+    required: true,
   },
   expireDate: {
     type: Date,
-    required: false
+    required: true
   },
   player1: {
     type: mongoose.Schema.Types.ObjectId,
@@ -35,7 +35,7 @@ const RoomSchema = mongoose.Schema({
 });
 
 
-RoomSchema.pre('save', function(next) {
+RoomSchema.pre('validate', function(next) {
   let doc = this;
   doc.id = shortid();
   doc.expireDate = nextweek;
