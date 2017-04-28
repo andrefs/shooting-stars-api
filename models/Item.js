@@ -4,7 +4,6 @@ import mongoose         from 'mongoose';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
-import mongooseTypeUrl  from 'mongoose-type-url';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -20,7 +19,7 @@ const ItemSchema = mongoose.Schema({
     required: false
   },
   imageUrl: {
-    type: mongoose.SchemaTypes.Url,
+    type: 'String',
     required: true
   }
 });

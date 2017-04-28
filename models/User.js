@@ -12,7 +12,8 @@ mongoose.plugin(createdModified.createdModifiedPlugin, {index: true});
 const UserSchema = mongoose.Schema({
   username: {
     type   : String,
-    required : true
+    required : true,
+    unique: true
   },
   birthYear: {
     type: Number,
@@ -22,20 +23,20 @@ const UserSchema = mongoose.Schema({
     type: String,
     required: false
   },
-  local: {
-    username:{
-      type   : String,
-      unique : true
-    },
-    password: String,
-  },
-  facebook: {
-    id     : String,
-    username : String,
-    token  : String,
-    email  : String,
-    photo  : String,
-  }
+  // local: {
+  //   username:{
+  //     type   : String,
+  //     unique : true
+  //   },
+  //   password: String,
+  // },
+  // facebook: {
+  //   id     : String,
+  //   username : String,
+  //   token  : String,
+  //   email  : String,
+  //   photo  : String,
+  // }
 });
 
 
