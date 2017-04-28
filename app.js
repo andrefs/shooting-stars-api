@@ -4,6 +4,7 @@ import bunyan        from 'bunyan';
 import winston       from 'winston';
 import bunyanWinston from 'bunyan-winston-adapter';
 import mongoose      from 'mongoose';
+import db            from './db';
 
 /**
  * Logging
@@ -57,12 +58,7 @@ server.get('/status', (req, res, next) => {
  * Lift Server, Connect to DB & Bind Routes
  */
 server.listen(config.server.port, function() {
-  mongoose.connection.on('error', function(err) {
-    log.error('Mongoose default connection error: ' + err)
-    process.exit(1)
-  });
-
-  mongoose.connection.on('open', function(err) {
+  db.once('open', function(err) {
     if(err){
       log.error('Mongoose default connection error: ' + err)
       process.exit(1)
@@ -73,8 +69,7 @@ server.listen(config.server.port, function() {
 
     // add routes
     require('./routes/users')(server);
-  })
+  });
 
-  global.db = mongoose.connect(config.db.uri);
 });
 
