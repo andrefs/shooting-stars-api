@@ -1,5 +1,6 @@
 'use strict';
 
+import bcrypt           from 'bcrypt-nodejs';
 import mongoose         from 'mongoose';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
@@ -23,21 +24,20 @@ const UserSchema = mongoose.Schema({
     type: String,
     required: false
   },
-  // local: {
-  //   username:{
-  //     type   : String,
-  //     unique : true
-  //   },
-  //   password: String,
-  // },
-  // facebook: {
-  //   id     : String,
-  //   username : String,
-  //   token  : String,
-  //   email  : String,
-  //   photo  : String,
-  // }
+  password: {
+    type: String,
+    required: true
+  }
 });
 
+// static method
+UserSchema.statics.calcPasswordHash = function(password) {
+  return bcrypt.hashSync(password, bcrypt.genSaltSync(10), null);
+};
+
+// instance method
+UserSchema.methods.passwordIsValid = function(password) {
+  return bcrypt.compareSync(password, this.local.password);
+};
 
 module.exports = mongoose.model('User', UserSchema);

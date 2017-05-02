@@ -19,6 +19,7 @@
     "babel-preset-es2015": "^6.24.1",
     "babel-register": "^6.24.1",
     "bases": "^0.2.1",
+    "bcrypt-nodejs": "^0.0.3",
     "bunyan-winston-adapter": "^0.2.0",
     "foreach-combination": "^1.0.0",
     "lobo-mongodb-fixtures": "^1.0.0",

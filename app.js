@@ -1,11 +1,9 @@
 import config        from './config';
 import restify       from 'restify';
-import bunyan        from 'bunyan';
-import winston       from 'winston';
-import bunyanWinston from 'bunyan-winston-adapter';
 import mongoose      from 'mongoose';
 import db            from './db';
 import log           from './utils/log';
+import bunyanWinston from 'bunyan-winston-adapter';
 
 /**
  * Initialize Server

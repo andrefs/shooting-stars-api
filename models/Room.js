@@ -22,16 +22,11 @@ const RoomSchema = mongoose.Schema({
     type: Date,
     required: true
   },
-  player1: {
+  players: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: User,
     required: false
-  },
-  player2: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: User,
-    required: false
-  },
+  }]
 });
 
 

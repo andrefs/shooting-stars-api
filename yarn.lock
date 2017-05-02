@@ -450,6 +450,10 @@ bases@^0.2.1:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/bases/-/bases-0.2.1.tgz#c0294a3f86d403d79b82ec4997b27caf90f44570"
 
+bcrypt-nodejs@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/bcrypt-nodejs/-/bcrypt-nodejs-0.0.3.tgz#c60917f26dc235661566c681061c303c2b28842b"
+
 bluebird@2.10.2:
   version "2.10.2"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-2.10.2.tgz#024a5517295308857f14f91f1106fc3b555f446b"
