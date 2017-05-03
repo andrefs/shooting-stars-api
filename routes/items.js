@@ -3,6 +3,7 @@
 import Item from '../models/Item';
 import errors from 'restify-errors';
 import log from '../utils/log';
+import mongoose from 'mongoose';
 
 module.exports = function(app){
 
@@ -13,8 +14,8 @@ module.exports = function(app){
     item.imageUrl = req.params.imageUrl;
 
     item.save()
-      .then(() => {
-        res.send(201);
+      .then((doc) => {
+        res.send(201, doc);
         return next();
       })
       .catch((err) => {
@@ -27,14 +28,17 @@ module.exports = function(app){
   app.get('/items', function(req, res, next){
     let offset =  0;
     let limit  = 10;
-    Item.paginate({},{offset, limit}, function(err, result){
-      if(err){
+    let lean = true;
+
+    Item.paginate({},{offset, limit, lean})
+      .catch(err => {
         log.error(err);
         return next(new errors.InvalidContentError(err.errors.name.message));
-      }
-      res.send(result.docs);
-      next();
-    });
+      })
+      .then(result => {
+        res.send(result.docs);
+        return next();
+      });
   });
 
 
@@ -42,14 +46,15 @@ module.exports = function(app){
     const query = {
       _id: mongoose.Types.ObjectId(req.params.id)
     };
-    Item.findOne(query, function(err, result){
-      if(err){
+    Item.findOne(query).lean().exec()
+      .catch(err => {
         log.error(err);
         return next(new errors.InvalidContentError(err.errors.name.message));
-      }
-      res.send(result.docs);
-      next();
-    });
+      })
+      .then(doc => {
+        res.send(doc);
+        return next();
+      });
   });
 
 };
