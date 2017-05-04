@@ -20,8 +20,10 @@
     "babel-register": "^6.24.1",
     "bases": "^0.2.1",
     "bcrypt-nodejs": "^0.0.3",
+    "bluebird": "^3.5.0",
     "bunyan-winston-adapter": "^0.2.0",
     "foreach-combination": "^1.0.0",
+    "jwt-simple": "^0.5.1",
     "lobo-mongodb-fixtures": "^1.0.0",
     "lodash": "^4.17.4",
     "mongoose": "^4.9.6",
@@ -30,8 +32,11 @@
     "mongoose-paginate": "^5.0.3",
     "mongoose-sequence": "^3.2.0",
     "mongoose-type-url": "^1.0.2",
+    "passport": "^0.3.2",
+    "passport-local": "^1.0.0",
     "restify": "^4.3.0",
     "restify-errors": "^4.3.0",
+    "restify-jwt": "^0.4.0",
     "winston": "^2.3.1"
   }
 }

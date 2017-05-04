@@ -4,6 +4,8 @@ import mongoose      from 'mongoose';
 import db            from './db';
 import log           from './utils/log';
 import bunyanWinston from 'bunyan-winston-adapter';
+import passport      from './passport';
+import jwt           from 'restify-jwt';
 
 /**
  * Initialize Server
@@ -21,6 +23,13 @@ server.use(restify.jsonBodyParser({mapParams: true}));
 server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser({mapParams: true}));
 server.use(restify.fullResponse());
+
+var unauthPaths = [
+    '/status',
+    '/login',
+    '/register',
+];
+server.use(jwt({secret: config.auth.jwt.secret}).unless({path: unauthPaths}));
 
 /**
  * Error Handling
@@ -51,7 +60,7 @@ server.listen(config.server.port, function() {
     );
 
     // add routes
-    require('./routes/users')(server);
+    require('./routes/users')(server, passport);
     require('./routes/gameSequences')(server);
     require('./routes/items')(server);
   });

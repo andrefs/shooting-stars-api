@@ -37,7 +37,7 @@ UserSchema.statics.calcPasswordHash = function(password) {
 
 // instance method
 UserSchema.methods.passwordIsValid = function(password) {
-  return bcrypt.compareSync(password, this.local.password);
+  return bcrypt.compareSync(password, this.password);
 };
 
 module.exports = mongoose.model('User', UserSchema);

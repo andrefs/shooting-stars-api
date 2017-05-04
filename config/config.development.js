@@ -10,5 +10,10 @@ module.exports = {
     port: 15111,
     host: 'localhost'
   },
+  auth: {
+    jwt: {
+      secret: 'Edit this string and keep it secret'
+    }
+  },
   env: 'development'
 };

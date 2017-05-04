@@ -9,12 +9,8 @@ import log                         from './utils/log';
 
 passport.use('local-register', new LocalStrategy(
   {usernameField: 'username'},
-  (username, password, cb){
-    User.findOne({'username':username}).exec()
-      .catch(err => {
-        log.error(err);
-        return cb(err);
-      })
+  function(username, password, cb){
+    User.findOne({'username':username}).lean().exec()
       .then(user => {
         // Check if user already exists
         if(user){ return cb(null, false); }
@@ -23,23 +19,16 @@ passport.use('local-register', new LocalStrategy(
         else {
           let user = new User();
           user.username = username;
-          user.local.username = username;
-          user.local.password = User.calcPasswordHash(password);
-          user.save(function(err, user){
-            if(err){ throw err; }
-
-            // Add user to #general
-            Channel.update({'name':'#general'}, {
-              $addToSet: {
-                participants: mongoose.Types.ObjectId(user._id)
-              },
-            },{},function(err, numAffected){
-
-              if(err){ throw err; }
-              return cb(null, user);
-            });
-          });
+          user.password = User.calcPasswordHash(password);
+          return user.save()
         }
+      })
+      .then(user => {
+        return cb(null, user);
+      })
+      .catch(err => {
+        log.error(err);
+        return cb(err);
       });
   })
 );
@@ -48,11 +37,7 @@ passport.use('local-register', new LocalStrategy(
 passport.use('local-login', new LocalStrategy(
   {usernameField: 'username'},
   function(username, password, cb) {
-    User.findOne({'local.username': username}).exec()
-      .catch(err => {
-        log.error(err);
-        cb(err);
-      })
+    User.findOne({'username': username}).exec()
       .then(user => {
         // No user
         if(!user){ return cb(null, false); }
@@ -63,6 +48,10 @@ passport.use('local-login', new LocalStrategy(
         }
 
         return cb(null, user);
+      })
+      .catch(err => {
+        log.error(err);
+        cb(err);
       });
   }
 ));
