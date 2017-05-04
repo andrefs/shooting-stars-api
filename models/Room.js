@@ -2,6 +2,7 @@
 
 import mongoose         from 'mongoose';
 import User             from './User';
+import GameInstance     from './GameInstance';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
@@ -12,7 +13,8 @@ mongoose.plugin(mongooseApiQuery);
 mongoose.plugin(createdModified.createdModifiedPlugin, {index: true});
 
 const today = new Date();
-const nextweek = new Date(today.getFullYear(), today.getMonth(), today.getDate()+7);
+const nextWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate()+7);
+
 const RoomSchema = mongoose.Schema({
   id: {
     type: String,
@@ -20,20 +22,35 @@ const RoomSchema = mongoose.Schema({
   },
   expireDate: {
     type: Date,
-    required: true
+    required: true,
+    default: nextWeek
   },
   players: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: User,
     required: false
-  }]
+  }],
+  waitingForPlayers: {
+    type: Boolean,
+    default: true
+  },
+  previousGameInstances: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: GameInstance,
+    required: true
+  }],
+  currentGameInstance: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: GameInstance,
+    required: true
+  }
 });
 
 
+// doc.id always get written by the system
 RoomSchema.pre('validate', function(next) {
   let doc = this;
   doc.id = shortid();
-  doc.expireDate = nextweek;
   return next();
 });
 
