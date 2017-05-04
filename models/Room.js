@@ -37,12 +37,11 @@ const RoomSchema = mongoose.Schema({
   previousGameInstances: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: GameInstance,
-    required: true
+    default: []
   }],
   currentGameInstance: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: GameInstance,
-    required: true
+    ref: GameInstance
   }
 });
 
@@ -50,7 +49,9 @@ const RoomSchema = mongoose.Schema({
 // doc.id always get written by the system
 RoomSchema.pre('validate', function(next) {
   let doc = this;
-  doc.id = shortid();
+  if(!doc.id){
+    doc.id = shortid();
+  }
   return next();
 });
 

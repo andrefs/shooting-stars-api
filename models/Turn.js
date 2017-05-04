@@ -6,8 +6,7 @@ import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import mongooseTypeUrl  from 'mongoose-type-url';
 import Triple           from './Triple';
-import User             from './User';
-import GameSequence     from './GameSequence';
+import PlayerMove       from './PlayerMove';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);

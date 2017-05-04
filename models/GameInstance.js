@@ -12,7 +12,7 @@ mongoose.plugin(mongooseApiQuery);
 mongoose.plugin(createdModified.createdModifiedPlugin, {index: true});
 
 const today = new Date();
-const GameInstance = mongoose.Schema({
+const GameInstanceSchema = mongoose.Schema({
   gameSequence: {
     type: mongoose.Schema.Types.ObjectId,
     ref: GameSequence,

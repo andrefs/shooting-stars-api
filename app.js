@@ -29,7 +29,10 @@ var unauthPaths = [
     '/login',
     '/register',
 ];
-server.use(jwt({secret: config.auth.jwt.secret}).unless({path: unauthPaths}));
+server.use(jwt({
+  secret: config.auth.jwt.secret,
+  requestProperty: 'auth'
+}).unless({path: unauthPaths}));
 
 /**
  * Error Handling
@@ -61,6 +64,7 @@ server.listen(config.server.port, function() {
 
     // add routes
     require('./routes/users')(server, passport);
+    require('./routes/rooms')(server);
     require('./routes/gameSequences')(server);
     require('./routes/items')(server);
   });
