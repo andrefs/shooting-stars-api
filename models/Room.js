@@ -7,6 +7,7 @@ import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import shortid          from '../utils/shortid';
+import errors           from 'restify-errors';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -54,5 +55,33 @@ RoomSchema.pre('validate', function(next) {
   }
   return next();
 });
+
+// instance method
+RoomSchema.methods.addPlayer = function(playerID){
+  // Check if user has already joined this room
+  if(this.players.map(x => x.toString()).includes(playerID)){
+    return Promise.reject(new errors.ConflictError('This player already joined this room'));
+  }
+
+  const pID = mongoose.Types.ObjectId(playerID);
+  return User.findOne({_id: pID}).lean().exec()
+    .then(player => {
+      if(!player){
+        return Promise.reject(new errors.ConflictError('Unknown player ID'));
+      }
+      // Add user to room and save
+      this.players.push(playerID);
+      return this.save();
+    })
+    .then(() => {
+      const opts = {
+        path: 'players',
+        select: '_id username',
+        model: User
+      };
+      // Populate before returning
+      return this.populate(opts).execPopulate();
+    });
+}
 
 module.exports = mongoose.model('Room', RoomSchema);

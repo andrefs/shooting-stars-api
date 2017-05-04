@@ -32,37 +32,19 @@ module.exports = function(app){
   });
 
   app.post('/rooms/:id/players', function(req, res, next){
-    // Get room and current user
-    Promise.all([
-      Room.findOne({id: req.params.id}),
-      User.findOne({username: req.auth.sub})
-    ])
-    .then(([room, user]) => {
-      // Check if user has already joined this room
-      if(room.players.map(x => x.toString()).includes(req.auth.sub)){
-        throw new errors.ConflictError('This player already joined this room');
-      }
-      // Add user to room and save
-      room.players.push(req.auth.sub);
-      return room.save();
-    })
-    .then(room => {
-      const opts = {
-        path: 'players',
-        select: '_id username',
-        model: User
-      };
-      // Populate before returning
-      return room.populate(opts).execPopulate();
-    })
-    .then(room => {
-      res.send(200, room);
-      return next();
-    })
-    .catch(err => {
-      log.error(err);
-      res.send(err);
-    });
+    // Get room
+    Room.findOne({id: req.params.id}).exec()
+      .then(room => {
+        return room.addPlayer(req.auth.sub)
+      })
+      .then(room => {
+        res.send(200, room);
+        return next();
+      })
+      .catch(err => {
+        log.error(err);
+        res.send(err);
+      });
 
   });
 
