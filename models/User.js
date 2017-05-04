@@ -5,6 +5,7 @@ import mongoose         from 'mongoose';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
+import GameSequence     from './GameSequence';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -27,6 +28,11 @@ const UserSchema = mongoose.Schema({
   password: {
     type: String,
     required: true
+  },
+  playedSequences: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: GameSequence,
+    default: []
   }
 });
 

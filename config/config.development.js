@@ -15,5 +15,8 @@ module.exports = {
       secret: 'Edit this string and keep it secret'
     }
   },
+  game: {
+    size: 10
+  },
   env: 'development'
 };

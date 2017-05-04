@@ -64,7 +64,7 @@ RoomSchema.methods.addPlayer = function(playerID){
   }
 
   const pID = mongoose.Types.ObjectId(playerID);
-  return User.findOne({_id: pID}).lean().exec()
+  return User.findOne({_id: pID}).select('_id').lean().exec()
     .then(player => {
       if(!player){
         return Promise.reject(new errors.ConflictError('Unknown player ID'));
@@ -80,8 +80,37 @@ RoomSchema.methods.addPlayer = function(playerID){
         model: User
       };
       // Populate before returning
-      return this.populate(opts).execPopulate();
+      return this.populate(opts).lean().execPopulate();
     });
 }
+
+RoomSchema.methods.startGame = function(){
+  // There must be no game instances yet
+  if(this.currentGameInstance || this.previousGameInstances.length){
+    return Promise.reject(new errors.ConflictError('This room already has a game in progress'));
+  }
+
+  this.waitingForPlayers = false;
+  return this.newGameInstance();
+}
+
+RoomSchema.methods.newGameInstance = function(){
+  if(this.currentGameInstance){
+    this.previousGameInstances.push(this.currentGameInstance);
+  }
+  return GameInstance.createNew(this.players)
+    .then(gameInst => {
+      this.currentGameInstance = gameInst;
+      return this.save();
+    })
+    .then(room => {
+      return room
+        .populate({path: 'currentGameInstance', model: GameInstance})
+        .populate({path: 'players', model: User})
+        .execPopulate();
+    });
+}
+
+
 
 module.exports = mongoose.model('Room', RoomSchema);

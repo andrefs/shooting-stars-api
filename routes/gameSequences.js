@@ -3,6 +3,7 @@
 import Item from '../models/Item';
 import GameSequence from '../models/GameSequence';
 import errors from 'restify-errors';
+import mongoose from 'mongoose';
 
 module.exports = function(app){
 
@@ -27,7 +28,7 @@ module.exports = function(app){
   app.get('/gameSequences', function(req, res, next){
     let offset =  0;
     let limit  = 10;
-    Item.paginate({},{offset, limit})
+    GameSequence.paginate({},{offset, limit})
       .catch(err => {
         log.error(err);
         return next(new errors.InvalidContentError(err.errors.name.message));
@@ -44,12 +45,8 @@ module.exports = function(app){
     const query = {
       _id: mongoose.Types.ObjectId(req.params.id)
     };
-    const options = {
-      populate: 'triples',
-      lean: true
-    };
 
-    GameSequence.findOne(query)
+    GameSequence.findOne(query).populate({path: 'triples'}).lean()
       .catch(err => {
         log.error(err);
         return next(new errors.InvalidContentError(err.errors.name.message));

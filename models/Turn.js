@@ -19,7 +19,7 @@ const TurnSchema = mongoose.Schema({
     ref: Triple
   },
   moves: [{
-    required: true,
+    default: [],
     type: mongoose.Schema.Types.ObjectId,
     ref: PlayerMove
   }],

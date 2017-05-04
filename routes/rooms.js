@@ -31,6 +31,18 @@ module.exports = function(app){
       })
   });
 
+  app.get('/rooms/:id', function(req, res, next){
+    Room.findOne({id: req.params.id}).populate({path: 'players', model: User}).lean().exec()
+      .then(room => {
+        res.send(200, room);
+        return next();
+      })
+      .catch(err => {
+        log.error(err);
+        res.send(err);
+      });
+  });
+
   app.post('/rooms/:id/players', function(req, res, next){
     // Get room
     Room.findOne({id: req.params.id}).exec()
@@ -46,6 +58,23 @@ module.exports = function(app){
         res.send(err);
       });
 
+  });
+
+  app.patch('/rooms/:id', function (req, res, next) {
+    // Get room
+    Room.findOne({id: req.params.id}).exec()
+      .then(room => {
+        if(req.params.startGame){
+          return room.startGame();
+        }
+      })
+      .then(room => {
+        res.send(room);
+      })
+      .catch(err => {
+        log.error(err);
+        res.send(err);
+      });
   });
 
 };
