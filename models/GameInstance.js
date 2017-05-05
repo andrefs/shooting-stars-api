@@ -19,23 +19,27 @@ const GameInstanceSchema = mongoose.Schema({
     ref: GameSequence,
     required: true
   },
-  previousTurns: [
-    [{
+  previousTurns: {
+    type: [
+      [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: Turn
+      }]
+    ],
+    default: []
+  },
+  currentTurn: {
+    type: [{
       type: mongoose.Schema.Types.ObjectId,
-      ref: Turn
-    }]
-  ],
-  currentTurn: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: Turn,
-    required: true
-  }]
+      ref: Turn,
+      required: true
+    }],
+    default: []
+  }
 });
 
 GameInstanceSchema.statics.createNew = function(playerIDs){
   let gameInst = new this();
-  gameInst.previousTurns = [];
-  gameInst.currentTurn = [];
   return GameSequence.selectNew(playerIDs)
     .then(gameSeq => {
       gameInst.gameSequence = gameSeq;
