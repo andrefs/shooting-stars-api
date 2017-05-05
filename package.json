@@ -6,7 +6,8 @@
   "scripts": {
     "dev:initdb": "mongofixtures shooting-stars-dev db/fixtures_dev.js",
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint test/**/*.js models/**/*.js routes/**/*.js *.js || exit 0"
   },
   "babel": {
     "presets": [
@@ -38,5 +39,8 @@
     "restify-errors": "^4.3.0",
     "restify-jwt": "^0.4.0",
     "winston": "^2.3.1"
+  },
+  "devDependencies": {
+    "babel-eslint": "^7.2.3"
   }
 }
