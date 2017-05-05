@@ -71,3 +71,5 @@ server.listen(config.server.port, function() {
 
 });
 
+
+module.exports = server;
