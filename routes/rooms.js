@@ -1,23 +1,20 @@
-'use strict';
-
 import Room     from '../models/Room';
 import User     from '../models/User';
 import errors   from 'restify-errors';
-import Promise  from 'bluebird';
 import log      from '../utils/log';
 import mongoose from 'mongoose';
 
 module.exports = function(app){
-
   // POST  /rooms - create new room
   // POST /rooms/roomID/players - add player to room
   // DELETE /rooms/roomID/players - remove player from room
   // POST /rooms/roomdID/players/choice - choose an answer
-  // GET /rooms - get all the information: previousTurns, currentTurn, gameSequence, players
+  // GET /rooms - get all the information:
+  //                previousTurns, currentTurn, gameSequence, players
 
   app.post('/rooms', function(req, res, next){
     User.findOne({_id: mongoose.Types.ObjectId(req.auth.sub)}).lean().exec()
-      .then(user => {
+      .then(() => {
         let room = new Room({players: [req.auth.sub]});
         return room.save();
       })
@@ -28,18 +25,20 @@ module.exports = function(app){
       .catch(err => {
         log.error(err);
         return next(new errors.InvalidContentError(err.errors.name.message));
-      })
+      });
   });
 
   app.get('/rooms/:id', function(req, res, next){
-    Room.findOne({id: req.params.id}).populate({path: 'players', model: User}).lean().exec()
+    Room.findOne({id: req.params.id})
+      .populate({path: 'players', model: User}).lean().exec()
       .then(room => {
         res.send(200, room);
-        return next();
+        next();
       })
       .catch(err => {
         log.error(err);
         res.send(err);
+        next();
       });
   });
 
@@ -47,17 +46,17 @@ module.exports = function(app){
     // Get room
     Room.findOne({id: req.params.id}).exec()
       .then(room => {
-        return room.addPlayer(req.auth.sub)
+        return room.addPlayer(req.auth.sub);
       })
       .then(room => {
         res.send(200, room);
-        return next();
+        next();
       })
       .catch(err => {
         log.error(err);
         res.send(err);
+        next();
       });
-
   });
 
   app.patch('/rooms/:id', function (req, res, next) {
@@ -70,11 +69,12 @@ module.exports = function(app){
       })
       .then(room => {
         res.send(room);
+        next();
       })
       .catch(err => {
         log.error(err);
         res.send(err);
+        next();
       });
   });
-
 };

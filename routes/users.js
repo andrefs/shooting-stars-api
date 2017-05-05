@@ -1,13 +1,10 @@
-'use strict';
-
-import User   from '../models/User';
-import errors from 'restify-errors';
-import log    from '../utils/log';
-import jwt    from 'jwt-simple';
-import config from '../config';
+import User     from '../models/User';
+import errors   from 'restify-errors';
+import log      from '../utils/log';
+import config   from '../config';
+import {getJwt} from '../utils/jwt';
 
 module.exports = function(app, passport){
-
   app.get('/users', function(req, res, next){
     const options = {
       offset : 0,
@@ -25,40 +22,32 @@ module.exports = function(app, passport){
       });
   });
 
-  app.post('/register', passport.authenticate('local-register', {session:false}), function(req, res){
-    log.info(`User registered with local-register: ${req.user.username}`);
-    let token = getJwt(req.user, config.auth.jwt.secret);
-    log.info(`User logged in with local-login: ${req.user.username}`);
-    res.send(201, {
-      token: token,
-      user: {
-        _id: req.user['_id'],
-        username: req.user.username
-      }
+  app.post('/register',
+    passport.authenticate('local-register', {session:false}),
+    function(req, res){
+      log.info(`User registered with local-register: ${req.user.username}`);
+      let token = getJwt(req.user, config.auth.jwt.secret);
+      log.info(`User logged in with local-login: ${req.user.username}`);
+      res.send(201, {
+        token: token,
+        user: {
+          _id: req.user['_id'],
+          username: req.user.username
+        }
+      });
     });
-  });
 
-  app.post('/login', passport.authenticate('local-login', {session:false}), function(req, res, next){
-    let token = getJwt(req.user, config.auth.jwt.secret);
-    log.info(`User logged in with local-login: ${req.user.username}`);
-    res.send({
-      token: token,
-      user: {
-        _id: req.user['_id'],
-        username: req.user.username
-      }
+  app.post('/login',
+    passport.authenticate('local-login', {session:false}),
+    function(req, res){
+      let token = getJwt(req.user, config.auth.jwt.secret);
+      log.info(`User logged in with local-login: ${req.user.username}`);
+      res.send({
+        token: token,
+        user: {
+          _id: req.user['_id'],
+          username: req.user.username
+        }
+      });
     });
-  });
-
-  function getJwt(user, secret){
-    const now = Date.now();
-    const nextWeek = now + 7*24*60*60;
-    const claims = {
-      sub: user.id,
-      iat: now,
-      exp: nextWeek
-    };
-    let token = jwt.encode(claims, secret);
-    return token;
-  }
 };

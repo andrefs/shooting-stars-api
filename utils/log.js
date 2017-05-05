@@ -1,5 +1,3 @@
-'use strict';
-import bunyan        from 'bunyan';
 import winston       from 'winston';
 
 module.exports = new winston.Logger({
@@ -7,10 +5,10 @@ module.exports = new winston.Logger({
     new winston.transports.Console({
       level: 'info',
       timestamp: () => {
-        return new Date().toString()
+        return new Date().toString();
       },
       json: false
-    }),
+    })
   ]
 });
 

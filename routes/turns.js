@@ -1,12 +1,8 @@
-'use strict';
-
 import Choice from '../models/Choice';
 import errors from 'restify-errors';
 import log from '../utils/log';
-import Promise from 'bluebird';
 
 module.exports = function(app){
-
   app.post('/choices', function(req, res, next){
     let choice = new Choice();
     choice.triple = req.params.triple;
@@ -16,7 +12,7 @@ module.exports = function(app){
 
     choice.save()
       .catch((err) => {
-        log.error(err)
+        log.error(err);
         return next(new errors.InternalError(err.message));
       })
       .then(() => {
@@ -55,5 +51,4 @@ module.exports = function(app){
       next();
     });
   });
-
 };

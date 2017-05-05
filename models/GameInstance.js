@@ -1,5 +1,3 @@
-'use strict';
-
 import mongoose         from 'mongoose';
 import GameSequence     from './GameSequence';
 import Turn             from './Turn';
@@ -12,7 +10,6 @@ mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
 mongoose.plugin(createdModified.createdModifiedPlugin, {index: true});
 
-const today = new Date();
 const GameInstanceSchema = mongoose.Schema({
   gameSequence: {
     type: mongoose.Schema.Types.ObjectId,
