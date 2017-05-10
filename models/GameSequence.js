@@ -18,7 +18,7 @@ const GameSequenceSchema = mongoose.Schema({
   }]
 });
 
-GameSchema.plugin(autoIncrement, {
+GameSequenceSchema.plugin(autoIncrement, {
   id: 'game_sequence_counter',
   'inc_field': 'id'
 });

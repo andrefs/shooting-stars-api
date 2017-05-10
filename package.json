@@ -6,9 +6,9 @@
   "scripts": {
     "dev:initdb": "mongofixtures shooting-stars-dev db/fixtures_dev.js",
     "start": "node index.js",
-    "test": "npm run test-unit && npm run test-integration",
-    "test-unit": "mocha --opts test/unit/mocha.opts test/unit",
-    "test-integration": "mocha --opts test/integration/mocha.opts test/integration",
+    "test": "npm run test-unit",
+    "test-unit": "NODE_ENV=test mocha --compilers js:babel-core/register test/unit",
+    "test-integration": "NODE_ENV=test mocha --compilers js:babel-core/register test/integration",
     "lint": "eslint **/*.js || exit 0"
   },
   "babel": {
@@ -43,6 +43,7 @@
     "winston": "^2.3.1"
   },
   "devDependencies": {
+    "babel-core": "^6.24.1",
     "babel-eslint": "^7.2.3",
     "chai": "^3.5.0",
     "mocha": "^3.3.0",
