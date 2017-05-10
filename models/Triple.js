@@ -30,7 +30,6 @@ const TripleSchema = mongoose.Schema({
 /* Sort items by ObjectId, making sure that item order is irrelevant */
 
 TripleSchema.pre('validate', function(next){
-console.log('XXXXXXXXXx 1');
   return Item.find()
     .where('_id')
     .in([this.itemA, this.itemB, this.itemC])

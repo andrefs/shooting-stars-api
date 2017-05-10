@@ -19,9 +19,11 @@ passport.use('local-register', new LocalStrategy(
         else {
           let user = new User();
           user.username = username;
-          user.password = User.calcPasswordHash(password);
-          return user.save()
+          return User.calcPasswordHash(password);
         }
+      })
+      .then(() => {
+        return user.save()
       })
       .then(user => {
         return cb(null, user);
@@ -43,7 +45,7 @@ passport.use('local-login', new LocalStrategy(
         if(!user){ return cb(null, false); }
 
         // Password invalid
-        if(!user.passwordIsValid(password)){
+        if(!user.comparePassword(password)){
           return cb(null, false);
         }
 

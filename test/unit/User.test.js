@@ -15,6 +15,9 @@ describe('User', () => {
       return done();
   });
 
+  it('initializes with default values', () => {
+  });
+
   it('#comparePassword', () => {
     it("should return false if there's no match", () => {
       expect(user.comparePassword('qwerty')).to.be.false();

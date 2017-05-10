@@ -1,4 +1,4 @@
-import winston       from 'winston';
+import winston from 'winston';
 
 module.exports = new winston.Logger({
   transports: [
