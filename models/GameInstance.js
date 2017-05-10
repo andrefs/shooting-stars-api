@@ -4,7 +4,7 @@ import Turn             from './Turn';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
-import log      from '../utils/log';
+import log              from '../utils/log';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -45,7 +45,7 @@ GameInstanceSchema.statics.createNew = function(playerIDs){
     .catch(err => {
       log.error(err);
     });
-}
+};
 
 GameInstanceSchema.methods.nextTurn = function(){
   let turnCount;
@@ -69,7 +69,7 @@ GameInstanceSchema.methods.nextTurn = function(){
       this.currentTurn = turn;
       return this.save();
     });
-}
+};
 
 
 module.exports = mongoose.model('GameInstance', GameInstanceSchema);

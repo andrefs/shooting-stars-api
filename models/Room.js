@@ -1,5 +1,3 @@
-'use strict';
-
 import mongoose         from 'mongoose';
 import User             from './User';
 import GameInstance     from './GameInstance';
@@ -14,7 +12,11 @@ mongoose.plugin(mongooseApiQuery);
 mongoose.plugin(createdModified.createdModifiedPlugin, {index: true});
 
 const today = new Date();
-const nextWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate()+7);
+const nextWeek = new Date(
+  today.getFullYear(),
+  today.getMonth(),
+  today.getDate()+7
+);
 
 const RoomSchema = mongoose.Schema({
   id: {
@@ -60,7 +62,9 @@ RoomSchema.pre('validate', function(next) {
 RoomSchema.methods.addPlayer = function(playerID){
   // Check if user has already joined this room
   if(this.players.map(x => x.toString()).includes(playerID)){
-    return Promise.reject(new errors.ConflictError('This player already joined this room'));
+    return Promise.reject(
+      new errors.ConflictError('This player already joined this room')
+    );
   }
 
   const pID = mongoose.Types.ObjectId(playerID);
@@ -82,17 +86,19 @@ RoomSchema.methods.addPlayer = function(playerID){
       // Populate before returning
       return this.populate(opts).lean().execPopulate();
     });
-}
+};
 
 RoomSchema.methods.startGame = function(){
   // There must be no game instances yet
   if(this.currentGameInstance || this.previousGameInstances.length){
-    return Promise.reject(new errors.ConflictError('This room already has a game in progress'));
+    return Promise.reject(
+      new errors.ConflictError('This room already has a game in progress')
+    );
   }
 
   this.waitingForPlayers = false;
   return this.newGameInstance();
-}
+};
 
 RoomSchema.methods.newGameInstance = function(){
   if(this.currentGameInstance){
@@ -109,8 +115,6 @@ RoomSchema.methods.newGameInstance = function(){
         .populate({path: 'players', model: User})
         .execPopulate();
     });
-}
-
-
+};
 
 module.exports = mongoose.model('Room', RoomSchema);

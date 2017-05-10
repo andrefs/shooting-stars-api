@@ -36,7 +36,6 @@
       "nonwords": false}
     ],
     "no-spaced-func": 2,
-    "comma-dangle": [2, "never"],
     "no-trailing-spaces": 2,
     "yoda": [2, "never"],
     "eol-last": 2,

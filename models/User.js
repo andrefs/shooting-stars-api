@@ -1,5 +1,3 @@
-'use strict';
-
 import bcrypt           from 'bcrypt-nodejs';
 import mongoose         from 'mongoose';
 import pagPlugin        from 'mongoose-paginate';
@@ -37,12 +35,32 @@ const UserSchema = mongoose.Schema({
 });
 
 // static method
-UserSchema.statics.calcPasswordHash = function(password) {
-  return bcrypt.hashSync(password, bcrypt.genSaltSync(10), null);
+const calcPasswordHash = (password) => {
+  return bcrypt.genSalt(10)
+    .then(salt => {
+      return bcrypt.hash(password, salt);
+    })
+    .then(hash => {
+      user.password = hash;
+    });
 };
 
+
+UserSchema.pre('save', (next) => {
+  // only hash the password if it has been modified (or is new)
+  if(!this.isModified('password')){
+    return next();
+  }
+
+  calcPasswordHash(this.password)
+    .then(() => {
+      return next();
+    });
+});
+
+UserSchema.statics.calcPasswordHash = calcPasswordHash;
 // instance method
-UserSchema.methods.passwordIsValid = function(password) {
+UserSchema.methods.comparePassword = function(password) {
   return bcrypt.compareSync(password, this.password);
 };
 

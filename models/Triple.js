@@ -1,12 +1,8 @@
-'use strict';
-
 import mongoose         from 'mongoose';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
-import mongooseTypeUrl  from 'mongoose-type-url';
 import Item             from './Item';
-import _                from 'lodash';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -33,10 +29,6 @@ const TripleSchema = mongoose.Schema({
 /* Sort items by ObjectId, making sure that item order is irrelevant */
 
 TripleSchema.pre('validate', function(next){
-  const compFunc = (a, b) => {
-    return a.id > b.id ? 1 : b.id > a.id ? -1 : 0;
-  };
-
   Item.find()
     .where('_id')
     .in([this.itemA, this.itemB, this.itemC])

@@ -12,6 +12,7 @@ module.exports = function(app){
   // GET /rooms - get all the information:
   //                previousTurns, currentTurn, gameSequence, players
 
+  // Create new room
   app.post('/rooms', function(req, res, next){
     User.findOne({_id: mongoose.Types.ObjectId(req.auth.sub)}).lean().exec()
       .then(() => {
@@ -28,6 +29,7 @@ module.exports = function(app){
       });
   });
 
+  // Get room info
   app.get('/rooms/:id', function(req, res, next){
     Room.findOne({id: req.params.id})
       .populate({path: 'players', model: User}).lean().exec()
@@ -42,6 +44,7 @@ module.exports = function(app){
       });
   });
 
+  // Add player to room
   app.post('/rooms/:id/players', function(req, res, next){
     // Get room
     Room.findOne({id: req.params.id}).exec()
@@ -59,6 +62,9 @@ module.exports = function(app){
       });
   });
 
+  // Perform room operations such as:
+  // - start game
+  //
   app.patch('/rooms/:id', function (req, res, next) {
     // Get room
     Room.findOne({id: req.params.id}).exec()

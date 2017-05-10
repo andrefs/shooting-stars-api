@@ -1,10 +1,7 @@
-'use strict';
-
 import mongoose         from 'mongoose';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
-import mongooseTypeUrl  from 'mongoose-type-url';
 import Triple           from './Triple';
 import User             from './User';
 import GameSequence     from './GameSequence';

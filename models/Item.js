@@ -1,12 +1,9 @@
-'use strict';
-
 import mongoose         from 'mongoose';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import kcomb            from 'foreach-combination';
 import autoIncrement    from 'mongoose-sequence';
-import _                from 'lodash';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -27,7 +24,7 @@ const ItemSchema = mongoose.Schema({
   }
 });
 
-ItemSchema.plugin(autoIncrement, {'inc_field': 'id'});
+ItemSchema.plugin(autoIncrement, {id: 'item_counter', 'inc_field': 'id'});
 
 ItemSchema.pre('save', function(next){
   this.wasNew = this.isNew;
