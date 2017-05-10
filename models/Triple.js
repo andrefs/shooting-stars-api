@@ -3,6 +3,7 @@ import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import Item             from './Item';
+import log              from '../utils/log';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -29,25 +30,34 @@ const TripleSchema = mongoose.Schema({
 /* Sort items by ObjectId, making sure that item order is irrelevant */
 
 TripleSchema.pre('validate', function(next){
-  Item.find()
+console.log('XXXXXXXXXx 1');
+  return Item.find()
     .where('_id')
     .in([this.itemA, this.itemB, this.itemC])
     .limit(3)
     .sort([['id', 'ascending']])
     .select('_id')
     .exec()
-    .catch(err => {
-      log.error(err);
-      return next(err);
-    })
     .then(items => {
+
       this.itemA = items[0]._id;
       this.itemB = items[1]._id;
       this.itemC = items[2]._id;
 
       return next();
+    })
+    .catch(err => {
+      log.error(err);
+      return next(err);
     });
 });
+
+TripleSchema.statics.getUnplayedTriples = function(howMany, players){
+  // currently returning *always* the first 10 triples
+  // TODO: implement logic which takes into account triples already
+  //    played by any of the players and intended distribution
+  return Triple.find().limit(howMany).exec();
+};
 
 TripleSchema.index({itemA: 1, itemB: 1, itemC: 1}, {unique: true});
 

@@ -4,7 +4,6 @@ import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import Triple           from './Triple';
 import User             from './User';
-import GameSequence     from './GameSequence';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -20,11 +19,6 @@ const PlayerMoveSchema = mongoose.Schema({
     required: true,
     type: mongoose.Schema.Types.ObjectId,
     ref: Triple
-  },
-  gameSequence: {
-    required: true,
-    type: mongoose.Schema.Types.ObjectId,
-    ref: GameSequence
   },
   pick: {
     required: true,
