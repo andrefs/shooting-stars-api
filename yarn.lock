@@ -531,6 +531,12 @@ bunyan@^1.4.0:
     mv "~2"
     safe-json-stringify "~1"
 
+chai-as-promised@^6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/chai-as-promised/-/chai-as-promised-6.0.0.tgz#1a02a433a6f24dafac63b9c96fa1684db1aa8da6"
+  dependencies:
+    check-error "^1.0.2"
+
 chai@^3.5.0:
   version "3.5.0"
   resolved "https://registry.yarnpkg.com/chai/-/chai-3.5.0.tgz#4d02637b067fe958bdbfdd3a40ec56fef7373247"
@@ -548,6 +554,10 @@ chalk@^1.1.0:
     has-ansi "^2.0.0"
     strip-ansi "^3.0.0"
     supports-color "^2.0.0"
+
+check-error@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/check-error/-/check-error-1.0.2.tgz#574d312edd88bb5dd8912e9286dd6c0aed4aac82"
 
 colors@1.0.x:
   version "1.0.3"
@@ -1065,10 +1075,6 @@ mongoose-sequence@^3.2.0:
   resolved "https://registry.yarnpkg.com/mongoose-sequence/-/mongoose-sequence-3.2.0.tgz#389dbf1639e557e7dae67b1cf119c84f329113a8"
   dependencies:
     lodash "^4.6.1"
-
-mongoose-simple-random@^0.4.1:
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/mongoose-simple-random/-/mongoose-simple-random-0.4.1.tgz#09054d8555826730209a7405b1d73cb4a8f91aa3"
 
 mongoose-type-url@^1.0.2:
   version "1.0.2"

@@ -5,6 +5,7 @@ import createdModified  from 'mongoose-createdmodified';
 import kcomb            from 'foreach-combination';
 import autoIncrement    from 'mongoose-sequence';
 import {createHash}     from 'crypto';
+import {reject}         from 'lodash';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -41,22 +42,23 @@ ItemSchema.pre('save', function(next){
   return next();
 });
 
-ItemSchema.post('save', function(doc){
+ItemSchema.post('save', function(doc, next){
   const generateTriples = (item, callback) => {
     let triples = [];
     item.constructor.find().exec((err, items) => {
-      kcomb(items, 3, (a,b,c) => {
+      const otherItems = reject(items, i => i.id === doc.id);
+      kcomb(otherItems, 2, (a,b) => {
         triples.push({
-          itemA: a,
-          itemB: b,
-          itemC: c,
+          itemA: doc,
+          itemB: a,
+          itemC: b,
         });
       });
       require('./Triple').create(triples, callback);
     });
   };
   if(doc.wasNew){
-    return generateTriples(doc);
+    return generateTriples(doc, next);
   }
 });
 

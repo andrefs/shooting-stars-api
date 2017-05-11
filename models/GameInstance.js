@@ -1,4 +1,5 @@
 import mongoose         from 'mongoose';
+import GameSequence     from './GameSequence';
 import Turn             from './Turn';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
@@ -10,11 +11,11 @@ mongoose.plugin(mongooseApiQuery);
 mongoose.plugin(createdModified.createdModifiedPlugin, {index: true});
 
 const GameInstanceSchema = mongoose.Schema({
-  triples: [{
+  gameSequence: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: Triple,
+    ref: GameSequence,
     required: true
-  }]
+  },
   previousTurns: {
     type: [
       [{
@@ -34,13 +35,11 @@ const GameInstanceSchema = mongoose.Schema({
   }
 });
 
-
 GameInstanceSchema.statics.createNew = function(playerIDs){
   let gameInst = new this();
-  const pIDs = playerIDs.map(x => mongoose.Types.ObjectId(x));
-  return Triples.getUnplayedTriples(10, pIDs)
-    .then(triples => {
-      gameInst.triples = triples;
+  return GameSequence.selectNew(playerIDs)
+    .then(gameSeq => {
+      gameInst.gameSequence = gameSeq;
       return gameInst.save();
     })
     .catch(err => {
@@ -52,7 +51,7 @@ GameInstanceSchema.methods.nextTurn = function(){
   let turnCount;
 
   // No more turns
-  if(this.previousTurns.length === this.triples.length){
+  if(this.previousTurns.length === this.gameSequence.triples.length){
     return Promise.reject('Game is finished');
   }
 

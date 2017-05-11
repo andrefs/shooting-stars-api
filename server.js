@@ -67,6 +67,7 @@ server.listen(config.server.port, function() {
     require('./routes/rooms')(server);
     require('./routes/gameSequences')(server);
     require('./routes/items')(server);
+    require('./routes/triples')(server);
   });
 
 });
