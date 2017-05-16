@@ -30,7 +30,7 @@ const TripleSchema = mongoose.Schema({
     required: true,
     type: Number
   },
-  random: {
+  randomSeq: {
     type: 'String',
     required: true
   }
@@ -47,13 +47,12 @@ TripleSchema.pre('validate', function(next){
     .select('_id id')
     .exec()
     .then(items => {
-
       this.itemA = items[0]._id;
       this.itemB = items[1]._id;
       this.itemC = items[2]._id;
 
       this.highestItemId = items[2].id;
-      this.random = createHash('md5').update(this._id.toString()).digest("hex");
+      this.randomSeq = createHash('md5').update(this._id.toString()).digest("hex");
 
       return next();
     })

@@ -4,6 +4,7 @@ import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import autoIncrement    from 'mongoose-sequence';
+import {createHash}     from 'crypto';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -15,7 +16,15 @@ const GameSequenceSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: Triple,
     required: true
-  }]
+  }],
+  highestItemId: {
+    required: true,
+    type: Number
+  },
+  randomSeq: {
+    type: 'String',
+    required: true
+  }
 });
 
 GameSequenceSchema.plugin(autoIncrement, {
@@ -23,8 +32,22 @@ GameSequenceSchema.plugin(autoIncrement, {
   'inc_field': 'id'
 });
 
+GameSequenceSchema.pre('validate', function(next){
+  this.populate({path: 'triples', model: Triple}).execPopulate()
+    .then(gs => {
+      gs.randomSeq = createHash('md5').update(this._id.toString()).digest("hex");
+      gs.highestItemId = 1;
+      gs.triples.forEach(t => {
+        if(t.highestItemId > gs.highestItemId){
+          gs.highestItemId = t.highestItemId;
+        }
+        return next();
+      });
+    });
+});
+
 GameSequenceSchema.post('save', function(doc, next){
-  doc.populate({path: 'triples'}, next);
+  doc.populate({path: 'triples', model: Triple}, next);
 });
 
 GameSequenceSchema.statics.selectNew = function(playerIDs){
@@ -42,6 +65,24 @@ GameSequenceSchema.statics.selectNew = function(playerIDs){
 
       return this.findOne().where('_id').nin([...gameSeqIDs]).exec();
     });
+};
+
+GameSequenceSchema.statics.generate = function(howMany, sequenceSize, highestItemId){
+  return Triple.find()
+    .where('highestItemId')
+    .lte(highestItemId)
+    .limit(howMany*sequenceSize)
+    .sort('randomSeq').exec()
+    .then(triples => {
+      let gameSeqs = [];
+      while(triples.length >= sequenceSize){
+        gameSeqs.push(new this({
+          triples: triples.splice(0,sequenceSize)
+        }));
+      }
+
+      return this.create(gameSeqs);
+    })
 };
 
 module.exports = mongoose.model('GameSequence', GameSequenceSchema);
