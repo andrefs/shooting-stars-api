@@ -121,4 +121,22 @@ describe('Triple', () => {
         })
     );
   });
+
+  it('sets highestItemid correctly', () => {
+    const imageUrl = 'http://ww.example.com';
+
+    return Promise.mapSeries([
+        {name: 'first item' , imageUrl},
+        {name: 'second item', imageUrl},
+        {name: 'third item' , imageUrl}
+      ], itemF => Item.create(itemF))
+      .then(items => {
+        return Triple.findOne()
+          .populate({path: 'itemC', model: Item})
+          .exec();
+      })
+      .then(triple => {
+        expect(triple.highestItemId).to.equal(triple.itemC.id);
+      });
+  });
 });

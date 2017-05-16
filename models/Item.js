@@ -4,7 +4,6 @@ import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import kcomb            from 'foreach-combination';
 import autoIncrement    from 'mongoose-sequence';
-import {createHash}     from 'crypto';
 import {reject}         from 'lodash';
 
 mongoose.plugin(pagPlugin);
@@ -23,16 +22,7 @@ const ItemSchema = mongoose.Schema({
   imageUrl: {
     type: 'String',
     required: true
-  },
-  random: {
-    type: 'String',
-    required: true
   }
-});
-
-ItemSchema.pre('validate', function(next){
-  this.random = createHash('md5').update(this._id.toString()).digest("hex");
-  return next();
 });
 
 ItemSchema.plugin(autoIncrement, {id: 'item_counter', 'inc_field': 'id'});

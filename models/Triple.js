@@ -2,6 +2,7 @@ import mongoose         from 'mongoose';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
+import {createHash}     from 'crypto';
 import Item             from './Item';
 import log              from '../utils/log';
 
@@ -24,6 +25,14 @@ const TripleSchema = mongoose.Schema({
     required: true,
     type: mongoose.Schema.Types.ObjectId,
     ref: Item
+  },
+  highestItemId: {
+    required: true,
+    type: Number
+  },
+  random: {
+    type: 'String',
+    required: true
   }
 });
 
@@ -35,13 +44,16 @@ TripleSchema.pre('validate', function(next){
     .in([this.itemA, this.itemB, this.itemC])
     .limit(3)
     .sort([['id', 'ascending']])
-    .select('_id')
+    .select('_id id')
     .exec()
     .then(items => {
 
       this.itemA = items[0]._id;
       this.itemB = items[1]._id;
       this.itemC = items[2]._id;
+
+      this.highestItemId = items[2].id;
+      this.random = createHash('md5').update(this._id.toString()).digest("hex");
 
       return next();
     })
