@@ -1,4 +1,4 @@
-import bcrypt           from 'bcrypt-nodejs';
+import bcrypt           from 'bcrypt';
 import mongoose         from 'mongoose';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
@@ -33,21 +33,19 @@ const calcPasswordHash = (password) => {
   return bcrypt.genSalt(10)
     .then(salt => {
       return bcrypt.hash(password, salt);
-    })
-    .then(hash => {
-      user.password = hash;
     });
 };
 
 
-UserSchema.pre('save', (next) => {
+UserSchema.pre('save', function(next){
   // only hash the password if it has been modified (or is new)
   if(!this.isModified('password')){
     return next();
   }
 
   calcPasswordHash(this.password)
-    .then(() => {
+    .then(hash => {
+      this.password = hash;
       return next();
     });
 });

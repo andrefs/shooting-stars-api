@@ -1,4 +1,5 @@
 import Room     from '../models/Room';
+import DisposableRoom     from '../models/DisposableRoom';
 import User     from '../models/User';
 import errors   from 'restify-errors';
 import log      from '../utils/log';
@@ -83,4 +84,17 @@ module.exports = function(app){
         next();
       });
   });
+
+
+  app.post('/quick-game',
+    function(req, res){
+      console.log('XXXXXXXXXXX req.auth', req.auth);
+      DisposableRoom.create({
+        syncPlayer: req.auth.sub
+      })
+      .then(room => {
+        res.send({room});
+      });
+    }
+  );
 };

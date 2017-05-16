@@ -10,20 +10,13 @@ import log                         from './utils/log';
 passport.use('local-register', new LocalStrategy(
   {usernameField: 'username'},
   function(username, password, cb){
-    User.findOne({'username':username}).lean().exec()
+    return User.findOne({'username':username}).lean().exec()
       .then(user => {
         // Check if user already exists
         if(user){ return cb(null, false); }
 
         // Create new user
-        else {
-          let user = new User();
-          user.username = username;
-          return User.calcPasswordHash(password);
-        }
-      })
-      .then(() => {
-        return user.save()
+        return User.create({username, password});
       })
       .then(user => {
         return cb(null, user);
