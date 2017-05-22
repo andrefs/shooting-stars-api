@@ -33,7 +33,7 @@ GameSequenceSchema.plugin(autoIncrement, {
 });
 
 GameSequenceSchema.pre('validate', function(next){
-  this.populate({path: 'triples', model: Triple}).execPopulate()
+  return this.populate({path: 'triples', model: Triple}).execPopulate()
     .then(gs => {
       gs.randomSeq = createHash('md5').update(this._id.toString()).digest("hex");
       gs.highestItemId = 1;
@@ -47,7 +47,7 @@ GameSequenceSchema.pre('validate', function(next){
 });
 
 GameSequenceSchema.post('save', function(doc, next){
-  doc.populate({path: 'triples', model: Triple}, next);
+  return doc.populate({path: 'triples', model: Triple}, next);
 });
 
 GameSequenceSchema.statics.selectNew = function(playerIDs){

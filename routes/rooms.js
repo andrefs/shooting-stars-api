@@ -88,13 +88,15 @@ module.exports = function(app){
 
   app.post('/quick-game',
     function(req, res){
-      console.log('XXXXXXXXXXX req.auth', req.auth);
-      DisposableRoom.create({
-        syncPlayer: req.auth.sub
+      DisposableRoom.createNew({
+        players: {
+          sync: req.auth.sub
+        }
       })
       .then(room => {
         res.send({room});
       });
     }
   );
+
 };
