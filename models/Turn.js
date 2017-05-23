@@ -4,6 +4,7 @@ import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import Triple           from './Triple';
 import PlayerMove       from './PlayerMove';
+import _                from 'lodash';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -39,7 +40,8 @@ const TurnSchema = mongoose.Schema({
 
 TurnSchema.methods.setMoves = function(players){
   return this.setAsyncPlayerMove(players.async)
-    .then(() => this.setBotMove());
+    .then(() => this.setBotMove())
+    .then(() => this.setCorrectAnswer());
 };
 
 
@@ -71,5 +73,18 @@ TurnSchema.methods.setBotMove = function(){
   return this.save();
 };
 
+
+TurnSchema.methods.setCorrectAnswer = function(){
+  const picks = _.map(this.moves);
+  if(picks[0] === picks[1] || picks[0] === picks[2]){
+    this.correctAnswer = picks[0];
+  } else if (picks[1] === picks[2]){
+    this.correctAnswer = picks[1];
+  } else {
+    this.correctAnswer = undefined;
+  }
+
+  return this.save();
+};
 
 module.exports = mongoose.model('Turn', TurnSchema);
