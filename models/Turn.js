@@ -15,15 +15,61 @@ const TurnSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: Triple
   },
-  moves: [{
-    default: [],
-    type: mongoose.Schema.Types.ObjectId,
-    ref: PlayerMove
-  }],
+  moves: {
+    type: {
+      sync: {
+        type: String,
+        enum: ['AB', 'BC', 'AC']
+      },
+      async: {
+        type: String,
+        enum: ['AB', 'BC', 'AC']
+      },
+      bot: {
+        type: String,
+        enum: ['AB', 'BC', 'AC']
+      }
+    }
+  },
   correctAnswer: {
     type: String,
-    enum: ['AB', 'BC', 'CA']
+    enum: ['AB', 'BC', 'AC']
   }
 });
+
+TurnSchema.methods.setMoves = function(players){
+  return this.setAsyncPlayerMove(players.async)
+    .then(() => this.setBotMove());
+};
+
+
+function generateBotMove(){
+  const picks = ['AB','BC','AC'];
+  return picks[Math.floor(Math.random()*picks.length)];
+};
+
+
+TurnSchema.methods.setAsyncPlayerMove = function(playerId){
+  if(!playerId){
+    this.moves.async = generateBotMove();
+    this.markModified('moves.async');
+    return this.save();
+  }
+
+  return PlayerMove.findOne({player: playerId, triple: this.triple})
+    .exec()
+    .then(pm => {
+      this.moves.async = pm.pick;
+      this.markModified('moves.async');
+      return this.save();
+    });
+};
+
+TurnSchema.methods.setBotMove = function(){
+  this.moves.bot = generateBotMove();
+  this.markModified('moves.bot');
+  return this.save();
+};
+
 
 module.exports = mongoose.model('Turn', TurnSchema);

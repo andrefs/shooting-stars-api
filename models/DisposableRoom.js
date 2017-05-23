@@ -3,23 +3,18 @@ import User             from './User';
 import GameSequence     from './GameSequence';
 import Triple           from './Triple';
 import Turn             from './Turn';
+import PlayerMove       from './PlayerMove';
 import Item             from './Item';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import shortid          from '../utils/shortid';
-import errors           from 'restify-errors';
+import Promise          from 'bluebird';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
 mongoose.plugin(createdModified.createdModifiedPlugin, {index: true});
 
-const today = new Date();
-const nextWeek = new Date(
-  today.getFullYear(),
-  today.getMonth(),
-  today.getDate()+7
-);
 
 const DisposableRoomSchema = mongoose.Schema({
   id: {
@@ -42,12 +37,16 @@ const DisposableRoomSchema = mongoose.Schema({
     ref: GameSequence
   },
   turns: {
-    previous: {
+    all: {
       type: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: Turn
       }],
       default: []
+    },
+    previous: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: Turn
     },
     current: {
       type: mongoose.Schema.Types.ObjectId,
@@ -78,7 +77,7 @@ DisposableRoomSchema.methods.fixFields = function(){
     {
       path: 'turns.current',
       model: Turn,
-      populate: {
+      populate: [{
         path: 'triple',
         model: Triple,
         populate: [
@@ -86,15 +85,20 @@ DisposableRoomSchema.methods.fixFields = function(){
           {path: 'itemB', model: Item},
           {path: 'itemC', model: Item},
         ]
-      }
+      }]
     },
     {
       path: 'turns.previous',
-      model: Turn
-    },
-    {
-      path: 'players.sync',
-      model: User
+      model: Turn,
+      populate: [{
+        path: 'triple',
+        model: Triple,
+        populate: [
+          {path: 'itemA', model: Item},
+          {path: 'itemB', model: Item},
+          {path: 'itemC', model: Item},
+        ]
+      }]
     },
     {
       path: 'players.async',
@@ -127,26 +131,50 @@ DisposableRoomSchema.methods.selectAsyncPlayer = function(){
 };
 
 DisposableRoomSchema.methods.nextTurn = function(){
-  const totalTurns = this.turns.previous.length;
+  const totalTurns = this.turns.all.length;
   if(this.turns.current){
-    this.turns.previous.push(this.turns.current);
+    this.turns.previous = this.turns.current;
+    this.turns.current = null;
   }
 
   return GameSequence.findOne({_id: mongoose.Types.ObjectId(this.gameSequence)})
     .populate({path: 'triples', model: Triple})
     .exec()
     .then(gs => {
-      if(this.turns.previous.length === gs.triples.length){
-        //game is finished
+      if(this.turns.all.length === gs.triples.length){
+        // game is finished
       }
       return Turn.create({
-          triple: gs.triples[totalTurns]
-        })
-        .then(turn => {
-          this.turns.current = turn;
-          return this.save();
-        })
+        triple: gs.triples[totalTurns]
+      })
+      .then(turn => {
+        this.turns.current = turn;
+        this.turns.all.push(turn);
+        return this.save();
+      });
     });
-}
+};
+
+DisposableRoomSchema.methods.addMove = function(tripleId, pick){
+  return this.populate({path:'turns.current', model:Turn}).execPopulate()
+    .then(() => {
+      if(tripleId !== this.turns.current.triple.toString()){
+        // triple id does not match, something went wrong
+      }
+
+      return PlayerMove.create({
+        player: this.players.sync,
+        triple: this.turns.current.triple,
+        pick
+      });
+    })
+    .then(pm => {
+      this.turns.current.moves.sync = pm.pick;
+      this.turns.current.markModified('moves.sync');
+      return this.turns.current.save();
+    })
+    .then(() => this.turns.current.setMoves(this.players))
+    .then(() => this);
+};
 
 module.exports = mongoose.model('DisposableRoom', DisposableRoomSchema);

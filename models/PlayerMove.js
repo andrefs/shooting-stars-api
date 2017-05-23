@@ -23,7 +23,7 @@ const PlayerMoveSchema = mongoose.Schema({
   pick: {
     required: true,
     type: String,
-    enum: ['AB', 'BC', 'CA']
+    enum: ['AB', 'BC', 'AC']
   },
 });
 

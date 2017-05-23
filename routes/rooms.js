@@ -1,9 +1,7 @@
-//import Room     from '../models/Room';
-import DisposableRoom     from '../models/DisposableRoom';
-import User     from '../models/User';
-import errors   from 'restify-errors';
-import log      from '../utils/log';
-import mongoose from 'mongoose';
+import DisposableRoom  from '../models/DisposableRoom';
+import errors          from 'restify-errors';
+import log             from '../utils/log';
+import mongoose        from 'mongoose';
 
 module.exports = function(app){
   // POST  /rooms - create new room
@@ -86,7 +84,7 @@ module.exports = function(app){
   // });
 
 
-  app.post('/quick-game',
+  app.post('/quick-games',
     function(req, res){
       DisposableRoom.createNew({
         players: {
@@ -95,8 +93,48 @@ module.exports = function(app){
       })
       .then(room => {
         res.send({room});
+      })
+      .catch(err => {
+        log.error(err);
+        return next(new errors.InvalidContentError(err.errors.name.message));
       });
     }
   );
 
+  app.get('/quick-games/:id',
+    function(req, res, next){
+      DisposableRoom.findOne({
+        id: req.params.id,
+        'players.sync': mongoose.Types.ObjectId(req.auth.sub)
+      })
+      .then(dr => dr.fixFields())
+      .then(dr => {
+        res.send(dr);
+        next();
+      })
+      .catch(err => {
+        log.error(err);
+        res.send(err);
+        next();
+      });
+    });
+
+  app.post('/quick-games/:id/moves', function(req, res, next){
+    DisposableRoom.findOne({
+      id: req.params.id,
+      'players.sync': mongoose.Types.ObjectId(req.auth.sub)
+    })
+    .then(dr => {
+      return dr.addMove(req.params.tripleId, req.params.pick);
+    })
+    .then(dr => {
+      res.send(dr);
+      next();
+    })
+    .catch(err => {
+      log.error(err);
+      res.send(err);
+      next();
+    });
+  });
 };
