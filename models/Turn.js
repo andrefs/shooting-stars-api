@@ -5,6 +5,7 @@ import createdModified  from 'mongoose-createdmodified';
 import Triple           from './Triple';
 import PlayerMove       from './PlayerMove';
 import _                from 'lodash';
+import config           from '../config';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -33,23 +34,30 @@ const TurnSchema = mongoose.Schema({
     },
     default: {}
   },
-  correctAnswer: {
-    type: String,
-    enum: ['AB', 'BC', 'AC']
+  score: {
+    type: {
+      sync:  {type: Number},
+      async: {type: Number},
+      bot:   {type: Number},
+    },
+    default: {
+      sync: 0,
+      async: 0,
+      bot: 0
+    }
   }
 }, {minimize:false});
+
+TurnSchema.pre('validate', function(next){
+  console.log('XXXXXXXXXXXX Turn.pre validate', this);
+  return next();
+});
 
 TurnSchema.methods.setMoves = function(players){
   return this.setAsyncPlayerMove(players.async)
     .then(() => this.setBotMove())
-    .then(() => this.setCorrectAnswer());
+    .then(() => this.setScores());
 };
-
-TurnSchema.pre('validate', function(next) {
-  console.log('XXXXXXXXXXX TurnSchema pre validate', this);
-  return next();
-});
-
 
 function generateBotMove(){
   const picks = ['AB','BC','AC'];
@@ -80,15 +88,35 @@ TurnSchema.methods.setBotMove = function(){
 };
 
 
-TurnSchema.methods.setCorrectAnswer = function(){
+TurnSchema.methods.setScores = function(){
+  console.log('XXXXXXXXXXX setScores');
   const picks = _.map(this.moves);
+  let correctAnswer;
   if(picks[0] === picks[1] || picks[0] === picks[2]){
-    this.correctAnswer = picks[0];
+    correctAnswer = picks[0];
   } else if (picks[1] === picks[2]){
-    this.correctAnswer = picks[1];
+    correctAnswer = picks[1];
   } else {
-    this.correctAnswer = undefined;
+    correctAnswer = undefined;
   }
+
+  console.log('XXXXXXXXXXXXXX correctAnswer', correctAnswer);
+  console.log('XXXXXXXXXXXXXX config', config);
+
+  if(correctAnswer){
+    console.log('XXXXXXXXXXXXXX this.moves', this.moves);
+    if(this.moves.sync === correctAnswer){
+      this.score.sync = config.game.scores.win || 10;
+    }
+    if(this.moves.async === correctAnswer){
+      this.score.async = config.game.scores.win || 10;
+    }
+    if(this.moves.bot === correctAnswer){
+      this.score.bot = config.game.scores.win || 10;
+    }
+  }
+  console.log('XXXXXXXXXXX score', this.score);
+  this.markModified('score');
 
   return this.save();
 };

@@ -14,7 +14,10 @@ module.exports = {
     }
   },
   game: {
-    size: 10
+    size: 10,
+    scores: {
+      win: 50
+    }
   },
   env: 'development'
 };

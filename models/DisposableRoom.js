@@ -53,6 +53,19 @@ const DisposableRoomSchema = mongoose.Schema({
       ref: Turn
     }
   },
+  currentScore: {
+    type: {
+      sync:  {type: Number, default: 0, required: true},
+      async: {type: Number, default: 0, required: true},
+      bot:   {type: Number, default: 0, required: true},
+    },
+    required: true,
+    default: {
+      sync: 0,
+      async: 0,
+      bot: 0
+    }
+  },
   isFinished: {
     type: Boolean,
     default: false,
@@ -78,7 +91,6 @@ DisposableRoomSchema.methods.selectGameSequence = function(){
 };
 
 DisposableRoomSchema.methods.fixFields = function({include}){
-  console.log('XXXXXXXXXXXx include', include);
   let populate = [
     {
       path: 'turns.current',
@@ -138,7 +150,6 @@ DisposableRoomSchema.methods.fixFields = function({include}){
       });
     }
   }
-  console.log('XXXXXXXXXXXx populate', populate);
   return this.populate(populate)
   .execPopulate()
   .then(dr => {
@@ -196,6 +207,9 @@ DisposableRoomSchema.methods.nextTurn = function(){
 DisposableRoomSchema.methods.addMove = function(tripleId, pick){
   return this.populate({path:'turns.current', model:Turn}).execPopulate()
     .then(() => {
+      if(!this.turns.current){
+        // no current turn, game must be over
+      }
       if(tripleId !== this.turns.current.triple.toString()){
         // triple id does not match, something went wrong
       }
@@ -207,14 +221,30 @@ DisposableRoomSchema.methods.addMove = function(tripleId, pick){
       });
     })
     .then(pm => {
-      console.log('XXXXXXXXXXXXx 1 turns', JSON.stringify(this.turns, null, 2));
       this.turns.current.moves.sync = pm.pick;
       this.turns.current.markModified('moves.sync');
       return this.turns.current.save();
     })
     .then(() => this.turns.current.setMoves(this.players))
     .then(() => this.nextTurn())
+    .then(() => this.setCurrentScore())
     .then(() => this.fixFields({}));
+};
+
+DisposableRoomSchema.methods.setCurrentScore = function(){
+  return this.populate({
+      path: 'turns.all',
+      model: Turn,
+    })
+    .execPopulate()
+    .then(() => {
+      ['sync', 'async', 'bot'].forEach(p => {
+        this.currentScore[p] = this.turns.all
+          .map(t => t.score[p])
+          .reduce((a,b) => a+b);
+      });
+      return this.save();
+    });
 };
 
 module.exports = mongoose.model('DisposableRoom', DisposableRoomSchema);
