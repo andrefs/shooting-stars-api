@@ -21,7 +21,6 @@ const TurnSchema = mongoose.Schema({
     ref: PlayerMove
   }],
   correctAnswer: {
-    required: true,
     type: String,
     enum: ['AB', 'BC', 'CA']
   }

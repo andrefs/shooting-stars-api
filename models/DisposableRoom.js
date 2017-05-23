@@ -65,35 +65,56 @@ DisposableRoomSchema.pre('validate', function(next) {
   return next();
 });
 
-DisposableRoomSchema.statics.createNew = function(dr){
-  return GameSequence.selectNew([dr.syncPlayer])
+DisposableRoomSchema.methods.selectGameSequence = function(){
+  return GameSequence.selectNew([this.players.sync])
     .then(gs => {
-      dr.gameSequence = gs;
-      return this.create(dr);
-    })
-    .then(dr => {
-      return dr.selectAsyncPlayer();
-    })
-    .then(dr => {
-      return dr.
-        populate([{
-          path: 'gameSequence',
-          model: GameSequence,
-          populate: {
-            path: 'triples',
-            model: Triple,
-            populate: [
-              {path: 'itemA', model: Item},
-              {path: 'itemB', model: Item},
-              {path: 'itemC', model: Item}
-            ]
-          }
-        }])
-        .execPopulate()
-    })
-    .then(dr => {
-      return dr.nextTurn();
-    })
+      this.gameSequence = gs;
+      return this.save();
+    });
+};
+
+DisposableRoomSchema.methods.fixFields = function(){
+  return this.populate([
+    {
+      path: 'turns.current',
+      model: Turn,
+      populate: {
+        path: 'triple',
+        model: Triple,
+        populate: [
+          {path: 'itemA', model: Item},
+          {path: 'itemB', model: Item},
+          {path: 'itemC', model: Item},
+        ]
+      }
+    },
+    {
+      path: 'turns.previous',
+      model: Turn
+    },
+    {
+      path: 'players.sync',
+      model: User
+    },
+    {
+      path: 'players.async',
+      model: User
+    }
+  ])
+  .execPopulate()
+  .then(dr => {
+    let _dr = dr.toObject();
+    delete _dr.gameSequence;
+    return _dr;
+  });
+};
+
+DisposableRoomSchema.statics.createNew = function(dr){
+  return this.create(dr)
+    .then(dr => dr.selectGameSequence())
+    .then(dr => dr.selectAsyncPlayer())
+    .then(dr => dr.nextTurn())
+    .then(dr => dr.fixFields())
     .catch(console.log);
 };
 
@@ -110,15 +131,21 @@ DisposableRoomSchema.methods.nextTurn = function(){
   if(this.turns.current){
     this.turns.previous.push(this.turns.current);
   }
-  if(this.turns.previous.length === this.gameSequence.triples.length){
-    //game is finished
-  }
-  this.turns.current = new Turn({
-    triple: this.gameSequence.triples[totalTurns]
-  });
-  return this.save()
-    .then(dr => {
-      return dr;
+
+  return GameSequence.findOne({_id: mongoose.Types.ObjectId(this.gameSequence)})
+    .populate({path: 'triples', model: Triple})
+    .exec()
+    .then(gs => {
+      if(this.turns.previous.length === gs.triples.length){
+        //game is finished
+      }
+      return Turn.create({
+          triple: gs.triples[totalTurns]
+        })
+        .then(turn => {
+          this.turns.current = turn;
+          return this.save();
+        })
     });
 }
 
