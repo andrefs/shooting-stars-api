@@ -128,7 +128,12 @@ module.exports = function(app){
       id: req.params.id,
       'players.sync': mongoose.Types.ObjectId(req.auth.sub)
     })
-    .then(dr => dr.addMove(req.params.tripleId, req.params.pick))
+    .then(dr => {
+      if(dr.isFinished){
+        return Promise.reject('Game is already finished');
+      }
+      return dr.addMove(req.params.tripleId, req.params.pick);
+    })
     .then(dr => {
       res.send(dr);
       next();

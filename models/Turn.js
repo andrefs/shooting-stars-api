@@ -49,7 +49,6 @@ const TurnSchema = mongoose.Schema({
 }, {minimize:false});
 
 TurnSchema.pre('validate', function(next){
-  console.log('XXXXXXXXXXXX Turn.pre validate', this);
   return next();
 });
 
@@ -89,7 +88,6 @@ TurnSchema.methods.setBotMove = function(){
 
 
 TurnSchema.methods.setScores = function(){
-  console.log('XXXXXXXXXXX setScores');
   const picks = _.map(this.moves);
   let correctAnswer;
   if(picks[0] === picks[1] || picks[0] === picks[2]){
@@ -100,11 +98,7 @@ TurnSchema.methods.setScores = function(){
     correctAnswer = undefined;
   }
 
-  console.log('XXXXXXXXXXXXXX correctAnswer', correctAnswer);
-  console.log('XXXXXXXXXXXXXX config', config);
-
   if(correctAnswer){
-    console.log('XXXXXXXXXXXXXX this.moves', this.moves);
     if(this.moves.sync === correctAnswer){
       this.score.sync = config.game.scores.win || 10;
     }
@@ -115,7 +109,6 @@ TurnSchema.methods.setScores = function(){
       this.score.bot = config.game.scores.win || 10;
     }
   }
-  console.log('XXXXXXXXXXX score', this.score);
   this.markModified('score');
 
   return this.save();

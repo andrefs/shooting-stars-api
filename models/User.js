@@ -28,11 +28,13 @@ const UserSchema = mongoose.Schema({
     required: true
   },
   playedSequences: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: GameSequence,
+    type: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: GameSequence,
+    }],
     default: []
   }
-});
+},{minimize:false});
 
 // static method
 const calcPasswordHash = (password) => {
@@ -60,6 +62,11 @@ UserSchema.statics.calcPasswordHash = calcPasswordHash;
 // instance method
 UserSchema.methods.comparePassword = function(password) {
   return bcrypt.compareSync(password, this.password);
+};
+
+UserSchema.methods.addPlayedSequence = function(seq){
+  this.playedSequences.push(seq);
+  return this.save();
 };
 
 module.exports = mongoose.model('User', UserSchema);

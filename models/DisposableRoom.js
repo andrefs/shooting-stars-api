@@ -61,9 +61,9 @@ const DisposableRoomSchema = mongoose.Schema({
     },
     required: true,
     default: {
-      sync: 0,
+      sync:  0,
       async: 0,
-      bot: 0
+      bot:   0
     }
   },
   isFinished: {
@@ -190,8 +190,7 @@ DisposableRoomSchema.methods.nextTurn = function(){
     .exec()
     .then(gs => {
       if(this.turns.all.length === gs.triples.length){
-        this.isFinished = true;
-        return this.save();
+        return this.wrapUp();
       }
       return Turn.create({
         triple: gs.triples[totalTurns]
@@ -204,6 +203,40 @@ DisposableRoomSchema.methods.nextTurn = function(){
     });
 };
 
+DisposableRoomSchema.methods.wrapUp = function(){
+  this.isFinished = true;
+  return this.populate([{
+      path: 'players.sync',
+      model: User,
+      populate: {
+        path: 'playedSequences',
+        model: GameSequence
+      }
+    },{
+      path: 'turns.all',
+      model: Turn
+    }])
+    .execPopulate()
+    .then(() => {
+      return this.players.sync.addPlayedSequence(this.gameSequence);
+    })
+    .then(() => {
+      let playerMoves = [];
+      this.turns.all.forEach(t => {
+        playerMoves.push({
+          player: this.players.sync,
+          triple: t.triple,
+          pick: t.moves.sync
+        });
+      });
+      return PlayerMove.create(playerMoves);
+    })
+    .then(() => {
+      return this.save();
+    })
+    .catch(console.log);
+};
+
 DisposableRoomSchema.methods.addMove = function(tripleId, pick){
   return this.populate({path:'turns.current', model:Turn}).execPopulate()
     .then(() => {
@@ -214,14 +247,7 @@ DisposableRoomSchema.methods.addMove = function(tripleId, pick){
         // triple id does not match, something went wrong
       }
 
-      return PlayerMove.create({
-        player: this.players.sync,
-        triple: this.turns.current.triple,
-        pick
-      });
-    })
-    .then(pm => {
-      this.turns.current.moves.sync = pm.pick;
+      this.turns.current.moves.sync = pick;
       this.turns.current.markModified('moves.sync');
       return this.turns.current.save();
     })
