@@ -101,32 +101,34 @@ module.exports = function(app){
     }
   );
 
-  app.get('/quick-games/:id',
-    function(req, res, next){
-      DisposableRoom.findOne({
-        id: req.params.id,
-        'players.sync': mongoose.Types.ObjectId(req.auth.sub)
-      })
-      .then(dr => dr.fixFields())
-      .then(dr => {
-        res.send(dr);
-        next();
-      })
-      .catch(err => {
-        log.error(err);
-        res.send(err);
-        next();
-      });
+  app.get('/quick-games/:id', function(req, res, next){
+    let include = {};
+    if(req.params.full){
+      include.allTurns = true;
+      include.gameSequence = true;
+    }
+    DisposableRoom.findOne({
+      id: req.params.id,
+      'players.sync': mongoose.Types.ObjectId(req.auth.sub)
+    })
+    .then(dr => dr.fixFields({include}))
+    .then(dr => {
+      res.send(dr);
+      next();
+    })
+    .catch(err => {
+      log.error(err);
+      res.send(err);
+      next();
     });
+  });
 
   app.post('/quick-games/:id/moves', function(req, res, next){
     DisposableRoom.findOne({
       id: req.params.id,
       'players.sync': mongoose.Types.ObjectId(req.auth.sub)
     })
-    .then(dr => {
-      return dr.addMove(req.params.tripleId, req.params.pick);
-    })
+    .then(dr => dr.addMove(req.params.tripleId, req.params.pick))
     .then(dr => {
       res.send(dr);
       next();

@@ -30,19 +30,25 @@ const TurnSchema = mongoose.Schema({
         type: String,
         enum: ['AB', 'BC', 'AC']
       }
-    }
+    },
+    default: {}
   },
   correctAnswer: {
     type: String,
     enum: ['AB', 'BC', 'AC']
   }
-});
+}, {minimize:false});
 
 TurnSchema.methods.setMoves = function(players){
   return this.setAsyncPlayerMove(players.async)
     .then(() => this.setBotMove())
     .then(() => this.setCorrectAnswer());
 };
+
+TurnSchema.pre('validate', function(next) {
+  console.log('XXXXXXXXXXX TurnSchema pre validate', this);
+  return next();
+});
 
 
 function generateBotMove(){

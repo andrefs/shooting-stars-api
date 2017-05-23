@@ -52,6 +52,11 @@ const DisposableRoomSchema = mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: Turn
     }
+  },
+  isFinished: {
+    type: Boolean,
+    default: false,
+    required: true
   }
 });
 
@@ -72,8 +77,9 @@ DisposableRoomSchema.methods.selectGameSequence = function(){
     });
 };
 
-DisposableRoomSchema.methods.fixFields = function(){
-  return this.populate([
+DisposableRoomSchema.methods.fixFields = function({include}){
+  console.log('XXXXXXXXXXXx include', include);
+  let populate = [
     {
       path: 'turns.current',
       model: Turn,
@@ -104,11 +110,42 @@ DisposableRoomSchema.methods.fixFields = function(){
       path: 'players.async',
       model: User
     }
-  ])
+  ];
+  if(include){
+    if(include.allTurns){
+      populate.push({
+        path: 'turns.all',
+        model: Turn,
+        populate: [{
+          path: 'triple',
+          model: Triple,
+          populate: [
+            {path: 'itemA', model: Item},
+            {path: 'itemB', model: Item},
+            {path: 'itemC', model: Item},
+          ]
+        }]
+      });
+    }
+    if(include.gameSequence){
+      populate.push({
+        path: 'gameSequence',
+        model: GameSequence,
+        populate: {
+          path: 'triples',
+          model: Triple
+        }
+      });
+    }
+  }
+  console.log('XXXXXXXXXXXx populate', populate);
+  return this.populate(populate)
   .execPopulate()
   .then(dr => {
     let _dr = dr.toObject();
-    delete _dr.gameSequence;
+    if(!include || !include.gameSequence){
+      delete _dr.gameSequence;
+    }
     return _dr;
   });
 };
@@ -118,7 +155,7 @@ DisposableRoomSchema.statics.createNew = function(dr){
     .then(dr => dr.selectGameSequence())
     .then(dr => dr.selectAsyncPlayer())
     .then(dr => dr.nextTurn())
-    .then(dr => dr.fixFields())
+    .then(dr => dr.fixFields({}))
     .catch(console.log);
 };
 
@@ -134,7 +171,7 @@ DisposableRoomSchema.methods.nextTurn = function(){
   const totalTurns = this.turns.all.length;
   if(this.turns.current){
     this.turns.previous = this.turns.current;
-    this.turns.current = null;
+    this.turns.current = undefined;
   }
 
   return GameSequence.findOne({_id: mongoose.Types.ObjectId(this.gameSequence)})
@@ -142,7 +179,8 @@ DisposableRoomSchema.methods.nextTurn = function(){
     .exec()
     .then(gs => {
       if(this.turns.all.length === gs.triples.length){
-        // game is finished
+        this.isFinished = true;
+        return this.save();
       }
       return Turn.create({
         triple: gs.triples[totalTurns]
@@ -169,12 +207,14 @@ DisposableRoomSchema.methods.addMove = function(tripleId, pick){
       });
     })
     .then(pm => {
+      console.log('XXXXXXXXXXXXx 1 turns', JSON.stringify(this.turns, null, 2));
       this.turns.current.moves.sync = pm.pick;
       this.turns.current.markModified('moves.sync');
       return this.turns.current.save();
     })
     .then(() => this.turns.current.setMoves(this.players))
-    .then(() => this);
+    .then(() => this.nextTurn())
+    .then(() => this.fixFields({}));
 };
 
 module.exports = mongoose.model('DisposableRoom', DisposableRoomSchema);
