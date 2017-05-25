@@ -19,18 +19,9 @@ const TurnSchema = mongoose.Schema({
   },
   moves: {
     type: {
-      sync: {
-        type: String,
-        enum: ['AB', 'BC', 'AC']
-      },
-      async: {
-        type: String,
-        enum: ['AB', 'BC', 'AC']
-      },
-      bot: {
-        type: String,
-        enum: ['AB', 'BC', 'AC']
-      }
+      sync:  {type: String, enum: ['AB', 'BC', 'AC']},
+      async: {type: String, enum: ['AB', 'BC', 'AC']},
+      bot:   {type: String, enum: ['AB', 'BC', 'AC']}
     },
     default: {}
   },
@@ -41,16 +32,12 @@ const TurnSchema = mongoose.Schema({
       bot:   {type: Number},
     },
     default: {
-      sync: 0,
+      sync:  0,
       async: 0,
-      bot: 0
+      bot:   0
     }
   }
 }, {minimize:false});
-
-TurnSchema.pre('validate', function(next){
-  return next();
-});
 
 TurnSchema.methods.setMoves = function(players){
   return this.setAsyncPlayerMove(players.async)

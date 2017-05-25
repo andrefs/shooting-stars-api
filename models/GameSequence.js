@@ -11,7 +11,6 @@ mongoose.plugin(mongooseApiQuery);
 mongoose.plugin(createdModified.createdModifiedPlugin, {index: true});
 
 const GameSequenceSchema = mongoose.Schema({
-  // TODO: validate array length
   triples: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: Triple,
@@ -35,7 +34,9 @@ GameSequenceSchema.plugin(autoIncrement, {
 GameSequenceSchema.pre('validate', function(next){
   return this.populate({path: 'triples', model: Triple}).execPopulate()
     .then(gs => {
-      gs.randomSeq = createHash('md5').update(this._id.toString()).digest("hex");
+      gs.randomSeq = createHash('md5')
+        .update(this._id.toString())
+        .digest('hex');
       gs.highestItemId = 1;
       gs.triples.forEach(t => {
         if(t.highestItemId > gs.highestItemId){
@@ -82,7 +83,7 @@ GameSequenceSchema.statics.generate = function(howMany, sequenceSize, highestIte
       }
 
       return this.create(gameSeqs);
-    })
+    });
 };
 
 module.exports = mongoose.model('GameSequence', GameSequenceSchema);
