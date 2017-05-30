@@ -7,6 +7,19 @@ import PlayerMove       from './PlayerMove';
 import _                from 'lodash';
 import config           from '../config';
 
+const ScoreSchema = mongoose.Schema({
+  sync:  {type: Number, default: 0},
+  async: {type: Number, default: 0},
+  bot:   {type: Number, default: 0}
+});
+
+
+const MovesSchema = mongoose.Schema({
+  sync:  {type: String, enum: ['AB', 'BC', 'AC']},
+  async: {type: String, enum: ['AB', 'BC', 'AC']},
+  bot:   {type: String, enum: ['AB', 'BC', 'AC']}
+});
+
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
 mongoose.plugin(createdModified.createdModifiedPlugin, {index: true});
@@ -18,24 +31,12 @@ const TurnSchema = mongoose.Schema({
     ref: Triple
   },
   moves: {
-    type: {
-      sync:  {type: String, enum: ['AB', 'BC', 'AC']},
-      async: {type: String, enum: ['AB', 'BC', 'AC']},
-      bot:   {type: String, enum: ['AB', 'BC', 'AC']}
-    },
-    default: {}
+    type: MovesSchema,
+    default: MovesSchema
   },
   score: {
-    type: {
-      sync:  {type: Number},
-      async: {type: Number},
-      bot:   {type: Number},
-    },
-    default: {
-      sync:  0,
-      async: 0,
-      bot:   0
-    }
+    type: ScoreSchema,
+    default: ScoreSchema
   }
 }, {minimize:false});
 
@@ -75,7 +76,7 @@ TurnSchema.methods.setBotMove = function(){
 
 
 TurnSchema.methods.setScores = function(){
-  const picks = _.map(this.moves);
+  const picks = [this.moves.sync, this.moves.async, this.moves.bot];
   let correctAnswer;
   if(picks[0] === picks[1] || picks[0] === picks[2]){
     correctAnswer = picks[0];
