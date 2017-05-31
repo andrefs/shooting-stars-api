@@ -88,7 +88,7 @@ DisposableRoomSchema.methods.selectGameSequence = function(){
       this.gameSequence = gs;
       return this.save();
     });
-};
+}
 
 DisposableRoomSchema.methods.fixFields = function({include}){
   let populate = [
@@ -165,15 +165,13 @@ DisposableRoomSchema.statics.createNew = function(dr){
   return this.create(dr)
     .then(dr => dr.selectGameSequence())
     .then(dr => dr.selectAsyncPlayer())
-    .then(dr => dr.nextTurn())
-    .then(dr => dr.fixFields({}))
-    .catch(console.log);
+    .then(dr => dr.nextTurn());
 };
 
 DisposableRoomSchema.methods.selectAsyncPlayer = function(){
   return User.findOne().where('playedSequences').equals(this.gameSequence)
     .then(user => {
-      this.asyncPlayer = user;
+      this.players.async = user;
       return this.save();
     });
 };
@@ -253,8 +251,7 @@ DisposableRoomSchema.methods.addMove = function(tripleId, pick){
     })
     .then(() => this.turns.current.setMoves(this.players))
     .then(() => this.nextTurn())
-    .then(() => this.setCurrentScore())
-    .then(() => this.fixFields({}));
+    .then(() => this.setCurrentScore());
 };
 
 DisposableRoomSchema.methods.setCurrentScore = function(){

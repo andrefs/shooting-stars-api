@@ -5,6 +5,7 @@ import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import autoIncrement    from 'mongoose-sequence';
 import {createHash}     from 'crypto';
+import log              from '../utils/log';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -65,6 +66,10 @@ GameSequenceSchema.statics.selectNew = function(playerIDs){
       });
 
       return this.findOne().where('_id').nin([...gameSeqIDs]).exec();
+    })
+    .then(gs => {
+      if(!gs){ throw new Error("Could not select a new GameSequence"); }
+      return gs;
     });
 };
 
@@ -82,6 +87,8 @@ GameSequenceSchema.statics.generate = function(howMany, sequenceSize, highestIte
         }));
       }
 
+      log.debug('GameSequence('+howMany+','+sequenceSize+','+highestItemId+
+        ') called, creating '+gameSeqs.length+' game sequences...');
       return this.create(gameSeqs);
     });
 };
