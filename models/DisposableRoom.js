@@ -10,6 +10,8 @@ import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import shortid          from '../utils/shortid';
 import Promise          from 'bluebird';
+import {NoCurrentTurnError, TripleIdMismatchError}  from '../utils/errors';
+import log              from '../utils/log';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -231,8 +233,7 @@ DisposableRoomSchema.methods.wrapUp = function(){
     })
     .then(() => {
       return this.save();
-    })
-    .catch(console.log);
+    });
 };
 
 DisposableRoomSchema.methods.addMove = function(tripleId, pick){
@@ -240,9 +241,10 @@ DisposableRoomSchema.methods.addMove = function(tripleId, pick){
     .then(() => {
       if(!this.turns.current){
         // no current turn, game must be over
+        throw new NoCurrentTurnError();
       }
       if(tripleId !== this.turns.current.triple.toString()){
-        // triple id does not match, something went wrong
+        throw new TripleIdMismatchError();
       }
 
       this.turns.current.moves.sync = pick;

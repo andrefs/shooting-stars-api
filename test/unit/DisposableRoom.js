@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import User     from '../../models/User';
 import Item     from '../../models/Item';
+import Turn     from '../../models/Turn';
 import Triple   from '../../models/Triple';
 import GameSequence  from '../../models/GameSequence';
 import DisposableRoom  from '../../models/DisposableRoom';
@@ -8,6 +9,7 @@ import sinon    from 'sinon';
 import chai     from 'chai';
 import Promise  from 'bluebird';
 import chaiAsPromised from 'chai-as-promised';
+import {NoCurrentTurnError} from '../../utils/errors';
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -32,6 +34,7 @@ describe('DisposableRoom', () => {
         DisposableRoom.remove().exec(),
         Item.remove().exec(),
         Triple.remove().exec(),
+        Turn.remove().exec(),
         GameSequence.remove().exec(),
         Promise.promisify(Item.counterReset)('item_counter'),
         Promise.mapSeries([
@@ -112,6 +115,38 @@ describe('DisposableRoom', () => {
       }))
       .then(dr => {
         expect(dr.gameSequence).to.not.be.undefined;
+      });
+  });
+
+  it('sets the current score', function(){
+    return Turn.create([
+        {score: {async: 50, sync: 50, bot: 50}, triple},
+        {score: {async:  0, sync:  0, bot:  0}, triple},
+        {score: {async: 50, sync:  0, bot:  0}, triple},
+        {score: {async:  0, sync: 50, bot:  0}, triple},
+        {score: {async:  0, sync:  0, bot: 50}, triple}
+      ])
+      .then(turns => DisposableRoom.create({
+        players: {sync: player._id},
+        turns: {all: turns}
+      }))
+      .then(dr => dr.setCurrentScore())
+      .then(dr => {
+        expect(dr.currentScore).to.deep.equal({
+          sync:  100,
+          async: 100,
+          bot:   100
+        });
+      });
+  });
+
+  it('throws when adding move but there\'s no current turn', function(){
+    return DisposableRoom.createNew({
+        players: {sync: player._id}
+      })
+      .then(dr => {
+        dr.turns.current = undefined;
+        expect(dr.addMove()).to.be.eventually.rejectedWith(NoCurrentTurnError);
       });
   });
 
