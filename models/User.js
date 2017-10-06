@@ -1,5 +1,5 @@
 import bcrypt           from 'bcrypt';
-import mongoose         from 'mongoose';
+import mongoose         from '../utils/mongoose';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
@@ -30,9 +30,13 @@ const UserSchema = mongoose.Schema({
   playedSequences: {
     type: [{
       type: mongoose.Schema.Types.ObjectId,
-      ref: GameSequence,
+      ref: GameSequence
     }],
     default: []
+  },
+  currentGameInstance: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'GameInstance'
   }
 },{minimize:false});
 
