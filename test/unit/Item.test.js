@@ -19,8 +19,7 @@ describe('Item', () => {
       description: 'itemDesc',
       imageUrl: 'itemUrl'
     });
-    item.save().then(doc => {
-      expect(doc.random).to.equal('9be14f3049859177498fa0f454fd3fa2');
+    return item.save().then(doc => {
       expect(doc.id).to.be.a('number');
     });
   });
