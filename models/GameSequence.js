@@ -1,4 +1,4 @@
-import mongoose         from 'mongoose';
+import mongoose         from '../utils/mongoose';
 import Triple           from './Triple';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
