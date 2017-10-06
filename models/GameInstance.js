@@ -77,11 +77,17 @@ GameInstanceSchema.statics.createNew = function(gi){
     .then(gs => {
       gameInst.gameSequence = gs;
       return gameInst.save();
-    })
-    .catch(err => {
-      log.error(err);
     });
 };
+
+GameInstanceSchema.methods.selectAsyncPlayer = function(){
+  return User.findOne().where('playedSequences').equals(this.gameSequence)
+    .then(user => {
+      this.players.async = user;
+      return this.save();
+    });
+};
+
 
 GameInstanceSchema.methods.nextTurn = function(){
   let turnCount;
@@ -103,6 +109,102 @@ GameInstanceSchema.methods.nextTurn = function(){
   turn.save()
     .then(turn => {
       this.currentTurn = turn;
+      return this.save();
+    });
+};
+
+
+GameInstanceSchema.methods.nextTurn = function(){
+  const totalTurns = this.turns.all.length;
+  if(this.turns.current){
+    this.turns.previous = this.turns.current;
+    this.turns.current = undefined;
+  }
+
+  return GameSequence.findOne({_id: mongoose.Types.ObjectId(this.gameSequence)})
+    .populate({path: 'triples', model: Triple})
+    .exec()
+    .then(gs => {
+      if(this.turns.all.length === gs.triples.length){
+        return this.wrapUp();
+      }
+      return Turn.create({
+        triple: gs.triples[totalTurns]
+      })
+      .then(turn => {
+        this.turns.current = turn;
+        this.turns.all.push(turn);
+        return this.save();
+      });
+    });
+};
+
+
+GameInstanceSchema.methods.wrapUp = function(){
+  this.isFinished = true;
+  return this.populate([{
+      path: 'players.sync',
+      model: User,
+      populate: {
+        path: 'playedSequences',
+        model: GameSequence
+      }
+    },{
+      path: 'turns.all',
+      model: Turn
+    }])
+    .execPopulate()
+    .then(() => {
+      return this.players.sync.addPlayedSequence(this.gameSequence);
+    })
+    .then(() => {
+      let playerMoves = [];
+      this.turns.all.forEach(t => {
+        playerMoves.push({
+          player: this.players.sync,
+          triple: t.triple,
+          pick: t.moves.sync
+        });
+      });
+      return PlayerMove.create(playerMoves);
+    })
+    .then(() => {
+      return this.save();
+    });
+};
+
+GameInstanceSchema.methods.addMove = function(tripleId, pick){
+  return this.populate({path:'turns.current', model:Turn}).execPopulate()
+    .then(() => {
+      if(!this.turns.current){
+        // no current turn, game must be over
+        throw new NoCurrentTurnError();
+      }
+      if(tripleId !== this.turns.current.triple.toString()){
+        throw new TripleIdMismatchError();
+      }
+
+      this.turns.current.moves.sync = pick;
+      this.turns.current.markModified('moves.sync');
+      return this.turns.current.save();
+    })
+    .then(() => this.turns.current.setMoves(this.players))
+    .then(() => this.nextTurn())
+    .then(() => this.setCurrentScore());
+};
+
+GameInstanceSchema.methods.setCurrentScore = function(){
+  return this.populate({
+      path: 'turns.all',
+      model: Turn,
+    })
+    .execPopulate()
+    .then(() => {
+      ['sync', 'async', 'bot'].forEach(p => {
+        this.currentScore[p] = this.turns.all
+          .map(t => t.score[p])
+          .reduce((a,b) => a+b);
+      });
       return this.save();
     });
 };
