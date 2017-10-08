@@ -89,6 +89,7 @@ GameSequenceSchema.statics.generate = function(howMany, sequenceSize, highestIte
 
       log.debug('GameSequence('+howMany+','+sequenceSize+','+highestItemId+
         ') called, creating '+gameSeqs.length+' game sequences...');
+
       return this.create(gameSeqs);
     });
 };

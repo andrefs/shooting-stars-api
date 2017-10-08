@@ -19,6 +19,7 @@ const expect = chai.expect;
 describe('GameInstance', () => {
   let player;
   let triple;
+  let gameSeq;
   const imageUrl = 'http://ww.example.com';
 
   const handleErr = (err) => {
@@ -47,15 +48,14 @@ describe('GameInstance', () => {
       )
       .then(() => Triple.findOne().exec())
       .then(t  => { triple = t; })
+      .then(() => GameSequence.generate(1,1,3))
+      .then(gs => { gameSeq = gs[0]; })
       .then(() => User.create({username, password}))
       .then(p  => { player = p; });
   });
 
   it('selects new game sequence', function(){
-    return GameSequence.generate(1,1,3)
-      .then(() => GameInstance.createNew({
-        players: {sync: player._id}
-      }))
+      return GameInstance.createNew(player._id)
       .then(gi => {
         expect(gi.gameSequence).to.not.be.undefined;
       });
@@ -64,9 +64,7 @@ describe('GameInstance', () => {
   it('throws if it can\'t select a game sequence', function(){
     return GameSequence.remove().exec()
       .then(() => {
-        const p = GameInstance.createNew({
-          players: {sync: player._id}
-        });
+        const p = GameInstance.createNew(player._id);
         expect(p).to.eventually.be.rejected;
       });
   });
@@ -76,12 +74,9 @@ describe('GameInstance', () => {
     const password = 'password';
     let async_player;
 
-    return GameSequence.generate(1,1,3)
-      .then(([gs]) => Promise.join(
-        User.create({username, password, playedSequences: [gs._id]}),
-        GameInstance.createNew({
-          players: {sync: player._id}
-        })))
+    return Promise.join(
+        User.create({username, password, playedSequences: [gameSeq._id]}),
+        GameInstance.createNew(player._id))
       .then(([user, gi]) => {
         async_player = user;
         return gi.selectAsyncPlayer();
@@ -93,59 +88,50 @@ describe('GameInstance', () => {
   });
 
   it('does not assign async player if a suitable one cannot be found', function(){
-    return GameSequence.generate(1,1,3)
-      .then(gs => GameInstance.createNew({
-        players: {sync: player._id}
-      }))
+    return GameInstance.createNew(player._id)
       .then(gi => gi.selectAsyncPlayer())
       .then(gi => {
         expect(gi.players.async).to.be.null;
       });
   });
 
-  // it('bootraps properties when created', function(){
-  //   return GameSequence.generate(1,1,3)
-  //     .then(() => GameInstance.createNew({
-  //       players: {sync: player._id}
-  //     }))
-  //     .then(gi => {
-  //       expect(gi.gameSequence).to.not.be.undefined;
-  //     });
-  // });
+  it('bootraps properties when created', function(){
+    return GameInstance.createNew(player._id)
+      .then(gi => {
+        expect(gi.gameSequence).to.not.be.undefined;
+      });
+  });
 
-  // it('sets the current score', function(){
-  //   return Turn.create([
-  //       {score: {async: 50, sync: 50, bot: 50}, triple},
-  //       {score: {async:  0, sync:  0, bot:  0}, triple},
-  //       {score: {async: 50, sync:  0, bot:  0}, triple},
-  //       {score: {async:  0, sync: 50, bot:  0}, triple},
-  //       {score: {async:  0, sync:  0, bot: 50}, triple}
-  //     ])
-  //     .then(turns => GameInstance.createNew({
-  //       players: {sync: player._id},
-  //       turns: {all: turns}
-  //     }))
-  //     .then(gi => gi.setCurrentScore())
-  //     .then(gi => {
-  //       expect(gi.currentScore).to.deep.equal({
-  //         sync:  100,
-  //         async: 100,
-  //         bot:   100
-  //       });
-  //     });
-  // });
+  it('sets the current score', function(){
+    return Promise.join(
+      GameInstance.createNew(player._id),
+      Turn.create([
+        {score: {async: 50, sync: 50, bot: 50}, triple},
+        {score: {async:  0, sync:  0, bot:  0}, triple},
+        {score: {async: 50, sync:  0, bot:  0}, triple},
+        {score: {async:  0, sync: 50, bot:  0}, triple},
+        {score: {async:  0, sync:  0, bot: 50}, triple}
+      ])
+    ).then(([gi, turns]) => {
+      gi.turns = {all: turns};
+      return gi.save();
+    })
+    .then(gi => gi.setCurrentScore())
+    .then(gi => {
+      expect(gi.currentScore).to.deep.equal({
+        sync:  100,
+        async: 100,
+        bot:   100
+      });
+    });
+  });
 
-  // it('throws when adding move but there\'s no current turn', function(){
-  //   return GameInstance.createNew({
-  //       players: {sync: player._id}
-  //     })
-  //     .then(gi => {
-  //       gi.turns.current = undefined;
-  //       expect(gi.addMove()).to.be.eventually.rejectedWith(NoCurrentTurnError);
-  //     });
-  // });
-
-
-
+  it('throws when adding move but there\'s no current turn', function(){
+    return GameInstance.createNew(player._id)
+      .then(gi => {
+        gi.turns.current = undefined;
+        expect(gi.addMove()).to.be.eventually.rejectedWith(NoCurrentTurnError);
+      });
+  });
 
 });

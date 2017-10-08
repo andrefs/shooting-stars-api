@@ -71,12 +71,27 @@ const GameInstanceSchema = mongoose.Schema({
   }
 });
 
-GameInstanceSchema.statics.createNew = function(gi){
-  let gameInst = new this(gi);
-  return GameSequence.selectNew([gameInst.players.sync])
-    .then(gs => {
+
+/* Creates a new game instance and adds a player and a new game sequence to it.
+ * Adds the created game instance to player.currentGameInstance.
+ * @param {Player} syncId
+ */
+GameInstanceSchema.statics.createNew = function(syncId){
+  let gameInst = new this({players: { sync: syncId}});
+  return Promise.join(
+      User.findOne({_id: mongoose.Types.ObjectId(syncId)}).exec(),
+      GameSequence.selectNew([gameInst.players.sync])
+    )
+    .then(([player, gs]) => {
       gameInst.gameSequence = gs;
-      return gameInst.save();
+      player.currentGameInstance = gameInst;
+      return Promise.join(
+        gameInst.save(),
+        player.save()
+      );
+    })
+    .then(([gi, player]) => {
+      return gi;
     });
 };
 
