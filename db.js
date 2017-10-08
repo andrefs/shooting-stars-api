@@ -12,12 +12,9 @@ if(!mongo_uri && config && config.db && config.db.uri){
     log.info(`MongoDB URI not set, using hardcoded default: ${mongo_uri} ...`);
 }
 
-let db = mongoose.connect(config.db.uri).connection;
+let db = mongoose.connect(config.db.uri, {useMongoClient: true});
 log.info(`Connection to ${config.db.uri}`);
-db.on('error', function(err) {
-  log.error('Mongoose default connection error: ' + err)
-  process.exit(1)
-});
+
 if(process.env.NODE_ENV === 'development'){
   mongoose.set('debug', true);
 }
