@@ -7,8 +7,8 @@
     "dev:initdb": "mongofixtures shooting-stars-dev db/fixtures_dev.js",
     "start": "node index.js",
     "test": "npm run test-unit",
-    "test-unit": "NODE_ENV=test mocha --compilers js:babel-core/register test/unit",
-    "test-integration": "NODE_ENV=test mocha --compilers js:babel-core/register test/integration",
+    "test-unit": "NODE_ENV=test mocha --require babel-register test/unit",
+    "test-integration": "NODE_ENV=test mocha --require babel-register test/integration",
     "lint": "eslint **/*.js || exit 0"
   },
   "babel": {

@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import User     from '../../models/User';
 import Item     from '../../models/Item';
 import Turn     from '../../models/Turn';
@@ -7,10 +6,10 @@ import GameSequence   from '../../models/GameSequence';
 import GameInstance   from '../../models/GameInstance';
 import sinon    from 'sinon';
 import chai from 'chai';
-import db       from '../../db';
 import Promise  from 'bluebird';
 import chaiAsPromised from 'chai-as-promised';
 import {NoCurrentTurnError} from '../../utils/errors';
+require('../mongoose-helper');
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;

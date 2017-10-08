@@ -1,7 +1,7 @@
-import mongoose from 'mongoose';
 import User     from '../../models/User';
 import sinon    from 'sinon';
 import {expect} from 'chai';
+require('../mongoose-helper');
 
 describe('User', () => {
   let user;

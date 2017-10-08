@@ -1,8 +1,7 @@
-import mongoose from 'mongoose';
 import Item     from '../../models/Item';
 import sinon    from 'sinon';
 import {expect} from 'chai';
-import db       from '../../db';
+require('../mongoose-helper');
 
 describe('Item', () => {
   let user;

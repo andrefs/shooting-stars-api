@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import Turn     from '../../models/Turn';
 import Item     from '../../models/Item';
 import Triple   from '../../models/Triple';
@@ -8,6 +7,7 @@ import sinon    from 'sinon';
 import chai     from 'chai';
 import Promise  from 'bluebird';
 import chaiAsPromised from 'chai-as-promised';
+require('../mongoose-helper');
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;

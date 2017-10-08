@@ -1,12 +1,11 @@
-import mongoose from 'mongoose';
 import Item     from '../../models/Item';
 import Triple   from '../../models/Triple';
 import GameSequence   from '../../models/GameSequence';
 import sinon    from 'sinon';
 import chai from 'chai';
-import db       from '../../db';
 import Promise  from 'bluebird';
 import chaiAsPromised from 'chai-as-promised';
+require('../mongoose-helper');
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
