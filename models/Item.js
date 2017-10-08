@@ -3,12 +3,13 @@ import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import kcomb            from 'foreach-combination';
-import autoIncrement    from 'mongoose-sequence';
 import {reject}         from 'lodash';
+import MongooseSequence from 'mongoose-sequence';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
 mongoose.plugin(createdModified.createdModifiedPlugin, {index: true});
+const autoIncrement = MongooseSequence(mongoose);
 
 const ItemSchema = mongoose.Schema({
   name: {

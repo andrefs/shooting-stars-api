@@ -72,9 +72,9 @@ const GameInstanceSchema = mongoose.Schema({
 });
 
 
-/* Creates a new game instance and adds a player and a new game sequence to it.
- * Adds the created game instance to player.currentGameInstance.
- * @param {Player} syncId
+/** Creates a new game instance and adds a player and a new game sequence to it.
+    Adds the created game instance to player.currentGameInstance.
+    @param {Player} syncId
  */
 GameInstanceSchema.statics.createNew = function(syncId){
   let gameInst = new this({players: { sync: syncId}});

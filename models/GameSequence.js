@@ -3,13 +3,14 @@ import Triple           from './Triple';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
-import autoIncrement    from 'mongoose-sequence';
 import {createHash}     from 'crypto';
 import log              from '../utils/log';
+import MongooseSequence from 'mongoose-sequence';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
 mongoose.plugin(createdModified.createdModifiedPlugin, {index: true});
+const autoIncrement = MongooseSequence(mongoose);
 
 const GameSequenceSchema = mongoose.Schema({
   triples: [{
