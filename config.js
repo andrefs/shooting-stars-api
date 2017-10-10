@@ -1,5 +1,5 @@
 import fs from 'fs';
-let log = require('./utils/log');
+import log from './utils/log';
 
 
 // Config files priority (only one gets loaded):

@@ -52,27 +52,11 @@ server.get('/status', (req, res, next) => {
   next();
 });
 
+// add routes
+require('./routes/users')(server, passport);
+require('./routes/games')(server);
+require('./routes/gameSequences')(server);
+require('./routes/items')(server);
+require('./routes/triples')(server);
 
-
-/**
- * Lift Server, Connect to DB & Bind Routes
- */
-server.listen(config.server.port, function() {
-  db.once('open', (err) => {
-    log.info(`Connection to ${config.db.uri}`);
-
-    // add routes
-    require('./routes/users')(server, passport);
-    require('./routes/games')(server);
-    require('./routes/gameSequences')(server);
-    require('./routes/items')(server);
-    require('./routes/triples')(server);
-
-    log.info(
-      `${server.name} v${config.version} running on http://${config.server.host}:${config.server.port} in ${config.env} environment.`
-    );
-	});
-});
-
-
-module.exports = server;
+export default server;
