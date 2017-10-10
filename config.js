@@ -1,7 +1,6 @@
 import fs from 'fs';
 import log from './utils/log';
 
-
 // Config files priority (only one gets loaded):
 // - test (if NODE_ENV === test
 // - local (if config/config.local.js exists)

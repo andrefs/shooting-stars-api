@@ -1,9 +1,9 @@
 // TODO drop babel when node starts supporting dynamic exports
 require('babel-register');  //enables ES6 when require'ing modules
-const config = require('./config');
-const server = require('./server').default;        // loads server transpiling with babel
-const db     = require('./db').default;
-const log    = require('./utils/log').default;
+const config   = require('./config');
+const server   = require('./server').default;        // loads server transpiling with babel
+const db       = require('./db').default;
+const log      = require('./utils/log').default;
 const passport = require('./passport').default;
 
 /**
