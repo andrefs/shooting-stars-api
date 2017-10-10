@@ -1,6 +1,5 @@
-import DisposableRoom  from '../models/DisposableRoom';
 import errors          from 'restify-errors';
-import log             from '../utils/log';
+import log             from '../lib/log';
 import mongoose        from 'mongoose';
 
 module.exports = function(app){
@@ -84,64 +83,64 @@ module.exports = function(app){
   // });
 
 
-  app.post('/quick-games',
-    function(req, res){
-      DisposableRoom.createNew({
-        players: {
-          sync: req.auth.sub
-        }
-      })
-      .then(room => {
-        res.send({room});
-      })
-      .catch(err => {
-        log.error(err);
-        return next(new errors.InvalidContentError(err.errors.name.message));
-      });
-    }
-  );
+  // app.post('/quick-games',
+  //   function(req, res){
+  //     DisposableRoom.createNew({
+  //       players: {
+  //         sync: req.auth.sub
+  //       }
+  //     })
+  //     .then(room => {
+  //       res.send({room});
+  //     })
+  //     .catch(err => {
+  //       log.error(err);
+  //       return next(new errors.InvalidContentError(err.errors.name.message));
+  //     });
+  //   }
+  // );
 
-  app.get('/quick-games/:id', function(req, res, next){
-    let include = {};
-    if(req.params.full){
-      include.allTurns = true;
-      include.gameSequence = true;
-    }
-    DisposableRoom.findOne({
-      id: req.params.id,
-      'players.sync': mongoose.Types.ObjectId(req.auth.sub)
-    })
-    .then(dr => dr.fixFields({include}))
-    .then(dr => {
-      res.send(dr);
-      next();
-    })
-    .catch(err => {
-      log.error(err);
-      res.send(err);
-      next();
-    });
-  });
+  // app.get('/quick-games/:id', function(req, res, next){
+  //   let include = {};
+  //   if(req.params.full){
+  //     include.allTurns = true;
+  //     include.gameSequence = true;
+  //   }
+  //   DisposableRoom.findOne({
+  //     id: req.params.id,
+  //     'players.sync': mongoose.Types.ObjectId(req.auth.sub)
+  //   })
+  //   .then(dr => dr.fixFields({include}))
+  //   .then(dr => {
+  //     res.send(dr);
+  //     next();
+  //   })
+  //   .catch(err => {
+  //     log.error(err);
+  //     res.send(err);
+  //     next();
+  //   });
+  // });
 
-  app.post('/quick-games/:id/moves', function(req, res, next){
-    DisposableRoom.findOne({
-      id: req.params.id,
-      'players.sync': mongoose.Types.ObjectId(req.auth.sub)
-    })
-    .then(dr => {
-      if(dr.isFinished){
-        return Promise.reject('Game is already finished');
-      }
-      return dr.addMove(req.params.tripleId, req.params.pick);
-    })
-    .then(dr => {
-      res.send(dr);
-      next();
-    })
-    .catch(err => {
-      log.error(err);
-      res.send(err);
-      next();
-    });
-  });
+  // app.post('/quick-games/:id/moves', function(req, res, next){
+  //   DisposableRoom.findOne({
+  //     id: req.params.id,
+  //     'players.sync': mongoose.Types.ObjectId(req.auth.sub)
+  //   })
+  //   .then(dr => {
+  //     if(dr.isFinished){
+  //       return Promise.reject('Game is already finished');
+  //     }
+  //     return dr.addMove(req.params.tripleId, req.params.pick);
+  //   })
+  //   .then(dr => {
+  //     res.send(dr);
+  //     next();
+  //   })
+  //   .catch(err => {
+  //     log.error(err);
+  //     res.send(err);
+  //     next();
+  //   });
+  // });
 };

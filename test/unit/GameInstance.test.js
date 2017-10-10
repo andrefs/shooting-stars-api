@@ -8,7 +8,7 @@ import sinon    from 'sinon';
 import chai from 'chai';
 import Promise  from 'bluebird';
 import chaiAsPromised from 'chai-as-promised';
-import {NoCurrentTurnError} from '../../utils/errors';
+import {NoCurrentTurnError} from '../../lib/errors';
 require('../mongoose-helper');
 
 chai.use(chaiAsPromised);

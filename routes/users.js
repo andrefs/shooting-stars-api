@@ -1,8 +1,8 @@
 import User     from '../models/User';
 import errors   from 'restify-errors';
-import log      from '../utils/log';
+import log      from '../lib/log';
 import config   from '../config';
-import {getJwt} from '../utils/jwt';
+import {getJwt} from '../lib/jwt';
 
 module.exports = function(app, passport){
   app.get('/users', function(req, res, next){

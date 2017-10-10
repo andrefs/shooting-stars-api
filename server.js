@@ -2,9 +2,9 @@ import config        from './config';
 import restify       from 'restify';
 import mongoose      from 'mongoose';
 import db            from './db';
-import log           from './utils/log';
+import log           from './lib/log';
 import bunyanWinston from 'bunyan-winston-adapter';
-import passport      from './passport';
+import passport      from './lib/passport';
 import jwt           from 'restify-jwt';
 import url           from 'url';
 

@@ -4,14 +4,14 @@ import Turn             from './Turn';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
-import log              from '../utils/log';
+import log              from '../lib/log';
 import User             from './User';
 import Triple           from './Triple';
 import PlayerMove       from './PlayerMove';
 import Item             from './Item';
-import shortid          from '../utils/shortid';
+import shortid          from '../lib/shortid';
 import Promise          from 'bluebird';
-import {NoCurrentTurnError, TripleIdMismatchError}  from '../utils/errors';
+import {NoCurrentTurnError, TripleIdMismatchError}  from '../lib/errors';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);

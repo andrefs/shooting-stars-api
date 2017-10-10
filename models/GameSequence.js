@@ -4,7 +4,7 @@ import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import {createHash}     from 'crypto';
-import log              from '../utils/log';
+import log              from '../lib/log';
 import MongooseSequence from 'mongoose-sequence';
 
 mongoose.plugin(pagPlugin);
