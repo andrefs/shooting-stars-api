@@ -1,7 +1,7 @@
 import Choice from '../models/Choice';
 import errors from 'restify-errors';
 import log from '../utils/log';
-import mongoose from '../utils/mongoose';
+import mongoose from 'mongoose';
 
 module.exports = function(app){
   app.post('/choices', function(req, res, next){

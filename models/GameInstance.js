@@ -1,4 +1,4 @@
-import mongoose         from '../utils/mongoose';
+import mongoose         from 'mongoose';
 import GameSequence     from './GameSequence';
 import Turn             from './Turn';
 import pagPlugin        from 'mongoose-paginate';

@@ -58,14 +58,8 @@ server.get('/status', (req, res, next) => {
  * Lift Server, Connect to DB & Bind Routes
  */
 server.listen(config.server.port, function() {
-  db.once('open', function(err) {
-    if(err){
-      log.error('Mongoose default connection error: ' + err)
-      process.exit(1)
-    }
-    log.info(
-      `${server.name} v${config.version} running on http://${config.server.host}:${config.server.port} in ${config.env} environment.`
-    );
+  db.once('open', (err) => {
+    log.info(`Connection to ${config.db.uri}`);
 
     // add routes
     require('./routes/users')(server, passport);
@@ -73,8 +67,11 @@ server.listen(config.server.port, function() {
     require('./routes/gameSequences')(server);
     require('./routes/items')(server);
     require('./routes/triples')(server);
-  });
 
+    log.info(
+      `${server.name} v${config.version} running on http://${config.server.host}:${config.server.port} in ${config.env} environment.`
+    );
+	});
 });
 
 

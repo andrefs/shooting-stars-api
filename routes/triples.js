@@ -2,7 +2,7 @@ import Triple from '../models/Triple';
 import Item from '../models/Item';
 import errors from 'restify-errors';
 import log from '../utils/log';
-import mongoose from '../utils/mongoose';
+import mongoose from 'mongoose';
 
 module.exports = function(app){
 

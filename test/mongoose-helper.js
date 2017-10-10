@@ -1,4 +1,4 @@
-import mongoose from '../utils/mongoose';
+import mongoose from 'mongoose';
 
 let conn;
 

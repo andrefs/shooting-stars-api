@@ -3,7 +3,7 @@
 import Item from '../models/Item';
 import GameSequence from '../models/GameSequence';
 import errors from 'restify-errors';
-import mongoose from '../utils/mongoose';
+import mongoose from 'mongoose';
 
 module.exports = function(app){
 

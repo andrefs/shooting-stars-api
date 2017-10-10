@@ -1,5 +1,5 @@
 import bcrypt           from 'bcrypt';
-import mongoose         from '../utils/mongoose';
+import mongoose         from 'mongoose';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
