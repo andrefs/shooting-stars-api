@@ -6,6 +6,7 @@ import log           from './utils/log';
 import bunyanWinston from 'bunyan-winston-adapter';
 import passport      from './passport';
 import jwt           from 'restify-jwt';
+import url           from 'url';
 
 /**
  * Initialize Server
@@ -24,15 +25,17 @@ server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser({mapParams: true}));
 server.use(restify.fullResponse());
 
-var unauthPaths = [
-    '/status',
-    '/login',
-    '/register',
-];
-server.use(jwt({
-  secret: config.auth.jwt.secret,
-  requestProperty: 'auth'
-}).unless({path: unauthPaths}));
+/**
+ * Prevent access to unauthorized paths
+ */
+var unauthPaths = ['/status','/login','/register'];
+server.use(jwt({secret: config.auth.jwt.secret, requestProperty: 'auth'})
+  .unless(req => {
+    if(config.auth.disabled){ return true; }
+    const pathname = url.parse(req.url).pathname;
+    if(unauthPaths.indexOf(pathname) >= 0){ return true; }
+    return false;
+  }));
 
 /**
  * Error Handling
@@ -49,6 +52,8 @@ server.get('/status', (req, res, next) => {
   next();
 });
 
+
+
 /**
  * Lift Server, Connect to DB & Bind Routes
  */
@@ -64,7 +69,7 @@ server.listen(config.server.port, function() {
 
     // add routes
     require('./routes/users')(server, passport);
-    require('./routes/rooms')(server);
+    require('./routes/games')(server);
     require('./routes/gameSequences')(server);
     require('./routes/items')(server);
     require('./routes/triples')(server);
