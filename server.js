@@ -2,11 +2,13 @@ import config        from './config';
 import restify       from 'restify';
 import mongoose      from 'mongoose';
 import db            from './db';
-import log           from './lib/log';
+import {log, stream} from './lib/logger';
 import bunyanWinston from 'bunyan-winston-adapter';
 import passport      from './lib/passport';
 import jwt           from 'restify-jwt';
 import url           from 'url';
+import morgan        from 'morgan';
+import uuid          from 'node-uuid';
 
 /**
  * Initialize Server
@@ -20,10 +22,22 @@ global.server = restify.createServer({
 /**
  * Middleware
  */
+server.use(restify.plugins.requestLogger());
 server.use(restify.plugins.jsonBodyParser({mapParams: true}));
 server.use(restify.plugins.acceptParser(server.acceptable));
 server.use(restify.plugins.queryParser({mapParams: true}));
 server.use(restify.plugins.fullResponse());
+
+/**
+ * Request id and logging
+ */
+
+morgan.token('id', function getId (req) {
+  return req.id
+});
+
+server.use((req,res,next) => { req.id = uuid.v4(); return next(); });
+server.use(morgan(':id :method :url :response-time',{stream}));
 
 /**
  * Prevent access to unauthorized paths

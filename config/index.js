@@ -1,5 +1,5 @@
 import fs from 'fs';
-import log from '../lib/log';
+import {log} from '../lib/logger';
 
 // Config files priority (only one gets loaded):
 // - test (if NODE_ENV === test

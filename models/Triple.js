@@ -4,7 +4,7 @@ import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import {createHash}     from 'crypto';
 import Item             from './Item';
-import log              from '../lib/log';
+import {log}            from '../lib/logger';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);

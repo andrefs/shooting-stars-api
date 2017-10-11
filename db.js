@@ -1,6 +1,6 @@
 import config   from './config';
 import mongoose from 'mongoose';
-import log      from './lib/log';
+import {log}    from './lib/logger';
 
 // Database connection
 

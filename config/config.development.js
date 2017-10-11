@@ -20,5 +20,9 @@ module.exports = {
       win: 50
     }
   },
-  env: 'development'
+  env: 'development',
+  log: {
+    level: 'info',
+    dir: '/tmp'
+  }
 };

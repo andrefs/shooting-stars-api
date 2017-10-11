@@ -4,7 +4,7 @@ import Turn             from './Turn';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
-import log              from '../lib/log';
+import {log}            from '../lib/logger';
 import User             from './User';
 import Triple           from './Triple';
 import PlayerMove       from './PlayerMove';

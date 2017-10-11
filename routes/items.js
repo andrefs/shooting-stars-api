@@ -2,7 +2,7 @@
 
 import Item from '../models/Item';
 import errors from 'restify-errors';
-import log from '../lib/log';
+import {log}           from '../lib/logger';
 import mongoose from 'mongoose';
 
 module.exports = function(app){
