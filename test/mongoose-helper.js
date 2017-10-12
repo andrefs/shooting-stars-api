@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 let conn;
 
 before(done => {
-  conn = require('../db');
+  conn = require('../db').default;
   return done();
 });
 
