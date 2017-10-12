@@ -9,6 +9,7 @@ module.exports = {
     host: 'localhost'
   },
   auth: {
+    disabled: true,
     jwt: {
       secret: 'Edit this string and keep it secret'
     }
@@ -19,5 +20,9 @@ module.exports = {
       win: 50
     }
   },
-  env: 'test'
+  env: 'test',
+  log: {
+    level: 'info',
+    dir: '/tmp'
+  }
 };

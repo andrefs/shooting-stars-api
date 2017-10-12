@@ -13,13 +13,21 @@ log.level = 'info';
 /**
  * Lift Server, Connect to DB & Bind Routes
  */
-server.listen(config.server.port, function() {
-  db.once('open', (err) => {
-    log.info(`Connection to ${config.db.uri}`);
+module.exports = server;
 
-    log.info(
-      `${server.name} v${config.version} running on http://${config.server.host}:${config.server.port} in ${config.env} environment.`
-    );
-	});
-});
+if(!module.parent){
+  server.listen(config.server.port, function() {
+
+    db.on('error', (err) => {
+       log.error("Database error:", err);
+    });
+    db.once('open', (err) => {
+      log.info(`Connection to ${config.db.uri}`);
+
+      log.info(
+        `${server.name} v${config.version} running on http://${config.server.host}:${config.server.port} in ${config.env} environment.`
+      );
+  	});
+  });
+}
 
