@@ -1,14 +1,17 @@
 import mongoose from 'mongoose';
+import * as db  from '../db';
 
 let conn;
 
 before(done => {
-  conn = require('../db').default;
+  conn = db.connect();
   return done();
 });
 
 
 after(done => {
-  mongoose.disconnect();
+  db.disconnect();
   return done();
 });
+
+export {conn};

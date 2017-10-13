@@ -2,32 +2,28 @@
 require('babel-register');  //enables ES6 when require'ing modules
 const log      = require('./lib/logger').log;
 const config   = require('./config');
-const server   = require('./server').default;        // loads server transpiling with babel
-const db       = require('./db').default;
+const server   = require('./server');        // loads server transpiling with babel
+const db       = require('./db');
 const passport = require('./lib/passport').default;
 
-log.level = 'info';
-
-
+log.level = 'info'; // TODO read this from config or env
 
 /**
- * Lift Server, Connect to DB & Bind Routes
+ * Lift Server and connect to DB
  */
-module.exports = server;
 
-if(!module.parent){
-  server.listen(config.server.port, function() {
+server.listen(config.server.port, function() {
+  const conn = db.connect();
 
-    db.on('error', (err) => {
-       log.error("Database error:", err);
-    });
-    db.once('open', (err) => {
-      log.info(`Connection to ${config.db.uri}`);
-
-      log.info(
-        `${server.name} v${config.version} running on http://${config.server.host}:${config.server.port} in ${config.env} environment.`
-      );
-  	});
+  conn.on('error', (err) => {
+     log.error("Database error:", err);
   });
-}
+  conn.once('open', (err) => {
+    log.info(`Connection to ${config.db.uri}`);
+
+    log.info(
+      `${server.name} v${config.version} running on http://${config.server.host}:${config.server.port} in ${config.env} environment.`
+    );
+	});
+});
 
