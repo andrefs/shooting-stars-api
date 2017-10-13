@@ -36,4 +36,4 @@ const disconnect = () => {
   return mongoose.disconnect();
 };
 
-export {connect, disconnect};
+export {mongoose, connect, disconnect};

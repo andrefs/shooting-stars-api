@@ -1,26 +1,22 @@
-import config from '../config';
+import config      from '../config';
 import * as server from '../server';
-//import {Mockgoose} from 'mockgoose';
-//const mockgoose = Mockgoose(mongoose);
-
+import * as db     from '../db';
+// import {Mockgoose} from 'mockgoose';
+// const mockgoose = new Mockgoose(db.mongoose);
 
 let api;
-
-// before(() => {
-//   return mockgoose.prepareStorage()
-//     .then(() => {
-//       return mongoose.connect(config.db.uri, {useMongoClient: true});
-//     });
-// });
-
+let conn;
 
 before(() => {
-  api = server.create();
-  return api.listen(config.server.port);
+  api = server.create().listen(config.server.port);
+  // mockgoose.prepareStorage()
+  //   .then(db.connect);
+  db.connect();
 });
 
 after(() => {
   api.close();
+  db.disconnect();
 });
 
 export {api};
