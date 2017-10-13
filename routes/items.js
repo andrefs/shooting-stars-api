@@ -4,6 +4,7 @@ import Item from '../models/Item';
 import errors from 'restify-errors';
 import {log}           from '../lib/logger';
 import mongoose from 'mongoose';
+import {InvalidObjectId} from '../lib/errors';
 
 module.exports = function(app){
 
@@ -43,6 +44,9 @@ module.exports = function(app){
 
 
   app.get('/items/:id', function(req, res, next){
+    if(!mongoose.Types.ObjectId.isValid(req.params.id)){
+      return next(new InvalidObjectId(req.params.id));
+    }
     const query = {
       _id: mongoose.Types.ObjectId(req.params.id)
     };

@@ -4,7 +4,7 @@
   "description": "API for the Shooting Stars game",
   "main": "index.js",
   "scripts": {
-    "dev:initdb": "mongofixtures shooting-stars-dev db/fixtures_dev.js",
+    "dev:initdb": "mongofixtures shooting-stars-dev scripts/db_fixtures_dev.js",
     "start": "node index.js",
     "test": "npm run test-unit",
     "test-unit": "NODE_ENV=test mocha --require babel-register test/unit/*.test.js",
