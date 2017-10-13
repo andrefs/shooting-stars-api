@@ -46,13 +46,15 @@ describe('GET /items', function() {
         "name": "itemName",
         "description": "itemDesc",
         "imageUrl": "itemUrl",
-        "modified": "2017-10-08T19:31:21.127Z",
-        "created": "2017-10-08T19:31:21.127Z",
-        "__v": 0
       });
+
+    ItemMock.expects('findOne').withArgs({_id: ObjectId("000000000000000000000000")})
+      .chain('lean')
+      .chain('exec')
+      .resolves(null);
   });
 
-  it('returns an items array', function() {
+  it('returns an items array', () => {
     return request(api)
       .get('/items')
       .expect('Content-Type', /json/)
@@ -68,7 +70,7 @@ describe('GET /items', function() {
   });
 
 
-  it('returns an existing item', function() {
+  it('returns an existing item', () => {
     return request(api)
       .get('/items/59da7d093119f4622d9a7e3e')
       .expect('Content-Type', /json/)
@@ -80,7 +82,7 @@ describe('GET /items', function() {
       });
   });
 
-  it('returns an error if the id is wrong format', function () {
+  it('returns an error if the id is wrong format', () => {
     return request(api)
       .get('/items/wrong')
       .expect(400)
@@ -89,5 +91,10 @@ describe('GET /items', function() {
       });
   });
 
+  it('returns a not found if the item does not exist', () => {
+    return request(api)
+      .get('/items/000000000000000000000000')
+      .expect(404);
+  });
 
 });

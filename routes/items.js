@@ -56,6 +56,9 @@ module.exports = function(app){
         return next(new errors.InvalidContentError(err.errors.name.message));
       })
       .then(doc => {
+        if(!doc){
+          return res.send(404);
+        }
         res.send(doc);
         return next();
       });
