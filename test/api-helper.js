@@ -8,7 +8,8 @@ let api;
 let conn;
 
 before(() => {
-  api = server.create().listen(config.server.port);
+  api = server.create();
+  api.listen(config.server.port);
   // mockgoose.prepareStorage()
   //   .then(db.connect);
   db.connect();
