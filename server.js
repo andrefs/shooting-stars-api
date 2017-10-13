@@ -11,10 +11,12 @@ import uuid          from 'node-uuid';
 
 let api;
 
+
 const create = () => {
   /**
    * Initialize Server
    */
+  log.level = config.log.level;
   api = restify.createServer({
     name    : config.server.name,
     version : config.version,

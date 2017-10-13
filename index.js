@@ -6,8 +6,6 @@ const server   = require('./server');        // loads server transpiling with ba
 const db       = require('./db');
 const passport = require('./lib/passport').default;
 
-log.level = 'info'; // TODO read this from config or env
-
 /**
  * Lift Server and connect to DB
  */
