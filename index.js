@@ -12,7 +12,8 @@ log.level = 'info'; // TODO read this from config or env
  * Lift Server and connect to DB
  */
 
-server.listen(config.server.port, function() {
+const api = server.create();
+api.listen(config.server.port, function() {
   const conn = db.connect();
 
   conn.on('error', (err) => {
@@ -22,7 +23,7 @@ server.listen(config.server.port, function() {
     log.info(`Connection to ${config.db.uri}`);
 
     log.info(
-      `${server.name} v${config.version} running on http://${config.server.host}:${config.server.port} in ${config.env} environment.`
+      `${api.name} v${config.version} running on http://${config.server.host}:${config.server.port} in ${config.env} environment.`
     );
 	});
 });
