@@ -16,7 +16,7 @@ const create = () => {
   /**
    * Initialize Server
    */
-  log.level = config.log.level;
+  log.level = process.env.LOG_LEVEL || config.log.level;
   api = restify.createServer({
     name    : config.server.name,
     version : config.version,
