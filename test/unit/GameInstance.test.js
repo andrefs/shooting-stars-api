@@ -18,7 +18,7 @@ const expect = chai.expect;
 describe('GameInstance', () => {
   let player;
   let triple;
-  let gameSeq;
+  let gameSeqs;
   const imageUrl = 'http://ww.example.com';
 
   const handleErr = (err) => {
@@ -43,65 +43,68 @@ describe('GameInstance', () => {
             {name:  '1st item', imageUrl},
             {name:  '2nd item', imageUrl},
             {name:  '3rd item', imageUrl},
+            {name:  '4th item', imageUrl},
           ], itemF => Item.create(itemF))
       )
       .then(() => Triple.findOne().exec())
       .then(t  => { triple = t; })
-      .then(() => GameSequence.generate(1,1,3))
-      .then(gs => { gameSeq = gs[0]; })
+      .then(() => GameSequence.generate(1,2,4))
+      .then(gs => { gameSeqs = gs; })
       .then(() => User.create({username, password}))
       .then(p  => { player = p; });
   });
 
-  it('selects new game sequence', function(){
+  describe('when created', () => {
+    it('selects new game sequence', function(){
+        return GameInstance.createNew(player._id)
+        .then(gi => {
+          expect(gi.gameSequence).to.not.be.undefined;
+        });
+    });
+
+    it('throws if it can\'t select a game sequence', function(){
+      return GameSequence.remove().exec()
+        .then(() => {
+          const p = GameInstance.createNew(player._id);
+          expect(p).to.eventually.be.rejected;
+        });
+    });
+
+    it('assigns an async player if a suitable one exists', function(){
+      const username = 'async_player';
+      const password = 'password';
+      let async_player;
+
+      return Promise.join(
+          User.create({username, password, playedSequences: [gameSeqs[0]._id]}),
+          GameInstance.createNew(player._id))
+        .then(([user, gi]) => {
+          async_player = user;
+          return gi.selectAsyncPlayer();
+        })
+        .then(gi => {
+          expect(gi.players.async).to.not.be.undefined;
+          expect(gi.players.async.toString()).to.equal(async_player._id.toString());
+        });
+    });
+
+    it('does not assign async player if a suitable one cannot be found', function(){
       return GameInstance.createNew(player._id)
-      .then(gi => {
-        expect(gi.gameSequence).to.not.be.undefined;
-      });
+        .then(gi => gi.selectAsyncPlayer())
+        .then(gi => {
+          expect(gi.players.async).to.be.null;
+        });
+    });
+
+    it('bootstraps properties', function(){
+      return GameInstance.createNew(player._id)
+        .then(gi => {
+          expect(gi.gameSequence).to.not.be.undefined;
+        });
+    });
   });
 
-  it('throws if it can\'t select a game sequence', function(){
-    return GameSequence.remove().exec()
-      .then(() => {
-        const p = GameInstance.createNew(player._id);
-        expect(p).to.eventually.be.rejected;
-      });
-  });
-
-  it('assigns an async player if a suitable one exists', function(){
-    const username = 'async_player';
-    const password = 'password';
-    let async_player;
-
-    return Promise.join(
-        User.create({username, password, playedSequences: [gameSeq._id]}),
-        GameInstance.createNew(player._id))
-      .then(([user, gi]) => {
-        async_player = user;
-        return gi.selectAsyncPlayer();
-      })
-      .then(gi => {
-        expect(gi.players.async).to.not.be.undefined;
-        expect(gi.players.async.toString()).to.equal(async_player._id.toString());
-      });
-  });
-
-  it('does not assign async player if a suitable one cannot be found', function(){
-    return GameInstance.createNew(player._id)
-      .then(gi => gi.selectAsyncPlayer())
-      .then(gi => {
-        expect(gi.players.async).to.be.null;
-      });
-  });
-
-  it('bootraps properties when created', function(){
-    return GameInstance.createNew(player._id)
-      .then(gi => {
-        expect(gi.gameSequence).to.not.be.undefined;
-      });
-  });
-
-  it('sets the current score', function(){
+  it('sets the current score correctly', function(){
     return Promise.join(
       GameInstance.createNew(player._id),
       Turn.create([
@@ -125,12 +128,27 @@ describe('GameInstance', () => {
     });
   });
 
-  it('throws when adding move but there\'s no current turn', function(){
-    return GameInstance.createNew(player._id)
-      .then(gi => {
-        gi.turns.current = undefined;
-        expect(gi.addMove()).to.be.eventually.rejectedWith(NoCurrentTurnError);
-      });
-  });
+  describe('when adding a move', () => {
+    it('throws if there\'s no current turn', function(){
+      return GameInstance.createNew(player._id)
+        .then(gi => {
+          gi.turns.current = undefined;
+          expect(gi.addMove()).to.be.eventually.rejectedWith(NoCurrentTurnError);
+        });
+    });
 
+    it('calls turn.setMoves, setCurrentScore and nextTurn', function(){
+      return GameInstance.createNew(player._id)
+        .then(gi => {
+          return gi.populate({
+            path: 'turns.current',
+            model: Turn
+          }).execPopulate();
+        })
+        .then(gi => {
+          return gi.addMove(gi.turns.current.triple, 'AC');
+        })
+        .then(console.log);
+    });
+  });
 });

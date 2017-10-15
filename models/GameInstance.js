@@ -91,7 +91,7 @@ GameInstanceSchema.statics.createNew = function(syncId){
       );
     })
     .then(([gi, player]) => {
-      return gi;
+      return gi.nextTurn();
     });
 };
 
@@ -102,32 +102,6 @@ GameInstanceSchema.methods.selectAsyncPlayer = function(){
       return this.save();
     });
 };
-
-
-GameInstanceSchema.methods.nextTurn = function(){
-  let turnCount;
-
-  // No more turns
-  if(this.previousTurns.length === this.gameSequence.triples.length){
-    return Promise.reject('Game is finished');
-  }
-
-  if(this.currentTurn){
-    this.previousTurns.push(this.currentTurn);
-  }
-  turnCount = this.previousTurns.length;
-
-  let turn = new Turn({
-    triple: this.triples[turnCount]
-  });
-
-  turn.save()
-    .then(turn => {
-      this.currentTurn = turn;
-      return this.save();
-    });
-};
-
 
 GameInstanceSchema.methods.nextTurn = function(){
   const totalTurns = this.turns.all.length;
@@ -195,7 +169,8 @@ GameInstanceSchema.methods.addMove = function(tripleId, pick){
         // no current turn, game must be over
         throw new NoCurrentTurnError();
       }
-      if(tripleId !== this.turns.current.triple.toString()){
+      if(tripleId.toString() !== this.turns.current.triple.toString()){
+        // weird, the triple id is not what was expected
         throw new TripleIdMismatchError();
       }
 
@@ -204,8 +179,8 @@ GameInstanceSchema.methods.addMove = function(tripleId, pick){
       return this.turns.current.save();
     })
     .then(() => this.turns.current.setMoves(this.players))
-    .then(() => this.nextTurn())
-    .then(() => this.setCurrentScore());
+    .then(() => this.setCurrentScore())
+    .then(() => this.nextTurn());
 };
 
 GameInstanceSchema.methods.setCurrentScore = function(){
