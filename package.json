@@ -7,11 +7,12 @@
     "dev:initdb": "mongofixtures shooting-stars-dev scripts/db_fixtures_dev.js",
     "start": "node index.js",
     "test": "npm run test-unit",
-    "test-unit": "NODE_ENV=test nyc mocha --require babel-register test/unit/*.test.js",
+    "test-unit": "NODE_ENV=test nyc -n models/**/*.js mocha --require babel-register test/unit/*.test.js",
     "test-integration": "NODE_ENV=test nyc -n routes/**/*.js mocha --require babel-register test/integration/*.test.js",
     "lint": "eslint **/*.js || exit 0"
   },
   "babel": {
+    "sourceMaps": "inline",
     "presets": [
       "es2015"
     ],

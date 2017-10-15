@@ -147,8 +147,7 @@ describe('GameInstance', () => {
         })
         .then(gi => {
           return gi.addMove(gi.turns.current.triple, 'AC');
-        })
-        .then(console.log);
+        });
     });
   });
 });
