@@ -1,0 +1,9 @@
+*.swp
+
+*.log
+*.out
+*.pid
+
+node_modules
+npm-debug.log
+.nyc_output
