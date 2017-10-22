@@ -26,24 +26,6 @@ module.exports = function(app){
         select: 'username',
         model: 'User'
       },{
-        path: 'turns.all',
-        model: 'Turn',
-        populate: [{
-            path: 'triple',
-            model: 'Triple',
-            populate: {
-              path: 'itemA itemB itemC',
-              model: 'Item'
-            }
-          },{
-            path: 'moves',
-            model: 'Moves',
-          },{
-            path: 'score',
-            model: 'Score',
-          }
-        ]
-      },{
         path: 'turns.previous',
         model: 'Turn',
         populate: [{

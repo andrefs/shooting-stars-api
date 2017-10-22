@@ -35,16 +35,12 @@ const GameInstanceSchema = mongoose.Schema({
     required: true
   },
   turns: {
-    all: {
+    previous: {
       type: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: Turn
       }],
       default: []
-    },
-    previous: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: Turn
     },
     current: {
       type: mongoose.Schema.Types.ObjectId,
@@ -104,9 +100,9 @@ GameInstanceSchema.methods.selectAsyncPlayer = function(){
 };
 
 GameInstanceSchema.methods.nextTurn = function(){
-  const totalTurns = this.turns.all.length;
+  const totalTurns = this.turns.previous.length + 1;
   if(this.turns.current){
-    this.turns.previous = this.turns.current;
+    this.turns.previous.push(this.turns.current);
     this.turns.current = undefined;
   }
 
@@ -114,7 +110,7 @@ GameInstanceSchema.methods.nextTurn = function(){
     .populate({path: 'triples', model: Triple})
     .exec()
     .then(gs => {
-      if(this.turns.all.length === gs.triples.length){
+      if(this.turns.previous.length === gs.triples.length){
         return this.wrapUp();
       }
       return Turn.create({
@@ -122,7 +118,6 @@ GameInstanceSchema.methods.nextTurn = function(){
       })
       .then(turn => {
         this.turns.current = turn;
-        this.turns.all.push(turn);
         return this.save();
       });
     });
@@ -139,7 +134,7 @@ GameInstanceSchema.methods.wrapUp = function(){
         model: GameSequence
       }
     },{
-      path: 'turns.all',
+      path: 'turns.previous',
       model: Turn
     }])
     .execPopulate()
@@ -148,7 +143,7 @@ GameInstanceSchema.methods.wrapUp = function(){
     })
     .then(() => {
       let playerMoves = [];
-      this.turns.all.forEach(t => {
+      this.turns.previous.forEach(t => {
         playerMoves.push({
           player: this.players.sync,
           triple: t.triple,
@@ -162,16 +157,12 @@ GameInstanceSchema.methods.wrapUp = function(){
     });
 };
 
-GameInstanceSchema.methods.addMove = function(tripleId, pick){
+GameInstanceSchema.methods.addMove = function(pick){
   return this.populate({path:'turns.current', model:Turn}).execPopulate()
     .then(() => {
       if(!this.turns.current){
         // no current turn, game must be over
         throw new NoCurrentTurnError();
-      }
-      if(tripleId.toString() !== this.turns.current.triple.toString()){
-        // weird, the triple id is not what was expected
-        throw new TripleIdMismatchError();
       }
 
       this.turns.current.moves.sync = pick;
@@ -179,19 +170,19 @@ GameInstanceSchema.methods.addMove = function(tripleId, pick){
       return this.turns.current.save();
     })
     .then(() => this.turns.current.setMoves(this.players))
-    .then(() => this.setCurrentScore())
-    .then(() => this.nextTurn());
+    .then(() => this.nextTurn())
+    .then(() => this.setCurrentScore()); // current score is calculated over finished turns only
 };
 
 GameInstanceSchema.methods.setCurrentScore = function(){
   return this.populate({
-      path: 'turns.all',
+      path: 'turns.previous',
       model: Turn,
     })
     .execPopulate()
     .then(() => {
       ['sync', 'async', 'bot'].forEach(p => {
-        this.currentScore[p] = this.turns.all
+        this.currentScore[p] = this.turns.previous
           .map(t => t.score[p])
           .reduce((a,b) => a+b);
       });

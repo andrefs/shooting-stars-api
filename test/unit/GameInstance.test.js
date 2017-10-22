@@ -115,7 +115,7 @@ describe('GameInstance', () => {
         {score: {async:  0, sync:  0, bot: 50}, triple}
       ])
     ).then(([gi, turns]) => {
-      gi.turns = {all: turns};
+      gi.turns = {previous: turns};
       return gi.save();
     })
     .then(gi => gi.setCurrentScore())
@@ -140,13 +140,7 @@ describe('GameInstance', () => {
     it('calls turn.setMoves, setCurrentScore and nextTurn', function(){
       return GameInstance.createNew(player._id)
         .then(gi => {
-          return gi.populate({
-            path: 'turns.current',
-            model: Turn
-          }).execPopulate();
-        })
-        .then(gi => {
-          return gi.addMove(gi.turns.current.triple, 'AC');
+          return gi.addMove('AC');
         });
     });
   });
