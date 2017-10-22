@@ -7,7 +7,7 @@ const conn = db.connect();
  *********/
 const Item = require('./models/Item');
 
-const items = [  {imageUrl:"photos/madonna.jpg"       , name:"Madonna"                         },  {imageUrl:"photos/gaga.jpg"          , name:"Lady Gaga"                       },  {imageUrl:"photos/queen.jpg"         , name:"Freddie Mercury (Queen)"         },  {imageUrl:"photos/bono.png"          , name:"Bono (U2)"                       },  {imageUrl:"photos/bowie.jpg"         , name:"David Bowie"                     },  {imageUrl:"photos/prince.jpg"        , name:"Prince"                          },  {imageUrl:"http://tempuri.org"       , name:"Adele"                           },  {imageUrl:"photos/amy.jpeg"          , name:"Amy Whinehouse"                  },  {imageUrl:"photos/bruce.jpg"         , name:"Bruce Springstein"               },  {imageUrl:"photos/brunomars.jpg"     , name:"Bruno Mars"                      }];
+const items = [ {imageUrl:"photos/madonna.jpg" , name:"Madonna" }, {imageUrl:"photos/gaga.jpg" , name:"Lady Gaga" }, {imageUrl:"photos/queen.jpg" , name:"Freddie Mercury (Queen)" }, {imageUrl:"photos/bono.png" , name:"Bono (U2)" }, {imageUrl:"photos/bowie.jpg" , name:"David Bowie" }, {imageUrl:"photos/prince.jpg" , name:"Prince" }, {imageUrl:"http://tempuri.org" , name:"Adele" }, {imageUrl:"photos/amy.jpeg" , name:"Amy Whinehouse" }, {imageUrl:"photos/bruce.jpg" , name:"Bruce Springstein" }, {imageUrl:"photos/brunomars.jpg" , name:"Bruno Mars" }];
 
 items.forEach(item => { Item.create(item); });
 
@@ -31,4 +31,7 @@ User.create({username: "user4@example.com", password: "pwd", playedSequences: []
 User.create({username: "user5@example.com", password: "pwd", playedSequences: [], gender: 'F'});
 
 const GameInstance = require('./models/GameInstance')
-GameInstance.createNew('59ecdfce98fa394e77eb63af')
+
+User.findOne({username: "user1@example.com"}).then(user => {
+  GameInstance.createNew(user._id);
+});

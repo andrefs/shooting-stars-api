@@ -142,6 +142,7 @@ GameInstanceSchema.methods.wrapUp = function(){
       return this.players.sync.addPlayedSequence(this.gameSequence);
     })
     .then(() => {
+      // player moves are only added to db at end of game instance
       let playerMoves = [];
       this.turns.previous.forEach(t => {
         playerMoves.push({
@@ -186,6 +187,8 @@ GameInstanceSchema.methods.setCurrentScore = function(){
           .map(t => t.score[p])
           .reduce((a,b) => a+b);
       });
+      this.markModified('currentScore');
+
       return this.save();
     });
 };

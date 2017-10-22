@@ -5,6 +5,7 @@ import errors          from 'restify-errors';
 import {log}           from '../lib/logger';
 import mongoose        from 'mongoose';
 import {InvalidObjectId} from '../lib/errors';
+import User            from '../models/User';
 
 module.exports = function(app){
 
@@ -17,7 +18,9 @@ module.exports = function(app){
     const query = {
       _id: mongoose.Types.ObjectId(req.params.id)
     };
-    GameInstance.findOne(query).populate([{
+    GameInstance.findOne(query)
+      .select('-gameSequence')
+      .populate([{
         path: 'players.sync',
         select: 'username',
         model: 'User'
@@ -32,16 +35,18 @@ module.exports = function(app){
             path: 'triple',
             model: 'Triple',
             populate: {
-              path: 'itemA itemB itemC',
+              path: 'itemAitemB itemC',
               model: 'Item'
             }
-          },{
-            path: 'moves',
-            model: 'Moves',
-          },{
-            path: 'score',
-            model: 'Score',
-          }
+          },
+          //{
+          //  path: 'moves',
+          //  model: 'Moves',
+          //},
+          //{
+          //  path: 'score',
+          //  model: 'Score',
+          //}
         ]
       },{
         path: 'turns.current',
@@ -72,36 +77,18 @@ module.exports = function(app){
   });
 
 
-  // // TODO add verification -- playerId must be same player from auth
-  // app.post('/gameInstances/move/:pick', function(req, res, next){
-  //   
-  //   User.findOne({'_id': mongoose.Types.ObjectId(req.auth.sub)})
-  //     .then(user => {
-  //       return GameInstances.findOne({'_id': user.currentGameInstance});
-  //     })
-  //     .then(gi => {
-  //       gi.addMove(
-  //     });
-
-  //   DisposableRoom.findOne({
-  //     id: req.params.id,
-  //     'players.sync': 
-  //   })
-  //   .then(dr => {
-  //     if(dr.isFinished){
-  //       return Promise.reject('Game is already finished');
-  //     }
-  //     return dr.addMove(req.params.tripleId, req.params.pick);
-  //   })
-  //   .then(dr => {
-  //     res.send(dr);
-  //     next();
-  //   })
-  //   .catch(err => {
-  //     log.error(err);
-  //     res.send(err);
-  //     next();
-  //   });
-  // });
-
+  // TODO add verification -- playerId must be same player from auth
+  app.post('/gameInstances/move/:pick', function(req, res, next){
+    return User.findOne({'_id': mongoose.Types.ObjectId(req.auth.sub)})
+      .then(user => {
+        return GameInstance.findOne({'_id': user.currentGameInstance});
+      })
+      .then(gi => {
+        return gi.addMove(req.params.pick);
+      })
+      .then(gi => {
+        res.send(200, gi.turns);
+        return next();
+      });
+  });
 };
