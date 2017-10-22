@@ -86,9 +86,8 @@ GameInstanceSchema.statics.createNew = function(syncId){
         player.save()
       );
     })
-    .then(([gi, player]) => {
-      return gi.nextTurn();
-    });
+    .then(([gi, player]) => gi.selectAsyncPlayer())
+    .then(gi => gi.nextTurn());
 };
 
 GameInstanceSchema.methods.selectAsyncPlayer = function(){

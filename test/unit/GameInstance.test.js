@@ -75,12 +75,10 @@ describe('GameInstance', () => {
       const password = 'password';
       let async_player;
 
-      return Promise.join(
-          User.create({username, password, playedSequences: [gameSeqs[0]._id]}),
-          GameInstance.createNew(player._id))
-        .then(([user, gi]) => {
+      return User.create({username, password, playedSequences: [gameSeqs[0]._id]})
+        then(user => {
           async_player = user;
-          return gi.selectAsyncPlayer();
+          return GameInstance.createNew(player._id);
         })
         .then(gi => {
           expect(gi.players.async).to.not.be.undefined;
@@ -90,7 +88,6 @@ describe('GameInstance', () => {
 
     it('does not assign async player if a suitable one cannot be found', function(){
       return GameInstance.createNew(player._id)
-        .then(gi => gi.selectAsyncPlayer())
         .then(gi => {
           expect(gi.players.async).to.be.null;
         });
