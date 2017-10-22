@@ -1,9 +1,6 @@
 'use strict';
 
 import GameInstance from '../models/GameInstance';
-import GameSequence from '../models/GameSequence';
-import User         from '../models/User';
-import Turn         from '../models/Turn';
 import errors          from 'restify-errors';
 import {log}           from '../lib/logger';
 import mongoose        from 'mongoose';
@@ -44,14 +41,67 @@ module.exports = function(app){
       _id: mongoose.Types.ObjectId(req.params.id)
     };
     GameInstance.findOne(query).populate([{
-        path: 'players.sync players.async',
-        model: User
+        path: 'players.sync',
+        select: 'username',
+        model: 'User'
       },{
-        path: 'gameSequence',
-        model: GameSequence
+        path: 'players.async',
+        select: 'username',
+        model: 'User'
       },{
-        path: 'turns.all turns.current',
-        model: Turn
+        path: 'turns.all',
+        model: 'Turn',
+        populate: [{
+            path: 'triple',
+            model: 'Triple',
+            populate: {
+              path: 'itemA itemB itemC',
+              model: 'Item'
+            }
+          },{
+            path: 'moves',
+            model: 'Moves',
+          },{
+            path: 'score',
+            model: 'Score',
+          }
+        ]
+      },{
+        path: 'turns.previous',
+        model: 'Turn',
+        populate: [{
+            path: 'triple',
+            model: 'Triple',
+            populate: {
+              path: 'itemA itemB itemC',
+              model: 'Item'
+            }
+          },{
+            path: 'moves',
+            model: 'Moves',
+          },{
+            path: 'score',
+            model: 'Score',
+          }
+        ]
+      },{
+        path: 'turns.current',
+        model: 'Turn',
+        populate: [{
+            path: 'triple',
+            model: 'Triple',
+            populate: {
+              path: 'itemA itemB itemC',
+              model: 'Item'
+            }
+          },{
+            path: 'moves',
+            model: 'Moves',
+          },{
+            path: 'score',
+            model: 'Score',
+          }
+        ]
       }]).lean()
       .catch(err => {
         log.error(err);

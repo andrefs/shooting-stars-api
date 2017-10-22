@@ -102,4 +102,7 @@ TurnSchema.methods.setScores = function(){
   return this.save();
 };
 
+mongoose.model('Moves', MovesSchema);
+mongoose.model('Score', ScoreSchema);
+
 module.exports = mongoose.model('Turn', TurnSchema);
