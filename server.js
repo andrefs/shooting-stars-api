@@ -52,6 +52,16 @@ const create = () => {
       if(unauthPaths.indexOf(pathname) >= 0){ return true; }
       return false;
     }));
+  if(config.auth.disabled){
+    api.use((req, res, next) => {
+      if(req.params.userId){
+        req.auth = req.auth || {};
+        req.auth.sub = req.params.userId;
+        delete req.params.userId;
+      }
+      return next();
+    });
+  }
 
   /**
    * Error Handling
