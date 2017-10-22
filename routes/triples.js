@@ -11,10 +11,13 @@ module.exports = function(app){
     let options = {
       offset:  0,
       limit : 10,
-      lean  : true
+      lean  : true,
     };
     if(req.params.includeItems){
       options.populate = {path: 'itemA itemB itemC', model: Item};
+    }
+    if(req.params.limit){
+      options.limit = parseInt(req.params.limit, 10);
     }
 
     Triple.paginate({}, options)
@@ -23,7 +26,7 @@ module.exports = function(app){
         return next(new errors.InvalidContentError(err.errors.name.message));
       })
       .then(result => {
-        res.send(result.docs);
+        res.send(result);
         return next();
       });
   });

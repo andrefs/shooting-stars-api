@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev:initdb": "mongofixtures shooting-stars-dev scripts/db_fixtures_dev.js",
+    "dev:dropdb": "mongo shooting-stars-dev --eval 'db.dropDatabase();'",
     "start": "node index.js",
     "test": "npm run test-unit",
     "test-unit": "NODE_ENV=test nyc -n models/**/*.js mocha --require babel-register test/unit/*.test.js",

@@ -69,7 +69,7 @@ const create = () => {
 
   // add routes
   require('./routes/users')(api, passport);
-  require('./routes/games')(api);
+  require('./routes/gameInstances')(api);
   require('./routes/gameSequences')(api);
   require('./routes/playerMoves')(api);
   require('./routes/turns')(api);

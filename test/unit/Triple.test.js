@@ -108,14 +108,13 @@ describe('Triple', () => {
           return Promise.join(
             expect(Item.count().exec()).to.eventually.equal(5),
             expect(Triple.count().exec()).to.eventually.equal(10),
-            Item.create({name: 'item5', imageUrl})
+            Item.create({name: 'item6', imageUrl})
           );
         })
         .then(() => {
           return Promise.join(
             expect(Item.count().exec()).to.eventually.equal(6),
             expect(Triple.count().exec()).to.eventually.equal(20),
-            Item.create({name: 'item5', imageUrl})
           );
         })
     );

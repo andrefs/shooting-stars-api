@@ -1,6 +1,13 @@
+'use strict';
+
+import GameInstance from '../models/GameInstance';
+import GameSequence from '../models/GameSequence';
+import User         from '../models/User';
+import Turn         from '../models/Turn';
 import errors          from 'restify-errors';
 import {log}           from '../lib/logger';
 import mongoose        from 'mongoose';
+import {InvalidObjectId} from '../lib/errors';
 
 module.exports = function(app){
   // POST  /rooms - create new room
@@ -27,20 +34,38 @@ module.exports = function(app){
   //     });
   // });
 
-  // // Get room info
-  // app.get('/rooms/:id', function(req, res, next){
-  //   Room.findOne({id: req.params.id})
-  //     .populate({path: 'players', model: User}).lean().exec()
-  //     .then(room => {
-  //       res.send(200, room);
-  //       next();
-  //     })
-  //     .catch(err => {
-  //       log.error(err);
-  //       res.send(err);
-  //       next();
-  //     });
-  // });
+  // TODO check if player can ask for this game -- auth
+  // TODO remove fields before returning
+  app.get('/gameInstances/:id', function(req, res, next){
+    if(!mongoose.Types.ObjectId.isValid(req.params.id)){
+      return next(new InvalidObjectId(req.params.id));
+    }
+    const query = {
+      _id: mongoose.Types.ObjectId(req.params.id)
+    };
+    GameInstance.findOne(query).populate([{
+        path: 'players.sync players.async',
+        model: User
+      },{
+        path: 'gameSequence',
+        model: GameSequence
+      },{
+        path: 'turns.all turns.current',
+        model: Turn
+      }]).lean()
+      .catch(err => {
+        log.error(err);
+        return next(new errors.InvalidContentError(err.errors.name.message));
+      })
+      .then(doc => {
+        if(!doc){
+          return res.send(404);
+        }
+        res.send(doc);
+        return next();
+      });
+  });
+
 
   // // Add player to room
   // app.post('/rooms/:id/players', function(req, res, next){

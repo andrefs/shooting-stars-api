@@ -3,7 +3,6 @@ import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import {createHash}     from 'crypto';
-import Item             from './Item';
 import {log}            from '../lib/logger';
 
 mongoose.plugin(pagPlugin);
@@ -14,17 +13,17 @@ const TripleSchema = mongoose.Schema({
   itemA: {
     required: true,
     type: mongoose.Schema.Types.ObjectId,
-    ref: Item
+    ref: 'Item'
   },
   itemB: {
     required: true,
     type: mongoose.Schema.Types.ObjectId,
-    ref: Item
+    ref: 'Item'
   },
   itemC: {
     required: true,
     type: mongoose.Schema.Types.ObjectId,
-    ref: Item
+    ref: 'Item'
   },
   highestItemId: {
     required: true,
@@ -39,7 +38,7 @@ const TripleSchema = mongoose.Schema({
 /* Sort items by ObjectId, making sure that item order is irrelevant */
 
 TripleSchema.pre('validate', function(next){
-  return Item.find()
+  return require('./Item').find()
     .where('_id')
     .in([this.itemA, this.itemB, this.itemC])
     .limit(3)

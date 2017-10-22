@@ -65,9 +65,9 @@ describe('Triples', () => {
         .expect('Content-Type', /json/)
         .expect(200)
         .then(res => {
-          expect(res.body).to.be.instanceof(Array);
-          expect(res.body.length).to.eql(3);
-          res.body.forEach(triple => {
+          expect(res.body.docs).to.be.instanceof(Array);
+          expect(res.body.docs.length).to.eql(3);
+          res.body.docs.forEach(triple => {
             expect(triple).to.have.property('itemA');
             expect(triple).to.have.property('itemB');
             expect(triple).to.have.property('itemC');

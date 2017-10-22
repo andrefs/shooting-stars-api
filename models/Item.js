@@ -5,6 +5,7 @@ import createdModified  from 'mongoose-createdmodified';
 import kcomb            from 'foreach-combination';
 import {reject}         from 'lodash';
 import MongooseSequence from 'mongoose-sequence';
+import Triple           from './Triple';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -28,28 +29,36 @@ const ItemSchema = mongoose.Schema({
 
 ItemSchema.plugin(autoIncrement, {id: 'item_counter', 'inc_field': 'id'});
 
+const generateTriples = (doc, items) => {
+  let triples = [];
+  const otherItems = reject(items, i => i.id === doc.id);
+  kcomb(otherItems, 2, (a,b) => {
+    triples.push({
+      itemA: doc,
+      itemB: a,
+      itemC: b,
+    });
+  });
+  return triples;
+};
+
+ItemSchema.statics.generateTriples = generateTriples;
+
 ItemSchema.pre('save', function(next){
   this.wasNew = this.isNew;
   return next();
 });
 
 ItemSchema.post('save', function(doc, next){
-  const generateTriples = (item, callback) => {
+  const createTriples = (item, callback) => {
     let triples = [];
     item.constructor.find().exec((err, items) => {
-      const otherItems = reject(items, i => i.id === doc.id);
-      kcomb(otherItems, 2, (a,b) => {
-        triples.push({
-          itemA: doc,
-          itemB: a,
-          itemC: b,
-        });
-      });
-      require('./Triple').create(triples, callback);
+      const triples = generateTriples(doc, items);
+      Triple.create(triples, callback);
     });
   };
   if(doc.wasNew){
-    return generateTriples(doc, next);
+    return createTriples(doc, next);
   }
 });
 

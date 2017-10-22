@@ -36,7 +36,8 @@ const UserSchema = mongoose.Schema({
   },
   currentGameInstance: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'GameInstance'
+    ref: 'GameInstance',
+    required: false
   }
 },{minimize:false});
 
