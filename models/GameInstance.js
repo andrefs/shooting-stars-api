@@ -11,7 +11,7 @@ import PlayerMove       from './PlayerMove';
 import Item             from './Item';
 import shortid          from '../lib/shortid';
 import Promise          from 'bluebird';
-import {NoCurrentTurnError, TripleIdMismatchError}  from '../lib/errors';
+import {NoCurrentTurn, TripleIdMismatchError}  from '../lib/errors';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -90,6 +90,65 @@ GameInstanceSchema.statics.createNew = function(syncId){
     .then(gi => gi.nextTurn());
 };
 
+GameInstanceSchema.methods.toSanitizedObject = function(){
+  return this.populate([{
+      path: 'players.sync',
+      select: 'username',
+      model: 'User'
+    },{
+      path: 'players.async',
+      select: 'username',
+      model: 'User'
+    },{
+      path: 'turns.previous',
+      model: 'Turn',
+      populate: {
+        path: 'triple',
+        model: 'Triple',
+        populate: {
+          path: 'itemAitemB itemC',
+          model: 'Item'
+        }
+      },
+    },{
+      path: 'turns.current',
+      model: 'Turn',
+      select: 'triple',
+      populate: [{
+          path: 'triple',
+          model: 'Triple',
+          populate: {
+            path: 'itemA itemB itemC',
+            model: 'Item'
+          },
+          select: 'triple'
+        }
+      ]
+    }])
+  .execPopulate()
+  .then(gi => {
+    let obj = gi.toObject();
+    delete obj.gameSequence;
+    if(obj.turns.current){
+      delete obj.turns.current.score;
+      delete obj.turns.current.moves;
+    }
+    if(obj.players.sync){
+      obj.players.sync = {
+        _id: obj.players.sync._id,
+        username: obj.players.sync.username
+      };
+    }
+    if(obj.players.async){
+      obj.players.async = {
+        _id: obj.players.async._id,
+        username: obj.players.async.username
+      };
+    }
+    return obj;
+  });
+};
+
 GameInstanceSchema.methods.selectAsyncPlayer = function(){
   return User.findOne().where('playedSequences').equals(this.gameSequence)
     .then(user => {
@@ -162,7 +221,7 @@ GameInstanceSchema.methods.addMove = function(pick){
     .then(() => {
       if(!this.turns.current){
         // no current turn, game must be over
-        throw new NoCurrentTurnError();
+        return Promise.reject(new NoCurrentTurn());
       }
 
       this.turns.current.moves.sync = pick;
@@ -171,7 +230,8 @@ GameInstanceSchema.methods.addMove = function(pick){
     })
     .then(() => this.turns.current.setMoves(this.players))
     .then(() => this.nextTurn())
-    .then(() => this.setCurrentScore()); // current score is calculated over finished turns only
+    .then(() => this.setCurrentScore()) // current score is calculated over finished turns only
+    ;
 };
 
 GameInstanceSchema.methods.setCurrentScore = function(){

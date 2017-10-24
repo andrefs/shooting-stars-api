@@ -66,7 +66,12 @@ GameSequenceSchema.statics.selectNew = function(playerIDs){
         });
       });
 
-      return this.findOne().where('_id').nin([...gameSeqIDs]).exec();
+      return this
+        .findOne()
+        .where('_id')
+        .nin([...gameSeqIDs])
+        .sort('id')
+        .exec();
     })
     .then(gs => {
       if(!gs){ throw new Error("Could not select a new GameSequence"); }

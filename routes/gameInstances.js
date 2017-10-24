@@ -13,51 +13,19 @@ module.exports = function(app){
     return User.findOne({'_id': mongoose.Types.ObjectId(req.auth.sub)})
       .then(user => {
         return GameInstance.findOne({'_id': user.currentGameInstance})
-          .select('-gameSequence')
-          .populate([{
-            path: 'players.sync',
-            select: 'username',
-            model: 'User'
-          },{
-            path: 'players.async',
-            select: 'username',
-            model: 'User'
-          },{
-            path: 'turns.previous',
-            model: 'Turn',
-            populate: {
-              path: 'triple',
-              model: 'Triple',
-              populate: {
-                path: 'itemAitemB itemC',
-                model: 'Item'
-              }
-            },
-          },{
-            path: 'turns.current',
-            model: 'Turn',
-            select: 'triple',
-            populate: [{
-                path: 'triple',
-                model: 'Triple',
-                populate: {
-                  path: 'itemA itemB itemC',
-                  model: 'Item'
-                },
-                select: 'triple'
-              }
-            ]
-          }]).lean();
       })
       .catch(err => {
         log.error(err);
         return next(new errors.InvalidContentError(err.errors.name.message));
       })
-      .then(doc => {
-        if(!doc){
+      .then(gi => {
+        if(!gi){
           return res.send(404);
         }
-        res.send(doc);
+        return gi.toSanitizedObject();
+      })
+      .then(obj => {
+        res.send(obj);
         return next();
       });
   });
@@ -76,61 +44,46 @@ module.exports = function(app){
         }
         return GameInstance.createNew(user._id);
       })
-      .then(gi => {
-        return GameInstance.findOne({_id: gi._id})
-          .select('-gameSequence')
-          .populate([{
-            path: 'players.sync',
-            select: 'username',
-            model: 'User'
-          },{
-            path: 'players.async',
-            select: 'username',
-            model: 'User'
-          },{
-            path: 'turns.previous',
-            model: 'Turn',
-            populate: {
-              path: 'triple',
-              model: 'Triple',
-              populate: {
-                path: 'itemAitemB itemC',
-                model: 'Item'
-              }
-            },
-          },{
-            path: 'turns.current',
-            model: 'Turn',
-            select: 'triple',
-            populate: [{
-                path: 'triple',
-                model: 'Triple',
-                populate: {
-                  path: 'itemA itemB itemC',
-                  model: 'Item'
-                },
-                select: 'triple'
-              }
-            ]
-          }]).lean();
-      })
-      .then(gi => {
-        res.send(gi);
+      .then(gi => gi.toSanitizedObject())
+      .then(obj => {
+        res.send(obj);
         return next();
       });
   });
 
-  // TODO add verification -- playerId must be same player from auth
-  app.post('/gameInstances/move/:pick', function(req, res, next){
+  app.post('/gameInstances/currentTurn/:pick', function(req, res, next){
     return User.findOne({'_id': mongoose.Types.ObjectId(req.auth.sub)})
-      .then(user => {
-        return GameInstance.findOne({'_id': user.currentGameInstance});
+      .then(user => GameInstance.findOne({'_id': user.currentGameInstance}))
+      .then(gi => gi.addMove(req.params.pick))
+      .then(gi => gi.toSanitizedObject())
+      .then(obj => {
+        res.send(200, obj);
+        return next();
+      })
+      .catch(err => {
+        log.error(err);
+        return next(err);
+      })
+  });
+
+
+  app.get('/gameInstances/:id', function(req, res, next){
+    if(!mongoose.Types.ObjectId.isValid(req.params.id)){
+      return next(new InvalidObjectId(req.params.id));
+    }
+    const query = {
+      _id: mongoose.Types.ObjectId(req.params.id)
+    };
+    GameInstance.findOne(query).lean().exec()
+      .catch(err => {
+        log.error(err);
+        return next(new errors.InvalidContentError(err.errors.name.message));
       })
       .then(gi => {
-        return gi.addMove(req.params.pick);
-      })
-      .then(gi => {
-        res.send(200, gi.turns);
+        if(!gi){
+          return res.send(404);
+        }
+        res.send(gi);
         return next();
       });
   });
