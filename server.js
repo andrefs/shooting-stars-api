@@ -7,7 +7,7 @@ import passport      from './lib/passport';
 import jwt           from 'restify-jwt';
 import url           from 'url';
 import morgan        from 'morgan';
-import uuid          from 'node-uuid';
+import uuid          from 'uuid';
 
 let api;
 

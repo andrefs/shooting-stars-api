@@ -4051,7 +4051,7 @@ node-status-codes@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/node-status-codes/-/node-status-codes-1.0.0.tgz#5ae5541d024645d32a58fcddc9ceecea7ae3ac2f"
 
-node-uuid@1.4.8, node-uuid@~1.4.0:
+node-uuid@~1.4.0:
   version "1.4.8"
   resolved "https://registry.yarnpkg.com/node-uuid/-/node-uuid-1.4.8.tgz#b040eb0923968afabf8d32fb1f17f1167fdab907"
 
@@ -5135,9 +5135,9 @@ restify-errors@^5.0.0:
   optionalDependencies:
     safe-json-stringify "^1.0.3"
 
-restify-jwt@^0.4.0:
+"restify-jwt@github:amrav/restify-jwt":
   version "0.4.0"
-  resolved "https://registry.yarnpkg.com/restify-jwt/-/restify-jwt-0.4.0.tgz#22274c8ce6ef6e6e6bb5074b381f2b57bff7bd1f"
+  resolved "https://codeload.github.com/amrav/restify-jwt/tar.gz/5dff7cf6d94eeee939b0ec48ada7d0661c393d1a"
   dependencies:
     async "^0.9.0"
     express-unless "^0.3.0"
