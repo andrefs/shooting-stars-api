@@ -47,7 +47,7 @@
     "jwt-simple": "^0.5.1",
     "lobo-mongodb-fixtures": "^1.0.0",
     "lodash": "^4.17.4",
-    "mongoose": "4.12.3",
+    "mongoose": "4.12.4",
     "mongoose-api-query": "^0.1.1-pre",
     "mongoose-createdmodified": "^0.0.2",
     "mongoose-paginate": "^5.0.3",
