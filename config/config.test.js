@@ -22,7 +22,7 @@ module.exports = {
   },
   env: 'test',
   log: {
-    level: 'error',
+    level: 'info',
     dir: '/tmp'
   }
 };

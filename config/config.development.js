@@ -20,6 +20,9 @@ module.exports = {
       win: 50
     }
   },
+  gameApp: {
+    url: 'http://localhost:15112'
+  },
   env: 'development',
   log: {
     level: 'info',
