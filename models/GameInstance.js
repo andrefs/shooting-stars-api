@@ -157,7 +157,7 @@ GameInstanceSchema.methods.selectAsyncPlayer = function(){
 };
 
 GameInstanceSchema.methods.nextTurn = function(){
-  const totalTurns = this.turns.previous.length + 1;
+  const totalTurns = this.turns.previous.length + (this.turns.current ? 1 : 0);
   if(this.turns.current){
     this.turns.previous.push(this.turns.current);
     this.turns.current = undefined;
