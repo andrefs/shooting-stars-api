@@ -89,7 +89,7 @@ describe('GameInstance', () => {
     it('does not assign async player if a suitable one cannot be found', function(){
       return GameInstance.createNew(player._id)
         .then(gi => {
-          expect(gi.players.async).to.be.null;
+          expect(gi.players.async).to.be.undefined;
         });
     });
 
