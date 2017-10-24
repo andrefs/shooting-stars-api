@@ -106,7 +106,7 @@ GameInstanceSchema.methods.toSanitizedObject = function(){
         path: 'triple',
         model: 'Triple',
         populate: {
-          path: 'itemAitemB itemC',
+          path: 'itemA itemB itemC',
           model: 'Item'
         }
       },
@@ -121,7 +121,6 @@ GameInstanceSchema.methods.toSanitizedObject = function(){
             path: 'itemA itemB itemC',
             model: 'Item'
           },
-          select: 'triple'
         }
       ]
     }])
