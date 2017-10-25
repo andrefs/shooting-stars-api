@@ -1,8 +1,10 @@
 import User     from '../models/User';
 import errors   from 'restify-errors';
 import {log}           from '../lib/logger';
+import mongoose from 'mongoose';
 import config   from '../config';
 import {getJwt} from '../lib/jwt';
+import Promise          from 'bluebird';
 
 module.exports = function(app, passport){
   app.get('/users', function(req, res, next){
@@ -50,5 +52,19 @@ module.exports = function(app, passport){
         }
       });
     });
+
+  app.get('/players/scoreBoard', function(req, res, next){
+    return User.findOne({_id: mongoose.Types.ObjectId(req.auth.sub)})
+      .then(user => {
+        return Promise.join(
+          User.globalScoreBoard(3),
+          user.playerScoreBoard(3)
+        );
+      })
+      .then(([globalScore, playerScore]) => {
+        res.send({globalScore, playerScore});
+        return next();
+      });
+  });
 
 };
