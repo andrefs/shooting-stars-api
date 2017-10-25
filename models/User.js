@@ -38,6 +38,11 @@ const UserSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'GameInstance',
     required: false
+  },
+  totalScore : {
+    type: Number,
+    required: true,
+    default: 0
   }
 },{minimize:false});
 
@@ -67,6 +72,11 @@ UserSchema.statics.calcPasswordHash = calcPasswordHash;
 // instance method
 UserSchema.methods.comparePassword = function(password) {
   return bcrypt.compareSync(password, this.password);
+};
+
+UserSchema.methods.addToTotalScore = function(score){
+  this.totalScore += score;
+  return this.save();
 };
 
 UserSchema.methods.addPlayedSequence = function(seq){

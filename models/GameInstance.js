@@ -199,6 +199,9 @@ GameInstanceSchema.methods.wrapUp = function(){
       return this.players.sync.addPlayedSequence(this.gameSequence);
     })
     .then(() => {
+      return this.players.sync.addToTotalScore(this.currentScore.sync);
+    })
+    .then(() => {
       // player moves are only added to db at end of game instance
       let playerMoves = [];
       this.turns.previous.forEach(t => {
