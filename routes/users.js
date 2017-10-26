@@ -53,16 +53,16 @@ module.exports = function(app, passport){
       });
     });
 
-  app.get('/players/scoreBoard', function(req, res, next){
+  app.get('/players/bestScores', function(req, res, next){
     return User.findOne({_id: mongoose.Types.ObjectId(req.auth.sub)})
       .then(user => {
         return Promise.join(
-          User.globalScoreBoard(3),
-          user.playerScoreBoard(3)
+          User.globalBestScores(3),
+          user.playerNearestScores(3)
         );
       })
-      .then(([globalScore, playerScore]) => {
-        res.send({globalScore, playerScore});
+      .then(([global, player]) => {
+        res.send({global, player});
         return next();
       });
   });

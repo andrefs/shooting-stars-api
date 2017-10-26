@@ -85,7 +85,7 @@ UserSchema.methods.addPlayedSequence = function(seq){
   return this.save();
 };
 
-UserSchema.statics.globalScoreBoard = function(n){
+UserSchema.statics.globalBestScores = function(n){
   return this.find()
   .limit(n||5)
   .sort('-totalScore')
@@ -96,14 +96,14 @@ UserSchema.statics.globalScoreBoard = function(n){
     return users.map(u => {
       return {
         username: u.username,
-        totalScore: u.totalScore,
-        totalGames: u.playedSequences.length
+        score: u.totalScore,
+        games: u.playedSequences.length
       };
     });
   });
 };
 
-UserSchema.methods.playerScoreBoard = function(n){
+UserSchema.methods.playerNearestScores = function(n){
   let num = n || 5;
   return Promise.join(
     this.constructor
@@ -149,8 +149,8 @@ UserSchema.methods.playerScoreBoard = function(n){
     return elems.map(u => {
       return {
         username: u.username,
-        totalScore: u.totalScore,
-        totalGames: u.playedSequences.length
+        score: u.totalScore,
+        games: u.playedSequences.length
       };
     });
   });
