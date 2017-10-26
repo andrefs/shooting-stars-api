@@ -6,6 +6,7 @@ import createdModified  from 'mongoose-createdmodified';
 import {createHash}     from 'crypto';
 import {log}            from '../lib/logger';
 import MongooseSequence from 'mongoose-sequence';
+import {NoGameSequencesLeft}  from '../lib/errors';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -74,7 +75,7 @@ GameSequenceSchema.statics.selectNew = function(playerIDs){
         .exec();
     })
     .then(gs => {
-      if(!gs){ throw new Error("Could not select a new GameSequence"); }
+      if(!gs){ return Promise.reject(new NoGameSequencesLeft()); }
       return gs;
     });
 };

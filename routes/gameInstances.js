@@ -30,6 +30,10 @@ module.exports = function(app){
       });
   });
 
+  /**
+   * Create new
+   */
+
   app.post('/gameInstances/current', function(req, res, next){
     return User.findOne({'_id': mongoose.Types.ObjectId(req.auth.sub)})
       .then(user => {
@@ -48,7 +52,11 @@ module.exports = function(app){
       .then(obj => {
         res.send(obj);
         return next();
-      });
+      })
+      .catch(err => {
+        log.error(err);
+        return next(err);
+      })
   });
 
   app.post('/gameInstances/currentTurn/:pick', function(req, res, next){
