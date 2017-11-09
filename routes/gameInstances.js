@@ -20,12 +20,13 @@ module.exports = function(app){
       })
       .then(gi => {
         if(!gi){
-          return res.send(404);
+          res.send(404);
+          return;
         }
         return gi.toSanitizedObject();
       })
       .then(obj => {
-        res.send(obj);
+        if(obj){ res.send(obj); }
         return next();
       });
   });

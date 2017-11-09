@@ -17,7 +17,7 @@ module.exports = {
   game: {
     size: 10,
     scores: {
-      win: 50
+      win: 10
     }
   },
   gameApp: {
