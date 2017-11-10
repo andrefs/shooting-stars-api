@@ -60,7 +60,7 @@ const create = () => {
   /**
    * Prevent access to unauthorized paths
    */
-  var unauthPaths = ['/status','/login','/register'];
+  var unauthPaths = ['/status','/login','/auth/register'];
   api.use(jwt({secret: config.auth.jwt.secret, requestProperty: 'auth'})
     .unless(req => {
       if(config.auth.disabled){ return true; }

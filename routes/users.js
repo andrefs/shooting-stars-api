@@ -24,7 +24,7 @@ module.exports = function(app, passport){
       });
   });
 
-  app.post('/register',
+  app.post('/auth/register',
     passport.authenticate('local-register', {session:false}),
     function(req, res){
       log.info(`User registered with local-register: ${req.user.username}`);
@@ -63,6 +63,16 @@ module.exports = function(app, passport){
       })
       .then(([global, player]) => {
         res.send({global, player});
+        return next();
+      });
+  });
+
+
+
+  app.get('/players/usernames', function(req, res, next){
+    return User.find().select('username').lean()
+      .then(users => {
+        res.send(users.map(u => u.username));
         return next();
       });
   });

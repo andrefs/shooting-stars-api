@@ -26,7 +26,7 @@ const UserSchema = mongoose.Schema({
   },
   password: {
     type: String,
-    required: true
+    required: false
   },
   playedSequences: {
     type: [{
