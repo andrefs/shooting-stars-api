@@ -24,20 +24,26 @@ module.exports = function(app, passport){
       });
   });
 
-  app.post('/auth/register',
-    passport.authenticate('local-register', {session:false}),
-    function(req, res){
-      log.info(`User registered with local-register: ${req.user.username}`);
-      let token = getJwt(req.user, config.auth.jwt.secret);
-      log.info(`User logged in with local-login: ${req.user.username}`);
-      res.send(201, {
-        token: token,
-        user: {
-          _id: req.user['_id'],
-          username: req.user.username
-        }
+  app.post('/auth/register', function(req, res, next){
+    return User.findOne({'username':req.body.username}).lean().exec()
+      .then(user => {
+        // Check if user already exists
+        if(user){ res.send(400, {error:'User already exists'}); }
+
+        // Create new user
+        return User.create({username: req.body.username});
+      })
+      .then(user => {
+        let token = getJwt(req.body.username, config.auth.jwt.secret);
+        res.send(201,{
+          token,
+          user: {
+            _id: user['_id'],
+            username: user.username
+          }
+        });
       });
-    });
+  });
 
   app.post('/login',
     passport.authenticate('local-login', {session:false}),

@@ -87,6 +87,7 @@ const create = () => {
     res.send(err);
   });
 
+
   api.get('/status', (req, res, next) => {
     res.setHeader('content-type', 'text/plain');
     res.send('API is running and accepting requests!');
