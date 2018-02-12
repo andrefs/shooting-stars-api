@@ -67,7 +67,7 @@ describe('GameSequence', () => {
         return GameSequence.generate(1, 15, 10);
       })
       .then(x => {
-        expect(x).to.be.null;
+        expect(x).to.be.undefined;
       });
   });
 

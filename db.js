@@ -22,7 +22,7 @@ if(process.env.NODE_ENV === 'development'){
 // Database connection
 
 const connect = () => {
-  mongoose.connect(mongo_uri, {useMongoClient: true});
+  mongoose.connect(mongo_uri);
   const conn = mongoose.connection;
 
   conn.on('error', (err) => {
