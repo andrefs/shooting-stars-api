@@ -195,12 +195,8 @@ GameInstanceSchema.methods.wrapUp = function(){
       model: Turn
     }])
     .execPopulate()
-    .then(() => {
-      return this.players.sync.addPlayedSequence(this.gameSequence);
-    })
-    .then(() => {
-      return this.players.sync.addToTotalScore(this.currentScore.sync);
-    })
+    .then(() =>  this.players.sync.addPlayedSequence(this.gameSequence))
+    .then(() =>  this.players.sync.addToTotalScore(this.currentScore.sync))
     .then(() => {
       // player moves are only added to db at end of game instance
       let playerMoves = [];
@@ -213,9 +209,7 @@ GameInstanceSchema.methods.wrapUp = function(){
       });
       return PlayerMove.create(playerMoves);
     })
-    .then(() => {
-      return this.save();
-    });
+    .then(() => this.save());
 };
 
 GameInstanceSchema.methods.addMove = function(pick){
