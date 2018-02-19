@@ -2,7 +2,6 @@ import mongoose         from 'mongoose';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
-import kcomb            from 'foreach-combination';
 import {reject}         from 'lodash';
 import MongooseSequence from 'mongoose-sequence';
 import Triple           from './Triple';
@@ -32,15 +31,31 @@ ItemSchema.plugin(autoIncrement, {id: 'item_counter', 'inc_field': 'id'});
 const generateTriples = (doc, items) => {
   let triples = [];
   const otherItems = reject(items, i => i.id === doc.id);
-  kcomb(otherItems, 2, (a,b) => {
-    triples.push({
-      itemA: doc,
-      itemB: a,
-      itemC: b,
-    });
-  });
+  if(otherItems.length < 2){ return []; }
+  for(let i=0; i<otherItems.length-1; i++){
+    for(let j=i+1; j<otherItems.length; j++){
+      triples.push({
+        itemA: doc,
+        itemB: otherItems[i],
+        itemC: otherItems[j]
+      });
+    }
+  }
   return triples;
 };
+
+// const generatePairs = (doc, items) => {
+//   let pairs = [];
+//   const otherItems = reject(items, i => i.id === doc.id);
+//   kcomb(otherItems, 2, (a,b) => {
+//     triples.push({
+//       itemA: doc,
+//       itemB: a,
+//     });
+//   });
+//   return triples;
+// }
+
 
 ItemSchema.statics.generateTriples = generateTriples;
 

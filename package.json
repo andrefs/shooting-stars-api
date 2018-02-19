@@ -42,7 +42,6 @@
     "bcrypt": "^1.0.2",
     "bluebird": "^3.5.0",
     "bunyan-winston-adapter": "^0.2.0",
-    "foreach-combination": "^1.0.0",
     "inherits": "^2.0.3",
     "jwt-simple": "^0.5.1",
     "lobo-mongodb-fixtures": "^1.0.0",
