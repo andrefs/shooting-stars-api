@@ -1,4 +1,5 @@
 import Item     from '../../models/Item';
+import Pair     from '../../models/Pair';
 import Triple   from '../../models/Triple';
 import sinon    from 'sinon';
 import chai from 'chai';

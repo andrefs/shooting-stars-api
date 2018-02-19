@@ -2,6 +2,7 @@ import mongoose         from 'mongoose';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
+import Promise          from 'bluebird';
 import Pair             from './Pair';
 import Item             from './Item';
 import _                from 'lodash';
@@ -65,23 +66,28 @@ RelationSchema.pre('validate', function(next){
   });
 });
 
-// RelationSchema.statics.addChoice = function(pair1, pair2){
-//   const ord = [pair1, pair2].sort((a, b) => a.cmp(b));
-// 
-//   // find existing or create
-//   return this.findOne({pair1: ord[0], pair2: ord[1]})
-//     .then(rel => {
-//       if(!rel) return new this({pair1: ord[0], pair2: ord[1]});
-//     })
-//     .then(rel => {
-//       if(rel.pair1._id === ord[0]){
-//         rel.choicesPair1++;
-//       } else {
-//         rel.choicesPair2++;
-//       }
-//       return rel.save();
-//     });
-// }
+RelationSchema.statics.addChoice = function(pair1, pair2){
+  const popArgs = [{path: 'itemA', model: 'Item'},{path: 'itemB', model: 'Item'}];
+  const ord = [pair1, pair2].sort((a, b) => a.cmp(b));
+
+  return Promise.join(ord[0].populate(popArgs), ord[1].populate(popArgs))
+  .then(() => {
+    // find existing or create
+    return this.findOne({pair1: ord[0], pair2: ord[1]})
+      .then(rel => {
+        return rel ? Promise.resolve(rel) : this.create({pair1: ord[0], pair2: ord[1]});
+      })
+  })
+  .then(rel => rel.populate([
+    {path:'pair1', model: 'Pair', populate:[{path: 'itemA', model: 'Item'},{path: 'itemB', model: 'Item'}]},
+    {path:'pair2', model: 'Pair', populate:[{path: 'itemA', model: 'Item'},{path: 'itemB', model: 'Item'}]},
+  ]).execPopulate())
+  .then(rel => {
+    if(rel.pair1._id.equals(pair1._id)){ rel.choicesPair1++; }
+    else { rel.choicesPair2++; }
+    return rel.save();
+  });
+}
 
 RelationSchema.index({pair1: 1, pair2: 1}, {unique: true});
 
