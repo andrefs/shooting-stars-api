@@ -64,7 +64,8 @@ describe('Triple', () => {
 
     return  Promise.mapSeries(itemFields, itemF => Item.create(itemF))
       .then(([itemA, itemB, itemC])  => {
-       return expect(Triple.create({itemA, itemB, itemC})).to.be.rejected;
+        // a triple with items A B and C was automatically created when they were created
+        return expect(Triple.create({itemA, itemB, itemC})).to.be.rejected;
       });
   });
 

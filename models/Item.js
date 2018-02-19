@@ -5,6 +5,8 @@ import createdModified  from 'mongoose-createdmodified';
 import {reject}         from 'lodash';
 import MongooseSequence from 'mongoose-sequence';
 import Triple           from './Triple';
+import Pair             from './Pair';
+import Promise  from 'bluebird';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -44,20 +46,21 @@ const generateTriples = (doc, items) => {
   return triples;
 };
 
-// const generatePairs = (doc, items) => {
-//   let pairs = [];
-//   const otherItems = reject(items, i => i.id === doc.id);
-//   kcomb(otherItems, 2, (a,b) => {
-//     triples.push({
-//       itemA: doc,
-//       itemB: a,
-//     });
-//   });
-//   return triples;
-// }
-
+const generatePairs = (doc, items) => {
+  let pairs = [];
+  const otherItems = reject(items, i => i.id === doc.id);
+  if(otherItems.length < 1){ return []; }
+  otherItems.forEach(other => {
+    pairs.push({
+      itemA: doc,
+      itemB: other
+    });
+  });
+  return pairs;
+};
 
 ItemSchema.statics.generateTriples = generateTriples;
+ItemSchema.statics.generatePairs   = generatePairs;
 
 ItemSchema.pre('save', function(next){
   this.wasNew = this.isNew;
@@ -65,15 +68,19 @@ ItemSchema.pre('save', function(next){
 });
 
 ItemSchema.post('save', function(doc, next){
-  const createTriples = (item, callback) => {
+  const createPairsAndTriples = (item, callback) => {
     let triples = [];
     item.constructor.find().exec((err, items) => {
       const triples = generateTriples(doc, items);
-      Triple.create(triples, callback);
+      const pairs   = generatePairs(doc, items);
+      Promise.join(
+        Triple.create(triples),
+        Pair.create(pairs)
+      ).then(() => callback());
     });
   };
   if(doc.wasNew){
-    return createTriples(doc, next);
+    return createPairsAndTriples(doc, next);
   }
 });
 
