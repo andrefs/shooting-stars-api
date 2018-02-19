@@ -34,8 +34,7 @@ describe('Relation', () => {
           {path: 'itemA', model: 'Item'},{path: 'itemB', model: 'Item'},
           {path: 'itemA', model: 'Item'},{path: 'itemB', model: 'Item'},
         ]).exec())
-      .then(p  => pairs = [p[0], p[1]].sort((a, b) => a.cmp(b)))
-      .catch(err => console.log('XXXXXXXXXXXXXxx 1', err))
+      .then(p  => pairs = [p[0], p[1]].sort((a, b) => a.cmp(b)));
   });
 
   it('sorts pairs on creation', () => {
@@ -54,10 +53,6 @@ describe('Relation', () => {
     ]).execPopulate())
     .then(doc => {
       expect(doc.pair1.cmp(doc.pair2)).to.equal(-1);
-    })
-    .catch(err => {
-      log.error(err);
-      throw err;
     });
   });
 
@@ -83,10 +78,12 @@ describe('Relation', () => {
   it("correctly calculates properties values when adding choice", () => {
     return Relation.create({pair1: pairs[0], pair2: pairs[1]})
     .then(() => Relation.addChoice(pairs[0], pairs[1]))
+    .then(rel => rel.populate({path: 'highestItem', model: 'Item'}).execPopulate())
     .then(rel => {
       expect(rel.choicesPair1).to.equal(1);
       expect(rel.choicesPair2).to.equal(0);
       expect(rel.confidence).to.equal(1);
+      expect(rel.highestItem.id).to.equal(pairs[1].itemB.id);
       expect(rel.support).to.equal(1);
 
       return Relation.addChoice(pairs[0], pairs[1]);

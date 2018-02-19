@@ -54,10 +54,6 @@ TripleSchema.pre('validate', function(next){
       this.randomSeq = createHash('md5').update(this._id.toString()).digest("hex");
 
       return next();
-    })
-    .catch(err => {
-      log.error(err);
-      return next(err);
     });
 });
 

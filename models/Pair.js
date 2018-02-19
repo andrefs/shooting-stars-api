@@ -38,10 +38,6 @@ PairSchema.pre('validate', function(next){
 
       return next();
     })
-    .catch(err => {
-      log.error(err);
-      return next(err);
-    });
 });
 
 PairSchema.methods.cmp = function(otherPair){
