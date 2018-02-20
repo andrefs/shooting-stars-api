@@ -15,7 +15,7 @@ module.exports = {
     }
   },
   game: {
-    size: 10,
+    size: 2,
     scores: {
       win: 50
     }

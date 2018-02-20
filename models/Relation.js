@@ -89,6 +89,20 @@ RelationSchema.statics.addChoice = function(pair1, pair2){
   });
 }
 
+RelationSchema.statics.printAll = function(){
+  this.find().populate([
+    {path:'pair1', model: 'Pair', populate:[{path: 'itemA', model: 'Item'},{path: 'itemB', model: 'Item'}]},
+    {path:'pair2', model: 'Pair', populate:[{path: 'itemA', model: 'Item'},{path: 'itemB', model: 'Item'}]},
+  ]).exec()
+  .then(rels => {
+    rels.forEach(r => {
+      console.log([r.pair1.itemA.id,r.pair1.itemB.id],[r.pair2.itemA.id,r.pair2.itemB.id]);
+      console.log('    confidence:', r.confidence);
+      console.log('    support:   ', r.support);
+    });
+  });
+};
+
 RelationSchema.index({pair1: 1, pair2: 1}, {unique: true});
 
 module.exports = mongoose.model('Relation', RelationSchema);

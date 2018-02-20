@@ -2,6 +2,7 @@ import User     from '../../models/User';
 import Item     from '../../models/Item';
 import Turn     from '../../models/Turn';
 import Triple   from '../../models/Triple';
+import Relation from '../../models/Relation';
 import GameSequence   from '../../models/GameSequence';
 import GameInstance   from '../../models/GameInstance';
 import sinon    from 'sinon';
@@ -10,6 +11,7 @@ import Promise  from 'bluebird';
 import chaiAsPromised from 'chai-as-promised';
 import {NoCurrentTurnError} from '../../lib/errors';
 require('../mongoose-helper');
+import config from '../../config';
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -37,6 +39,7 @@ describe('GameInstance', () => {
         Item.remove().exec(),
         Triple.remove().exec(),
         Turn.remove().exec(),
+        Relation.remove().exec(),
         GameSequence.remove().exec(),
         Promise.promisify(Item.counterReset)('item_counter'),
         Promise.mapSeries([
@@ -48,7 +51,7 @@ describe('GameInstance', () => {
       )
       .then(() => Triple.findOne().exec())
       .then(t  => { triple = t; })
-      .then(() => GameSequence.generate(1,2,4))
+      .then(() => GameSequence.generate(1,config.game.size,4))
       .then(gs => { gameSeqs = gs; })
       .then(() => User.create({username, password}))
       .then(p  => { player = p; });
@@ -134,11 +137,20 @@ describe('GameInstance', () => {
         });
     });
 
+    // TODO
     it('calls turn.setMoves, setCurrentScore and nextTurn', function(){
       return GameInstance.createNew(player._id)
         .then(gi => {
           return gi.addMove('AC');
         });
     });
+
+    // TODO
+    it.only('calls wrapUp at the end', function(){
+      return GameInstance.createNew(player._id)
+        .then(gi => gi.addMove('AC')) //  1
+        .then(gi => gi.addMove('AC')) //  2
+        });
+
   });
 });
