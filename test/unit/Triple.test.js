@@ -139,4 +139,40 @@ describe('Triple', () => {
         expect(triple.highestItemId).to.equal(triple.itemC.id);
       });
   });
+
+  it('getPairs correct pairs ordered', () => {
+    const imageUrl = 'http://ww.example.com';
+    let triple;
+
+    return Promise.mapSeries([
+        {name: 'first item' , imageUrl},
+        {name: 'second item', imageUrl},
+        {name: 'third item' , imageUrl}
+      ], itemF => Item.create(itemF))
+      .then(items => {
+        return Triple.findOne()
+          .populate([
+            {path: 'itemA', model: Item},
+            {path: 'itemB', model: Item},
+            {path: 'itemC', model: Item}
+          ])
+          .exec();
+      })
+      .then(t => {
+        triple = t;
+        return triple.getPairs();
+      })
+      .then(pairs => {
+        expect(pairs.length).to.equal(3);
+        expect(pairs[0].itemA.id).to.equal(triple.itemA.id);
+        expect(pairs[0].itemB.id).to.equal(triple.itemB.id);
+        expect(pairs[1].itemA.id).to.equal(triple.itemA.id);
+        expect(pairs[1].itemB.id).to.equal(triple.itemC.id);
+        expect(pairs[2].itemA.id).to.equal(triple.itemB.id);
+        expect(pairs[2].itemB.id).to.equal(triple.itemC.id);
+        expect(pairs[0].cmp(pairs[1])).to.equal(-1);
+        expect(pairs[0].cmp(pairs[2])).to.equal(-1);
+        expect(pairs[1].cmp(pairs[2])).to.equal(-1);
+      });
+  });
 });

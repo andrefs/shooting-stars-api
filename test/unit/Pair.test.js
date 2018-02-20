@@ -39,8 +39,10 @@ describe('Pair', () => {
       .then(() => pair.save())
       .then(doc => {
         return doc
-          .populate({path: 'itemA', model: Item})
-          .populate({path: 'itemB', model: Item})
+          .populate([
+            {path: 'itemA', model: Item},
+            {path: 'itemB', model: Item}
+           ])
           .execPopulate();
       })
       .then(doc => {

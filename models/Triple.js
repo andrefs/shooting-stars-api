@@ -4,6 +4,7 @@ import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import {createHash}     from 'crypto';
 import {log}            from '../lib/logger';
+import Pair             from './Pair';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -62,6 +63,17 @@ TripleSchema.statics.getUnplayedTriples = function(howMany, players){
   // TODO: implement logic which takes into account triples already
   //    played by any of the players and intended distribution
   return Triple.find().limit(howMany).exec();
+};
+
+TripleSchema.methods.getPairs = function(){
+  return Pair.find({
+      '$or': [
+        {itemA: this.itemA, itemB: this.itemB},
+        {itemA: this.itemA, itemB: this.itemC},
+        {itemA: this.itemB, itemB: this.itemC}
+      ]
+    }).limit(3).populate([{path: 'itemA', model: 'Item'},{path: 'itemB', model: 'Item'}])
+    .then(pairs => pairs.sort((a, b) => a.cmp(b)));
 };
 
 TripleSchema.index({itemA: 1, itemB: 1, itemC: 1}, {unique: true});
