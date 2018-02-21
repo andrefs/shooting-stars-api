@@ -66,6 +66,34 @@ RelationSchema.pre('validate', function(next){
   });
 });
 
+RelationSchema.statics.extractChoicesFromMoves = function(moves){
+  let relations = [];
+  return Promise.mapSeries(moves,
+      m => m.populate({path: 'triple', model: 'Triple'})
+            .execPopulate()
+            .then(m => m.triple.getPairs()))
+    .then(pairsList => {
+      moves.forEach((m, i) => {
+        const pairs = pairsList[i];
+        if(m.pick === 'AB'){
+          relations.push([pairs[0], pairs[1]]);
+          relations.push([pairs[0], pairs[2]]);
+        }
+        if(m.pick === 'AC'){
+          relations.push([pairs[1], pairs[0]]);
+          relations.push([pairs[1], pairs[2]]);
+        }
+        if(m.pick === 'BC'){
+          relations.push([pairs[2], pairs[0]]);
+          relations.push([pairs[2], pairs[1]]);
+        }
+      });
+
+      return Promise.mapSeries(relations, r => this.addChoice(r[0], r[1]));
+    }
+  );
+};
+
 RelationSchema.statics.addChoice = function(pair1, pair2){
   const popArgs = [{path: 'itemA', model: 'Item'},{path: 'itemB', model: 'Item'}];
   const ord = [pair1, pair2].sort((a, b) => a.cmp(b));

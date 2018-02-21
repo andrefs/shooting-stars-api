@@ -130,7 +130,7 @@ describe('GameInstance', () => {
     });
   });
 
-  describe.only('when adding a move', () => {
+  describe('when adding a move', () => {
     it('throws if there\'s no current turn', function(){
       return GameInstance.createNew(player._id)
         .then(gi => {

@@ -181,6 +181,18 @@ GameInstanceSchema.methods.nextTurn = function(){
     });
 };
 
+GameInstanceSchema.methods.saveMoves = function(){
+  // player moves are only added to db at end of game instance
+  let playerMoves = [];
+  this.turns.previous.forEach(t => {
+    playerMoves.push({
+      player: this.players.sync,
+      triple: t.triple,
+      pick: t.moves.sync
+    });
+  });
+  return PlayerMove.create(playerMoves);
+};
 
 GameInstanceSchema.methods.wrapUp = function(){
   this.isFinished = true;
@@ -196,47 +208,10 @@ GameInstanceSchema.methods.wrapUp = function(){
       model: Turn
     }])
     .execPopulate()
-    .then(() =>  this.players.sync.addPlayedSequence(this.gameSequence))
-    .then(() =>  this.players.sync.addToTotalScore(this.currentScore.sync))
-    .then(() => {
-      // player moves are only added to db at end of game instance
-      let playerMoves = [];
-      this.turns.previous.forEach(t => {
-        playerMoves.push({
-          player: this.players.sync,
-          triple: t.triple,
-          pick: t.moves.sync
-        });
-      });
-      return PlayerMove.create(playerMoves);
-    })
-    .then(moves => {
-      let relations = [];
-      return Promise.mapSeries(moves,
-          m => m.populate({path: 'triple', model: 'Triple'})
-                .execPopulate()
-                .then(m => m.triple.getPairs()))
-        .then(pairsList => {
-          moves.forEach((m, i) => {
-            const pairs = pairsList[i];
-            if(m.pick === 'AB'){
-              relations.push([pairs[0], pairs[1]]);
-              relations.push([pairs[0], pairs[2]]);
-            }
-            if(m.pick === 'AC'){
-              relations.push([pairs[1], pairs[0]]);
-              relations.push([pairs[1], pairs[2]]);
-            }
-            if(m.pick === 'BC'){
-              relations.push([pairs[2], pairs[0]]);
-              relations.push([pairs[2], pairs[1]]);
-            }
-          });
-
-          return Promise.mapSeries(relations, r => Relation.addChoice(r[0], r[1]));
-        }
-      );
-    })
+    .then(() => this.players.sync.addPlayedSequence(this.gameSequence))
+    .then(() => this.players.sync.addToTotalScore(this.currentScore.sync))
+    .then(() => this.saveMoves())
+    .then(moves => Relation.extractChoicesFromMoves(moves))
     .then(() => Relation.printAll())
     .then(() => this.save());
 };
