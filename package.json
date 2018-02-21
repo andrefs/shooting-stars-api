@@ -15,7 +15,14 @@
   "babel": {
     "sourceMaps": "inline",
     "presets": [
-      "env"
+      [
+        "env",
+        {
+          "targets": {
+            "node": "current"
+          }
+        }
+      ]
     ],
     "plugins": [
       [

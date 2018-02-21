@@ -146,11 +146,16 @@ describe('GameInstance', () => {
     });
 
     // TODO
-    it.only('calls wrapUp at the end', function(){
-      return GameInstance.createNew(player._id)
-        .then(gi => gi.addMove('AC')) //  1
-        .then(gi => gi.addMove('AC')) //  2
-        });
+    it('calls wrapUp at the end', function(){
+      const _addMove = async gi => gi.addMove('AC');
 
+      return GameInstance.createNew(player._id)
+        .then(async gi => {
+          for (let i=0; i<config.game.size; i++){
+            await _addMove(gi);
+          }
+          return gi;
+        });
+    });
   });
 });
