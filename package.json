@@ -66,6 +66,7 @@
     "restify-cors-middleware": "^1.1.0",
     "restify-errors": "^5.0.0",
     "restify-jwt": "^0.4.0",
+    "sinon-chai": "^2.14.0",
     "sinon-mongoose": "^2.0.2",
     "uuid": "^3.2.1",
     "winston": "^2.3.1"

@@ -5,8 +5,10 @@ import Triple   from '../../models/Triple';
 import Relation from '../../models/Relation';
 import GameSequence   from '../../models/GameSequence';
 import GameInstance   from '../../models/GameInstance';
-import sinon    from 'sinon';
 import chai from 'chai';
+import sinon    from 'sinon';
+import sinonChai from 'sinon-chai';
+chai.use(sinonChai);
 import Promise  from 'bluebird';
 import chaiAsPromised from 'chai-as-promised';
 import {NoCurrentTurnError} from '../../lib/errors';
@@ -128,7 +130,7 @@ describe('GameInstance', () => {
     });
   });
 
-  describe('when adding a move', () => {
+  describe.only('when adding a move', () => {
     it('throws if there\'s no current turn', function(){
       return GameInstance.createNew(player._id)
         .then(gi => {
@@ -137,25 +139,33 @@ describe('GameInstance', () => {
         });
     });
 
-    // TODO
-    it('calls turn.setMoves, setCurrentScore and nextTurn', function(){
+    it('calls setCurrentScore and nextTurn', function(){
       return GameInstance.createNew(player._id)
         .then(gi => {
+          // TODO spy on gi.turns.current.setMoves
+          sinon.spy(gi, 'setCurrentScore');
+          sinon.spy(gi, 'nextTurn');
           return gi.addMove('AC');
+        })
+        .then(gi => {
+          expect(gi.setCurrentScore).to.have.been.called;
+          expect(gi.nextTurn).to.have.been.called;
         });
     });
 
-    // TODO
-    it('calls wrapUp at the end', function(){
+    it('calls wrapUp and Relation.addChoice at the end', function(){
       const _addMove = async gi => gi.addMove('AC');
 
       return GameInstance.createNew(player._id)
         .then(async gi => {
+          sinon.spy(gi, 'wrapUp');
+          sinon.spy(Relation, 'addChoice');
           for (let i=0; i<config.game.size; i++){
             await _addMove(gi);
           }
-          return gi;
-        });
+          expect(gi.wrapUp).to.have.been.called;
+          expect(Relation.addChoice).to.have.been.called;
+        })
     });
   });
 });
