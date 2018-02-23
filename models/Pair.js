@@ -41,12 +41,13 @@ PairSchema.pre('validate', function(next){
 });
 
 PairSchema.methods.cmp = function(otherPair){
-  if(this.itemA.id > otherPair.itemA.id){ return 1;  }
+  if(this.itemA.id > otherPair.itemA.id){ return  1; }
   if(this.itemA.id < otherPair.itemA.id){ return -1; }
-  if(this.itemB.id > otherPair.itemB.id){ return 1;  }
+  if(this.itemB.id > otherPair.itemB.id){ return  1; }
   if(this.itemB.id < otherPair.itemB.id){ return -1; }
   return 0; // this sould never happen
 };
+
 
 PairSchema.index({itemA: 1, itemB: 1}, {unique: true});
 

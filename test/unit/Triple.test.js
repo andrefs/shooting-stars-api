@@ -140,7 +140,7 @@ describe('Triple', () => {
       });
   });
 
-  it('getPairs correct pairs ordered', () => {
+  it('getPairs returns correct pairs ordered', () => {
     const imageUrl = 'http://ww.example.com';
     let triple;
 
@@ -175,4 +175,5 @@ describe('Triple', () => {
         expect(pairs[1].cmp(pairs[2])).to.equal(-1);
       });
   });
+
 });
