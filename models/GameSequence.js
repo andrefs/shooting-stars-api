@@ -54,23 +54,17 @@ GameSequenceSchema.post('save', function(doc, next){
   return doc.populate({path: 'triples', model: Triple}, next);
 });
 
-GameSequenceSchema.statics.selectNew = function(playerIDs){
-  let gameSeqIDs = new Set();
-  const pIDs = playerIDs.map(x => mongoose.Types.ObjectId(x));
+GameSequenceSchema.statics.selectNew = function(playerID){
+  const pID = mongoose.Types.ObjectId(playerID);
 
-  return require('./User').find()
-    .where('_id').in(pIDs).select('playedSequences').lean().exec()
-    .then(players => {
-      players.forEach(p => {
-        p.playedSequences.forEach(gs => {
-          gameSeqIDs.add(mongoose.Types.ObjectId(gs));
-        });
-      });
+  return require('./User').findOne()
+    .where({_id: pID}).select('playedSequences').lean().exec()
+    .then(player => {
 
       return this
         .findOne()
         .where('_id')
-        .nin([...gameSeqIDs])
+        .nin(player.playedSequences)
         .sort('id')
         .exec();
     })

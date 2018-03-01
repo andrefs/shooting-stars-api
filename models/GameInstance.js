@@ -77,7 +77,7 @@ GameInstanceSchema.statics.createNew = function(syncId){
   let gameInst = new this({players: {sync: syncId}});
   return Promise.join(
       User.findOne({_id: mongoose.Types.ObjectId(syncId)}).exec(),
-      GameSequence.selectNew([gameInst.players.sync])
+      GameSequence.selectNew(gameInst.players.sync)
     )
     .then(([player, gs]) => {
       gameInst.gameSequence = gs;
