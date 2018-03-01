@@ -50,12 +50,10 @@ describe('Turn', () => {
         async: 'AB',
         bot:   'AB'
       };
-      return turn.setScores()
-        .then(turn => {
-          expect(turn.score.bot).to.equal(50);
-          expect(turn.score.sync).to.equal(50);
-          expect(turn.score.async).to.equal(50);
-        });
+      turn.setScores();
+      expect(turn.score.bot).to.equal(50);
+      expect(turn.score.sync).to.equal(50);
+      expect(turn.score.async).to.equal(50);
     });
 
     it('when two players agree', function(){
@@ -64,12 +62,10 @@ describe('Turn', () => {
         async: 'AB',
         bot:   'AB'
       };
-      return turn.setScores()
-        .then(turn => {
-          expect(turn.score.sync).to.equal(0);
-          expect(turn.score.bot).to.equal(50);
-          expect(turn.score.async).to.equal(50);
-        });
+      turn.setScores();
+      expect(turn.score.sync).to.equal(0);
+      expect(turn.score.bot).to.equal(50);
+      expect(turn.score.async).to.equal(50);
     });
 
     it('when everyone disagrees', function(){
@@ -78,12 +74,10 @@ describe('Turn', () => {
         async: 'BC',
         bot:   'AC'
       };
-      return turn.setScores()
-        .then(turn => {
-          expect(turn.score.bot).to.equal(0);
-          expect(turn.score.sync).to.equal(0);
-          expect(turn.score.async).to.equal(0);
-        });
+      turn.setScores();
+      expect(turn.score.bot).to.equal(0);
+      expect(turn.score.sync).to.equal(0);
+      expect(turn.score.async).to.equal(0);
     });
   });
 

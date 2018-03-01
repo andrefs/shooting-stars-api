@@ -74,7 +74,7 @@ const GameInstanceSchema = mongoose.Schema({
     @param {Player} syncId
  */
 GameInstanceSchema.statics.createNew = function(syncId){
-  let gameInst = new this({players: { sync: syncId}});
+  let gameInst = new this({players: {sync: syncId}});
   return Promise.join(
       User.findOne({_id: mongoose.Types.ObjectId(syncId)}).exec(),
       GameSequence.selectNew([gameInst.players.sync])
@@ -212,7 +212,7 @@ GameInstanceSchema.methods.wrapUp = function(){
     .then(() => this.players.sync.addToTotalScore(this.currentScore.sync))
     .then(() => this.saveMoves())
     .then(moves => Relation.extractChoicesFromMoves(moves))
-    .then(() => Relation.printAll())
+    //.then(() => Relation.printAll())
     .then(() => this.save());
 };
 
@@ -226,9 +226,8 @@ GameInstanceSchema.methods.addMove = function(pick){
 
       this.turns.current.moves.sync = pick;
       this.turns.current.markModified('moves.sync');
-      return this.turns.current.save();
+      return this.turns.current.setMoves(this.players);
     })
-    .then(() => this.turns.current.setMoves(this.players))
     .then(() => this.nextTurn())
     .then(() => this.setCurrentScore()) // current score is calculated over finished turns only
     ;

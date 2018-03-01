@@ -42,8 +42,11 @@ const TurnSchema = mongoose.Schema({
 
 TurnSchema.methods.setMoves = function(players){
   return this.setAsyncPlayerMove(players.async)
-    .then(() => this.setBotMove())
-    .then(() => this.setScores());
+    .then(() => {
+      this.setBotMove();
+      this.setScores();
+      return this.save();
+    });
 };
 
 function generateBotMove(){
@@ -56,7 +59,7 @@ TurnSchema.methods.setAsyncPlayerMove = function(playerId){
   if(!playerId){
     this.moves.async = generateBotMove();
     this.markModified('moves.async');
-    return this.save();
+    return Promise.resolve(this);
   }
 
   return PlayerMove.findOne({player: playerId, triple: this.triple})
@@ -64,14 +67,12 @@ TurnSchema.methods.setAsyncPlayerMove = function(playerId){
     .then(pm => {
       this.moves.async = pm.pick;
       this.markModified('moves.async');
-      return this.save();
     });
 };
 
 TurnSchema.methods.setBotMove = function(){
   this.moves.bot = generateBotMove();
   this.markModified('moves.bot');
-  return this.save();
 };
 
 
@@ -98,8 +99,6 @@ TurnSchema.methods.setScores = function(){
     }
   }
   this.markModified('score');
-
-  return this.save();
 };
 
 mongoose.model('Moves', MovesSchema);
