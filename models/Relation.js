@@ -131,6 +131,17 @@ RelationSchema.statics.printAll = function(){
   });
 };
 
+RelationSchema.methods.getItems = function(){
+  const items = [
+    this.pair1.itemA,
+    this.pair1.itemB,
+    this.pair2.itemA,
+    this.pair2.itemB
+  ];
+  return _.uniqBy(items, a => a.id)
+    .sort((a,b) => a.id > b.id ? 1 : a.id < b.id ? -1 : 0);
+}
+
 RelationSchema.index({pair1: 1, pair2: 1}, {unique: true});
 
 module.exports = mongoose.model('Relation', RelationSchema);

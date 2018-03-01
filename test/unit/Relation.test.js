@@ -15,6 +15,7 @@ const expect = chai.expect;
 
 describe('Relation', () => {
   let pairs;
+  let items;
   const imageUrl = 'http://ww.example.com';
 
   beforeEach(() => {
@@ -24,17 +25,20 @@ describe('Relation', () => {
         Triple.remove().exec(),
         Relation.remove().exec(),
         Promise.promisify(Item.counterReset)('item_counter'),
-        Promise.mapSeries([
+      )
+      .then(() => Promise.mapSeries([
             {name:  '1st item', imageUrl},
             {name:  '2nd item', imageUrl},
             {name:  '3rd item', imageUrl},
-          ], itemF => Item.create(itemF))
-      )
-      .then(() => Pair.find().limit(2).populate([
+            {name:  '4th item', imageUrl},
+          ], itemF => Item.create(itemF)))
+      .then(() => Item.find().limit(4).exec())
+      .then(_items => items = _items)
+      .then(() => Pair.find().populate([
           {path: 'itemA', model: 'Item'},{path: 'itemB', model: 'Item'},
           {path: 'itemA', model: 'Item'},{path: 'itemB', model: 'Item'},
         ]).exec())
-      .then(p  => pairs = [p[0], p[1]].sort((a, b) => a.cmp(b)));
+      .then(p  => pairs = p.sort((a, b) => a.cmp(b)))
   });
 
   it('sorts pairs on creation', () => {
@@ -66,7 +70,7 @@ describe('Relation', () => {
     });
   });
 
-  it("creates relation when adding choice to unexisting relation", () => {
+  it("creates relation when adding a choice to unexisting relation", () => {
     expect(Relation.count({pair1: pairs[0], pair2:pairs[1]})).to.eventually.equal(0);
 
     return Relation.addChoice(pairs[0], pairs[1])
@@ -75,7 +79,7 @@ describe('Relation', () => {
       });
   });
 
-  it("correctly calculates properties values when adding choice", () => {
+  it("correctly calculates properties values when adding a choice", () => {
     return Relation.create({pair1: pairs[0], pair2: pairs[1]})
     .then(() => Relation.addChoice(pairs[0], pairs[1]))
     .then(rel => rel.populate({path: 'highestItem', model: 'Item'}).execPopulate())
@@ -102,5 +106,34 @@ describe('Relation', () => {
       expect(rel.confidence).to.equal(1);
       expect(rel.support).to.equal(3);
     })
+  });
+
+  it("getItems returns 3 items if pairs have item in common", () => {
+    return Relation.create({
+      pair1: pairs[1],
+      pair2: pairs[0]
+    })
+    .then(rel => {
+      const items = rel.getItems();
+      expect(items.length).to.equal(3);
+      expect(items[0].id).to.equal(1);
+      expect(items[1].id).to.equal(2);
+      expect(items[2].id).to.equal(3);
+    });
+  });
+
+  it("getItems returns 4 items if pairs do not have item in common", () => {
+    return Relation.create({
+        pair1: pairs[0],  // items 1 and 2
+        pair2: pairs[5]   // items 3 and 4
+      })
+      .then(rel => {
+        const items = rel.getItems();
+        expect(items.length).to.equal(4);
+        expect(items[0].id).to.equal(1);
+        expect(items[1].id).to.equal(2);
+        expect(items[2].id).to.equal(3);
+        expect(items[3].id).to.equal(4);
+      });
   });
 });
