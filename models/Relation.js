@@ -4,6 +4,7 @@ import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import Promise          from 'bluebird';
 import Pair             from './Pair';
+import Triple           from './Triple';
 import Item             from './Item';
 import _                from 'lodash';
 import config           from '../config';
@@ -140,6 +141,35 @@ RelationSchema.methods.getItems = function(){
   ];
   return _.uniqBy(items, a => a.id)
     .sort((a,b) => a.id > b.id ? 1 : a.id < b.id ? -1 : 0);
+}
+
+
+RelationSchema.methods.getTriples = function(){
+  const items = this.getItems()  // items come sorted
+  let limit = 1;
+  let query = {
+    itemA: items[0]._id,
+    itemB: items[1]._id,
+    itemC: items[2]._id
+  };
+
+  if(items.length > 3){
+    limit = 4;
+    query = {'$or':[
+        query,
+        {itemA: items[0]._id, itemB: items[1]._id, itemC: items[3]._id},
+        {itemA: items[0]._id, itemB: items[2]._id, itemC: items[3]._id},
+        {itemA: items[1]._id, itemB: items[2]._id, itemC: items[3]._id}
+      ]
+    };
+  }
+
+  return Triple.find(query).limit(limit)
+    .populate([
+      {path: 'itemA', model: 'Item'},
+      {path: 'itemB', model: 'Item'},
+      {path: 'itemC', model: 'Item'}]
+    );
 }
 
 RelationSchema.index({pair1: 1, pair2: 1}, {unique: true});

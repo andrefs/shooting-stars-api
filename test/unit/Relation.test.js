@@ -136,4 +136,46 @@ describe('Relation', () => {
         expect(items[3].id).to.equal(4);
       });
   });
+
+  it("getTriples returns 1 triple if pairs have item in common", () => {
+    return Relation.create({
+      pair1: pairs[1],
+      pair2: pairs[0]
+    })
+    .then(rel => rel.getTriples())
+    .then(triples => {
+      expect(triples.length).to.equal(1);
+      expect(triples[0].itemA.id).to.equal(1);
+      expect(triples[0].itemB.id).to.equal(2);
+      expect(triples[0].itemC.id).to.equal(3);
+    });
+  });
+
+  it("getTriples returns 4 triples if pairs do not have item in common", () => {
+    return Relation.create({
+        pair1: pairs[0],  // items 1 and 2
+        pair2: pairs[5]   // items 3 and 4
+      })
+      .then(rel => rel.getTriples())
+      .then(triples => {
+        expect(triples.length).to.equal(4);
+
+        expect(triples[0].itemA.id).to.equal(1);
+        expect(triples[0].itemB.id).to.equal(2);
+        expect(triples[0].itemC.id).to.equal(3);
+
+        expect(triples[1].itemA.id).to.equal(1);
+        expect(triples[1].itemB.id).to.equal(2);
+        expect(triples[1].itemC.id).to.equal(4);
+
+        expect(triples[2].itemA.id).to.equal(1);
+        expect(triples[2].itemB.id).to.equal(3);
+        expect(triples[2].itemC.id).to.equal(4);
+
+        expect(triples[3].itemA.id).to.equal(2);
+        expect(triples[3].itemB.id).to.equal(3);
+        expect(triples[3].itemC.id).to.equal(4);
+      });
+  });
+
 });
