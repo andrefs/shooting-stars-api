@@ -11,9 +11,9 @@ const GameInstance = require('../models/GameInstance')
 // Items *
 //********/
 
-const items = [ {imageUrl:"photos/madonna.jpg" , name:"Madonna" }, {imageUrl:"photos/gaga.jpg" , name:"Lady Gaga" }, {imageUrl:"photos/queen.jpg" , name:"Freddie Mercury (Queen)" }, {imageUrl:"photos/bono.png" , name:"Bono (U2)" }, {imageUrl:"photos/bowie.jpg" , name:"David Bowie" }, {imageUrl:"photos/prince.jpg" , name:"Prince" }, {imageUrl:"http://tempuri.org" , name:"Adele" }, {imageUrl:"photos/amy.jpeg" , name:"Amy Whinehouse" }, {imageUrl:"photos/bruce.jpg" , name:"Bruce Springstein" }, {imageUrl:"photos/brunomars.jpg" , name:"Bruno Mars" }];
+const items = [ {imageUrl:"madonna.png" , name:"Madonna" }, {imageUrl:"gaga.png" , name:"Lady Gaga" }, {imageUrl:"queen.jpg" , name:"Freddie Mercury (Queen)" }, {imageUrl:"bono.png" , name:"Bono (U2)" }, {imageUrl:"bowie.jpg" , name:"David Bowie" }, {imageUrl:"prince.jpg" , name:"Prince" }, {imageUrl:"adele.jpg" , name:"Adele" }, {imageUrl:"amy.jpg" , name:"Amy Whinehouse" }, {imageUrl:"bruce.jpg" , name:"Bruce Springstein" }, {imageUrl:"brunomars.jpg" , name:"Bruno Mars" }];
 
-//const items = [ {imageUrl:"photos/madonna.jpg" , name:"Madonna" }, {imageUrl:"photos/gaga.jpg" , name:"Lady Gaga" }, {imageUrl:"photos/queen.jpg" , name:"Freddie Mercury (Queen)" }];
+//const items = [ {imageUrl:"madonna.jpg" , name:"Madonna" }, {imageUrl:"gaga.jpg" , name:"Lady Gaga" }, {imageUrl:"queen.jpg" , name:"Freddie Mercury (Queen)" }];
 
 Promise.mapSeries(items, item => Item.create(item))
   .then(() => GameSequence.generate(12, 10, 10))
