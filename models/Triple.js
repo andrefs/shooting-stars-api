@@ -30,6 +30,10 @@ const TripleSchema = mongoose.Schema({
     required: true,
     type: Number
   },
+  relations: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Relation'
+  }],
   randomSeq: {
     type: 'String',
     required: true

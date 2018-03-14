@@ -95,6 +95,18 @@ RelationSchema.statics.extractChoicesFromMoves = function(moves){
   );
 };
 
+// create relation and add it to its triples
+RelationSchema.statics.createNew = function(obj){
+  let res;
+  return this.create(obj)
+    .then(rel => {
+      res = rel;
+      return rel.getTriples();
+    })
+    .then(triples => Promise.map(triples, t => t.update({$addToSet: {relations: res}})))
+    .then(() => res);
+};
+
 RelationSchema.statics.addChoice = function(pair1, pair2){
   const popArgs = [{path: 'itemA', model: 'Item'},{path: 'itemB', model: 'Item'}];
   const ord = [pair1, pair2].sort((a, b) => a.cmp(b));
@@ -104,7 +116,7 @@ RelationSchema.statics.addChoice = function(pair1, pair2){
     // find existing or create
     return this.findOne({pair1: ord[0], pair2: ord[1]})
       .then(rel => {
-        return rel ? Promise.resolve(rel) : this.create({pair1: ord[0], pair2: ord[1]});
+        return rel ? Promise.resolve(rel) : this.createNew({pair1: ord[0], pair2: ord[1]});
       })
   })
   .then(rel => rel.populate([

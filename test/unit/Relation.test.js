@@ -70,12 +70,35 @@ describe('Relation', () => {
     });
   });
 
+  it('adds relation to triples when it is created', () => {
+    return Relation.createNew({
+      pair1: pairs[0],  // items 1 and 2
+      pair2: pairs[5]   // items 3 and 4
+    })
+    .then(() => Triple.find())
+    .then(triples => {
+      expect(triples[0]).to.not.be.empty;
+      expect(triples[1]).to.not.be.empty;
+      expect(triples[2]).to.not.be.empty;
+      expect(triples[3]).to.not.be.empty;
+    });
+  });
+
   it("creates relation when adding a choice to unexisting relation", () => {
     expect(Relation.count({pair1: pairs[0], pair2:pairs[1]})).to.eventually.equal(0);
 
     return Relation.addChoice(pairs[0], pairs[1])
       .then(rel => {
         expect(Relation.count({pair1: pairs[0], pair2:pairs[1]})).to.eventually.equal(1);
+      });
+  });
+
+  it('calls createNew when adding choice to unexisting relation', () => {
+    sinon.spy(Relation, 'createNew');
+
+    return Relation.addChoice(pairs[0], pairs[1])
+      .then(rel => {
+        expect(Relation.createNew).to.have.been.called;
       });
   });
 
