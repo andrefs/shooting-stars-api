@@ -5,6 +5,21 @@ import createdModified  from 'mongoose-createdmodified';
 import {createHash}     from 'crypto';
 import {log}            from '../lib/logger';
 import Pair             from './Pair';
+import max              from 'lodash/max';
+
+
+const PickSchema = mongoose.Schema({
+  // TODO do we need this?
+  // pair: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: 'Pair',
+  //   required: true
+  // },
+  count: {
+    type: 'Number',
+    default: 0
+  }
+});
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -26,18 +41,49 @@ const TripleSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Item'
   },
+  support: {
+    type: 'Number',
+    default: 0,
+  },
+  picks: {
+    type: {
+      AB: {
+        required: true,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: PickSchema
+      },
+      AC: {
+        required: true,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: PickSchema
+      },
+      BC: {
+        required: true,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: PickSchema
+      },
+    },
+    required: true,
+    default: {
+      AB: 0,
+      AC: 0,
+      BC: 0,
+    }
+  },
+  ambiguity: {
+    type: 'Number',
+    default: 0
+  },
+
+  // ---------------------------
   highestItemId: {
     required: true,
     type: Number
   },
-  relations: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Relation'
-  }],
   randomSeq: {
     type: 'String',
     required: true
-  }
+  },
 });
 
 /* Sort items by ObjectId, making sure that item order is irrelevant */
@@ -69,15 +115,32 @@ TripleSchema.statics.getUnplayedTriples = function(howMany, players){
   return Triple.find().limit(howMany).exec();
 };
 
-TripleSchema.statics.updateTriplesScores = function(relations){
-  return Promise.map(relations,
-    r => r.getTriples().populate({path:'relations', model:'Relation'}))
-    .then(ts => {
-      const allTriples = _.flatten(ts)
-      const triples = _uniqBy(allTriples, t => t._id.toString());
-      triples.forEach(t => t.updateScores());
-      return Promise.map(triples, t => t.save());
+TripleSchema.statics.updateTripleScores = function(moves){
+  return Promise.map(moves,
+    r => m.populate({
+        path:'triple',
+        model:'Triple',
+        populate:[
+          {path: 'picks.AB', model: PickSchema},
+          {path: 'picks.AC', model: PickSchema},
+          {path: 'picks.BC', model: PickSchema},
+        ]
+        })
+    ).then(moves => {
+      moves.forEach(m => m.triple.updatePicks(m.pick))
+      return Promise.map(moves, m => m.triple.save());
     });
+};
+
+// TODO use update $set and post('find') hook
+TripleSchema.methods.updatePicks = function(pick){
+  this.picks[pick].count++;
+  this.support++;
+  this.ambiguity = max([
+    this.picks.AB.count,
+    this.picks.AC.count,
+    this.picks.BC.count,
+  ]);
 };
 
 TripleSchema.methods.getPairs = function(){

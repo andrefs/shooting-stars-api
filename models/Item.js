@@ -74,8 +74,8 @@ ItemSchema.post('save', function(doc, next){
       const triples = generateTriples(doc, items);
       const pairs   = generatePairs(doc, items);
       Promise.join(
-        Triple.create(triples),
-        Pair.create(pairs)
+        Pair.create(pairs),
+        Triple.create(triples)
       ).then(() => callback());
     });
   };

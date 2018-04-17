@@ -211,9 +211,7 @@ GameInstanceSchema.methods.wrapUp = function(){
     .then(() => this.players.sync.addPlayedSequence(this.gameSequence))
     .then(() => this.players.sync.addToTotalScore(this.currentScore.sync))
     .then(() => this.saveMoves())
-    .then(moves => Relation.extractChoicesFromMoves(moves))
-    .then(rels => Triple.updateTriplesScores(rels))
-    //.then(() => Relation.printAll())
+    .then(moves => Triple.updateTriplesScores(moves))
     .then(() => this.save());
 };
 
