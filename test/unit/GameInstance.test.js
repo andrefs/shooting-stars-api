@@ -2,7 +2,6 @@ import User     from '../../models/User';
 import Item     from '../../models/Item';
 import Turn     from '../../models/Turn';
 import Triple   from '../../models/Triple';
-import Relation from '../../models/Relation';
 import GameSequence   from '../../models/GameSequence';
 import GameInstance   from '../../models/GameInstance';
 import chai from 'chai';
@@ -41,7 +40,6 @@ describe('GameInstance', () => {
         Item.remove().exec(),
         Triple.remove().exec(),
         Turn.remove().exec(),
-        Relation.remove().exec(),
         GameSequence.remove().exec(),
         Promise.promisify(Item.counterReset)('item_counter'),
         Promise.mapSeries([
@@ -153,18 +151,16 @@ describe('GameInstance', () => {
         });
     });
 
-    it('calls wrapUp and Relation.addChoice at the end', function(){
+    it('calls wrapUp at the end', function(){
       const _addMove = async gi => gi.addMove('AC');
 
       return GameInstance.createNew(player._id)
         .then(async gi => {
           sinon.spy(gi, 'wrapUp');
-          sinon.spy(Relation, 'addChoice');
           for (let i=0; i<config.game.size; i++){
             await _addMove(gi);
           }
           expect(gi.wrapUp).to.have.been.called;
-          expect(Relation.addChoice).to.have.been.called;
         })
     });
   });

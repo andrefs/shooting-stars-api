@@ -1,6 +1,5 @@
 import mongoose         from 'mongoose';
 import GameSequence     from './GameSequence';
-import Relation         from './Relation';
 import Turn             from './Turn';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
@@ -211,7 +210,7 @@ GameInstanceSchema.methods.wrapUp = function(){
     .then(() => this.players.sync.addPlayedSequence(this.gameSequence))
     .then(() => this.players.sync.addToTotalScore(this.currentScore.sync))
     .then(() => this.saveMoves())
-    .then(moves => Triple.updateTriplesScores(moves))
+    .then(moves => Triple.updateTripleScores(moves))
     .then(() => this.save());
 };
 

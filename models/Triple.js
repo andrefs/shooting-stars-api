@@ -1,4 +1,5 @@
 import mongoose         from 'mongoose';
+import Promise          from 'bluebird';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
@@ -65,9 +66,9 @@ const TripleSchema = mongoose.Schema({
     },
     required: true,
     default: {
-      AB: 0,
-      AC: 0,
-      BC: 0,
+      AB: {count: 0},
+      AC: {count: 0},
+      BC: {count: 0},
     }
   },
   ambiguity: {
@@ -117,17 +118,17 @@ TripleSchema.statics.getUnplayedTriples = function(howMany, players){
 
 TripleSchema.statics.updateTripleScores = function(moves){
   return Promise.map(moves,
-    r => m.populate({
+    m => m.populate({
         path:'triple',
         model:'Triple',
-        populate:[
-          {path: 'picks.AB', model: PickSchema},
-          {path: 'picks.AC', model: PickSchema},
-          {path: 'picks.BC', model: PickSchema},
-        ]
-        })
+        //populate:[
+        //  {path: 'picks.AB', model: PickSchema},
+        //  {path: 'picks.AC', model: PickSchema},
+        //  {path: 'picks.BC', model: PickSchema},
+        //]
+        }).execPopulate()
     ).then(moves => {
-      moves.forEach(m => m.triple.updatePicks(m.pick))
+      moves.forEach(m => m.triple.updatePicks(m.pick));
       return Promise.map(moves, m => m.triple.save());
     });
 };
