@@ -128,15 +128,19 @@ TripleSchema.statics.updateTripleScores = function(moves){
         //]
         }).execPopulate()
     ).then(moves => {
-      moves.forEach(m => m.triple.updatePicks(m.pick));
+      moves.forEach(m => m.triple.addPick(m.pick));
       return Promise.map(moves, m => m.triple.save());
     });
 };
 
 // TODO use update $set and post('find') hook
-TripleSchema.methods.updatePicks = function(pick){
+TripleSchema.methods.addPick = function(pick){
   this.picks[pick].count++;
   this.support++;
+  this.updateAmbiguity();
+};
+
+TripleSchema.methods.updateAmbiguity = function(){
   this.ambiguity = max([
     this.picks.AB.count,
     this.picks.AC.count,

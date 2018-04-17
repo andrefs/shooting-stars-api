@@ -176,4 +176,34 @@ describe('Triple', () => {
       });
   });
 
+  it('updates ambiguity and support when addPick is called', () => {
+    const imageUrl = 'http://ww.example.com';
+    let triple;
+
+    return Promise.mapSeries([
+        {name: 'first item' , imageUrl},
+        {name: 'second item', imageUrl},
+        {name: 'third item' , imageUrl}
+      ], itemF => Item.create(itemF))
+      .then(() => Triple.findOne())
+      .then(t =>{
+        t.addPick('AB');
+        expect(t.support).to.equal(1);
+        expect(t.picks.AB.count).to.equal(1);
+        expect(t.ambiguity).to.equal(1);
+
+        t.addPick('AC');
+        expect(t.support).to.equal(2);
+        expect(t.picks.AB.count).to.equal(1);
+        expect(t.picks.AC.count).to.equal(1);
+        expect(t.ambiguity).to.equal(1);
+
+        t.addPick('AB');
+        expect(t.support).to.equal(3);
+        expect(t.picks.AB.count).to.equal(2);
+        expect(t.picks.AC.count).to.equal(1);
+        expect(t.ambiguity).to.equal(2);
+      });
+  });
+
 });
