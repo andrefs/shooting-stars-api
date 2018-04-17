@@ -160,6 +160,21 @@ describe('Relation', () => {
       });
   });
 
+  it("getItems returns sorted items", () => {
+    return Relation.create({
+        pair1: pairs[5],  // items 3 and 4
+        pair2: pairs[0]   // items 1 and 2
+      })
+      .then(rel => {
+        const items = rel.getItems();
+        expect(items.length).to.equal(4);
+        expect(items[0].id).to.equal(1);
+        expect(items[1].id).to.equal(2);
+        expect(items[2].id).to.equal(3);
+        expect(items[3].id).to.equal(4);
+      });
+  });
+
   it("getTriples returns 1 triple if pairs have item in common", () => {
     return Relation.create({
       pair1: pairs[1],

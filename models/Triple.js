@@ -69,6 +69,17 @@ TripleSchema.statics.getUnplayedTriples = function(howMany, players){
   return Triple.find().limit(howMany).exec();
 };
 
+TripleSchema.statics.updateTriplesScores = function(relations){
+  return Promise.map(relations,
+    r => r.getTriples().populate({path:'relations', model:'Relation'}))
+    .then(ts => {
+      const allTriples = _.flatten(ts)
+      const triples = _uniqBy(allTriples, t => t._id.toString());
+      triples.forEach(t => t.updateScores());
+      return Promise.map(triples, t => t.save());
+    });
+};
+
 TripleSchema.methods.getPairs = function(){
   return Pair.find({
       '$or': [

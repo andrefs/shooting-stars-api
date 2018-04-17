@@ -157,31 +157,26 @@ RelationSchema.methods.getItems = function(){
 
 
 RelationSchema.methods.getTriples = function(){
-  const items = this.getItems()  // items come sorted
+  const items = this.getItems();  // items come sorted
   let limit = 1;
   let query = {
-    itemA: items[0]._id,
-    itemB: items[1]._id,
-    itemC: items[2]._id
+    itemA: items[0]._id || items[0],
+    itemB: items[1]._id || items[1],
+    itemC: items[2]._id || items[2]
   };
 
   if(items.length > 3){
     limit = 4;
     query = {'$or':[
         query,
-        {itemA: items[0]._id, itemB: items[1]._id, itemC: items[3]._id},
-        {itemA: items[0]._id, itemB: items[2]._id, itemC: items[3]._id},
-        {itemA: items[1]._id, itemB: items[2]._id, itemC: items[3]._id}
+        {itemA: items[0]._id || items[0], itemB: items[1]._id || items[1], itemC: items[3]._id || items[3]},
+        {itemA: items[0]._id || items[0], itemB: items[2]._id || items[2], itemC: items[3]._id || items[3]},
+        {itemA: items[1]._id || items[1], itemB: items[2]._id || items[2], itemC: items[3]._id || items[3]}
       ]
     };
   }
 
-  return Triple.find(query).limit(limit)
-    .populate([
-      {path: 'itemA', model: 'Item'},
-      {path: 'itemB', model: 'Item'},
-      {path: 'itemC', model: 'Item'}]
-    );
+  return Triple.find(query).limit(limit);
 }
 
 RelationSchema.index({pair1: 1, pair2: 1}, {unique: true});

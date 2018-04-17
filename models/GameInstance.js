@@ -212,6 +212,7 @@ GameInstanceSchema.methods.wrapUp = function(){
     .then(() => this.players.sync.addToTotalScore(this.currentScore.sync))
     .then(() => this.saveMoves())
     .then(moves => Relation.extractChoicesFromMoves(moves))
+    .then(rels => Triple.updateTriplesScores(rels))
     //.then(() => Relation.printAll())
     .then(() => this.save());
 };
