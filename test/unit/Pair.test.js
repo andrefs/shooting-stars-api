@@ -22,21 +22,15 @@ describe('Pair', () => {
 
   it('sorts items on creation', () => {
     const imageUrl = 'http://ww.example.com';
-    let pair;
 
     return Promise.mapSeries([
         {name: 'first item' , imageUrl},
         {name: 'second item', imageUrl},
       ], itemF => Item.create(itemF))
-      .then(items => {
-        pair = new Pair({
-          itemA: items[1],
-          itemB: items[0],
-        });
-      })
-      .then(() => Pair.remove())
-      .then(() => Pair.count())
-      .then(() => pair.save())
+      .then(items =>  Pair.create({
+        itemA: items[1],
+        itemB: items[0],
+      }))
       .then(doc => {
         return doc
           .populate([
@@ -58,25 +52,51 @@ describe('Pair', () => {
     ];
 
     return  Promise.mapSeries(itemFields, itemF => Item.create(itemF))
-      .then(([itemA, itemB])  => {
-        // a pair with items A and B was automatically created when they were created
-        return expect(Pair.create({itemA, itemB})).to.be.rejected;
+      .then(([itemA, itemB]) => {
+        return Pair.create({itemA, itemB})
+          .then(p => expect(Pair.create({itemA, itemB})).to.be.rejected)
       });
   });
 
 
-  it('automatically creates pairs when adding items', () => {
+  it('creates pairs when calling activateNext', () => {
     const imageUrl = 'http://example.com';
 
     return Promise.join(
       expect(Pair.count().exec()).to.eventually.equal(0),
       expect(Item.count().exec()).to.eventually.equal(0),
+      // won't activate if there are no items
+      expect(Item.activateNext()).to.be.rejected,
+
       Item.create({name: 'item1', imageUrl})
-        .then(() => {
+        .then(item => {
           return Promise.join(
             expect(Item.count().exec()).to.eventually.equal(1),
             expect(Pair.count().exec()).to.eventually.equal(0),
+            Item.activateNext()
+          );
+        })
+        .then(() => {
+          return Promise.join(
+            expect(Item.count().exec()).to.eventually.equal(1),
+            // won't create pairs if this is the first activated item
+            expect(Pair.count().exec()).to.eventually.equal(0),
             Item.create({name: 'item2', imageUrl})
+          );
+        })
+        .then(() => {
+          return Promise.join(
+            expect(Item.count().exec()).to.eventually.equal(2),
+            expect(Pair.count().exec()).to.eventually.equal(0),
+            Item.activateNext()
+          );
+        })
+        .then(() => {
+          return Promise.join(
+            expect(Item.count().exec()).to.eventually.equal(2),
+            expect(Pair.count().exec()).to.eventually.equal(1),
+            // won't activate if all items have been activated
+            expect(Item.activateNext()).to.be.rejected
           );
         })
         .then(() => {
@@ -89,28 +109,14 @@ describe('Pair', () => {
         .then(() => {
           return Promise.join(
             expect(Item.count().exec()).to.eventually.equal(3),
+            expect(Pair.count().exec()).to.eventually.equal(1),
+            Item.activateNext()
+          );
+        })
+        .then(() => {
+          return Promise.join(
+            expect(Item.count().exec()).to.eventually.equal(3),
             expect(Pair.count().exec()).to.eventually.equal(3),
-            Item.create({name: 'item4', imageUrl})
-          );
-        })
-        .then(() => {
-          return Promise.join(
-            expect(Item.count().exec()).to.eventually.equal(4),
-            expect(Pair.count().exec()).to.eventually.equal(6),
-            Item.create({name: 'item5', imageUrl})
-          );
-        })
-        .then(() => {
-          return Promise.join(
-            expect(Item.count().exec()).to.eventually.equal(5),
-            expect(Pair.count().exec()).to.eventually.equal(10),
-            Item.create({name: 'item6', imageUrl})
-          );
-        })
-        .then(() => {
-          return Promise.join(
-            expect(Item.count().exec()).to.eventually.equal(6),
-            expect(Pair.count().exec()).to.eventually.equal(15),
           );
         })
     );

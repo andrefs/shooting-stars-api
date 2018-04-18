@@ -19,7 +19,7 @@ const PairSchema = mongoose.Schema({
     required: true,
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Item'
-  }
+  },
 });
 
 /* Sort items by ObjectId, making sure that item order is irrelevant */

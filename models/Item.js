@@ -23,7 +23,12 @@ const ItemSchema = mongoose.Schema({
     required: false
   },
   imageUrl: {
-    type: 'String',
+    type: String,
+    required: true
+  },
+  isActive: {
+    type: Boolean,
+    default: false,
     required: true
   }
 });
@@ -46,17 +51,12 @@ const generateTriples = (doc, items) => {
   return triples;
 };
 
-const generatePairs = (doc, items) => {
-  let pairs = [];
-  const otherItems = reject(items, i => i.id === doc.id);
+const generatePairs = (doc, otherItems) => {
   if(otherItems.length < 1){ return []; }
-  otherItems.forEach(other => {
-    pairs.push({
-      itemA: doc,
-      itemB: other
-    });
-  });
-  return pairs;
+  return otherItems.map(other => ({
+    itemA: doc,
+    itemB: other
+  }));
 };
 
 ItemSchema.statics.generateTriples = generateTriples;
@@ -67,21 +67,37 @@ ItemSchema.pre('save', function(next){
   return next();
 });
 
-ItemSchema.post('save', function(doc, next){
-  const createPairsAndTriples = (item, callback) => {
-    let triples = [];
-    item.constructor.find().exec((err, items) => {
-      const triples = generateTriples(doc, items);
-      const pairs   = generatePairs(doc, items);
-      Promise.join(
-        Pair.create(pairs),
-        Triple.create(triples)
-      ).then(() => callback());
-    });
-  };
-  if(doc.wasNew){
-    return createPairsAndTriples(doc, next);
-  }
-});
+// TODO old code, delete
+// ItemSchema.post('save', function(doc, next){
+//   const createPairsAndTriples = (item, callback) => {
+//     let triples = [];
+//     item.constructor.find().exec((err, items) => {
+//       const triples = generateTriples(doc, items);
+//       const pairs   = generatePairs(doc, items);
+//       Promise.join(
+//         Pair.create(pairs),
+//         Triple.create(triples)
+//       ).then(() => callback());
+//     });
+//   };
+//   if(doc.wasNew){
+//     return createPairsAndTriples(doc, next);
+//   }
+// });
+
+ItemSchema.statics.activateNext = function(){
+  return Promise.join(
+    this.findOne({isActive: false}).sort('id').exec(),
+    this.find({isActive:true}).exec()
+  )
+  .then(([newItem, oldItems]) => {
+    if(!newItem){ throw 'No more items'; }
+    const pairs = generatePairs(newItem, oldItems || []);
+    return Promise.join(
+      newItem.update({$set: {isActive:true}}),
+      Pair.create(pairs)
+    );
+  })
+};
 
 module.exports = mongoose.model('Item', ItemSchema);

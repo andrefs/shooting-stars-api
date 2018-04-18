@@ -20,7 +20,24 @@ describe('Item', () => {
     });
     return item.save().then(doc => {
       expect(doc.id).to.be.a('number');
+      expect(doc.isActive).to.be.false;
     });
   });
 
+  it('marks item as active after calling activateNext', () => {
+    let item;
+    return Item.create({
+      name: 'itemName',
+      description: 'itemDesc',
+      imageUrl: 'itemUrl'
+    })
+    .then(doc => {
+      item = doc;
+      return Item.activateNext();
+    })
+    .then(() => Item.findOne({id: item.id}).exec())
+    .then(item => {
+      expect(item.isActive).to.be.true;
+    });
+  });
 });
