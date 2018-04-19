@@ -19,7 +19,7 @@ describe('Item', () => {
       imageUrl: 'itemUrl'
     });
     return item.save().then(doc => {
-      expect(doc.id).to.be.a('number');
+      expect(doc.seqNum).to.be.a('number');
       expect(doc.isActive).to.be.false;
     });
   });
@@ -35,7 +35,7 @@ describe('Item', () => {
       item = doc;
       return Item.activateNext();
     })
-    .then(() => Item.findOne({id: item.id}).exec())
+    .then(() => Item.findOne({seqNum: item.seqNum}).exec())
     .then(item => {
       expect(item.isActive).to.be.true;
     });

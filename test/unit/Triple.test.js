@@ -50,8 +50,8 @@ describe('Triple', () => {
           .execPopulate();
       })
       .then(doc => {
-        expect(doc.itemA.id).to.be.below(doc.itemB.id);
-        expect(doc.itemB.id).to.be.below(doc.itemC.id);
+        expect(doc.itemA.seqNum).to.be.below(doc.itemB.seqNum);
+        expect(doc.itemB.seqNum).to.be.below(doc.itemC.seqNum);
       });
   });
 

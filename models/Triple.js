@@ -94,15 +94,15 @@ TripleSchema.pre('validate', function(next){
     .where('_id')
     .in([this.itemA, this.itemB, this.itemC])
     .limit(3)
-    .sort([['id', 'ascending']])
-    .select('_id id')
+    .sort([['seqNum', 'ascending']])
+    .select('_id seqNum')
     .exec()
     .then(items => {
       this.itemA = items[0]._id;
       this.itemB = items[1]._id;
       this.itemC = items[2]._id;
 
-      this.highestItemId = items[2].id;
+      this.highestItemId = items[2].seqNum;
       this.randomSeq = createHash('md5').update(this._id.toString()).digest("hex");
 
       return next();

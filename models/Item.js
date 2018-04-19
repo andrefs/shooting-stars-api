@@ -33,7 +33,7 @@ const ItemSchema = mongoose.Schema({
   }
 });
 
-ItemSchema.plugin(autoIncrement, {id: 'item_counter', 'inc_field': 'id'});
+ItemSchema.plugin(autoIncrement, {id: 'item_counter', 'inc_field': 'seqNum'});
 
 const generateTriples = (doc, items) => {
   let triples = [];
@@ -87,7 +87,7 @@ ItemSchema.pre('save', function(next){
 
 ItemSchema.statics.activateNext = function(){
   return Promise.join(
-    this.findOne({isActive: false}).sort('id').exec(),
+    this.findOne({isActive: false}).sort('seqNum').exec(),
     this.find({isActive:true}).exec()
   )
   .then(([newItem, oldItems]) => {

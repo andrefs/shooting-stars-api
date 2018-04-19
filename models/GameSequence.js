@@ -30,8 +30,7 @@ const GameSequenceSchema = mongoose.Schema({
 });
 
 GameSequenceSchema.plugin(autoIncrement, {
-  id: 'game_sequence_counter',
-  'inc_field': 'id'
+  id: 'game_sequence_counter', inc_field: 'seqNum'
 });
 
 GameSequenceSchema.pre('validate', function(next){
@@ -65,7 +64,7 @@ GameSequenceSchema.statics.selectNew = function(playerID){
         .findOne()
         .where('_id')
         .nin(player.playedSequences)
-        .sort('id')
+        .sort('seqNum')
         .exec();
     })
     .then(gs => {

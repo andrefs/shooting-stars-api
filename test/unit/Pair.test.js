@@ -40,7 +40,7 @@ describe('Pair', () => {
           .execPopulate();
       })
       .then(doc => {
-        expect(doc.itemA.id).to.be.below(doc.itemB.id);
+        expect(doc.itemA.seqNum).to.be.below(doc.itemB.seqNum);
       });
   });
 

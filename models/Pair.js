@@ -29,8 +29,8 @@ PairSchema.pre('validate', function(next){
     .where('_id')
     .in([this.itemA, this.itemB])
     .limit(2)
-    .sort([['id', 'ascending']])
-    .select('_id id')
+    .sort([['seqNum', 'ascending']])
+    .select('_id seqNum')
     .exec()
     .then(items => {
       this.itemA = items[0]._id;
@@ -41,10 +41,10 @@ PairSchema.pre('validate', function(next){
 });
 
 PairSchema.methods.cmp = function(otherPair){
-  if(this.itemA.id > otherPair.itemA.id){ return  1; }
-  if(this.itemA.id < otherPair.itemA.id){ return -1; }
-  if(this.itemB.id > otherPair.itemB.id){ return  1; }
-  if(this.itemB.id < otherPair.itemB.id){ return -1; }
+  if(this.itemA.seqNum > otherPair.itemA.seqNum){ return  1; }
+  if(this.itemA.seqNum < otherPair.itemA.seqNum){ return -1; }
+  if(this.itemB.seqNum > otherPair.itemB.seqNum){ return  1; }
+  if(this.itemB.seqNum < otherPair.itemB.seqNum){ return -1; }
   return 0; // this sould never happen
 };
 
