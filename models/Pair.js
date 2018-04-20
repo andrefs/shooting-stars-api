@@ -4,10 +4,12 @@ import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import {createHash}     from 'crypto';
 import {log}            from '../lib/logger';
+import MongooseSequence from 'mongoose-sequence';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
 mongoose.plugin(createdModified.createdModifiedPlugin, {index: true});
+const autoIncrement = MongooseSequence(mongoose);
 
 const PairSchema = mongoose.Schema({
   itemA: {
@@ -20,7 +22,15 @@ const PairSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Item'
   },
+  status: {
+    required: true,
+    type: String,
+    default: 'unplayed',
+    enum: ['candidate', 'stable', 'unplayed']
+  }
 });
+
+PairSchema.plugin(autoIncrement, {id: 'pair_counter', 'inc_field': 'seqNum'});
 
 /* Sort items by ObjectId, making sure that item order is irrelevant */
 
@@ -46,6 +56,18 @@ PairSchema.methods.cmp = function(otherPair){
   if(this.itemB.seqNum > otherPair.itemB.seqNum){ return  1; }
   if(this.itemB.seqNum < otherPair.itemB.seqNum){ return -1; }
   return 0; // this sould never happen
+};
+
+
+PairSchema.statics.addNextCandidate = function(){
+  return this.findOne({status: 'unplayed'}).sort('seqNum').exec()
+    .then(pair => {
+      if(!pair){
+        return require('./Item').activateNext()
+          .then(() => this.addNextCandidate());
+      }
+      return this.findOneAndUpdate({seqNum: pair.seqNum}, {$set: {status: 'candidate'}}, {new: true});
+    })
 };
 
 

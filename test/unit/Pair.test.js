@@ -5,6 +5,7 @@ import chai from 'chai';
 import Promise  from 'bluebird';
 import chaiAsPromised from 'chai-as-promised';
 require('../mongoose-helper');
+import {NoMoreItemsError}  from '../../lib/errors';
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -122,4 +123,30 @@ describe('Pair', () => {
     );
   });
 
+  it('calls Item.activateNext when there are no unplayed pairs left', () => {
+    sinon.spy(Item, 'activateNext');
+    const p = Pair.addNextCandidate();
+    p.catch(() => expect(Item.activateNext).to.have.been.called);
+    expect(p).to.have.been.rejectedWith(NoMoreItemsError);
+  });
+
+  it('marks a pair as candidate on addNextCandidate', () => {
+    const imageUrl = 'http://example.com';
+    const itemFields = [
+      {name: 'itemA', imageUrl},
+      {name: 'itemB', imageUrl},
+    ];
+    let pair;
+
+    return  Promise.mapSeries(itemFields, itemF => Item.create(itemF))
+      .then(([itemA, itemB]) => Pair.create({itemA, itemB}))
+      .then(p => {
+        pair = p;
+        return Pair.addNextCandidate();
+      })
+      .then(cand => {
+        expect(cand.status).to.equal('candidate');
+      });
+
+  });
 });
