@@ -4,7 +4,6 @@ import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import {reject}         from 'lodash';
 import MongooseSequence from 'mongoose-sequence';
-import Triple           from './Triple';
 import Pair             from './Pair';
 import Promise  from 'bluebird';
 import {NoMoreItemsError}  from '../lib/errors';

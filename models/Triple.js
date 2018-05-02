@@ -6,6 +6,7 @@ import createdModified  from 'mongoose-createdmodified';
 import {createHash}     from 'crypto';
 import {log}            from '../lib/logger';
 import Pair             from './Pair';
+import Item             from './Item';
 import max              from 'lodash/max';
 
 mongoose.plugin(pagPlugin);
@@ -65,7 +66,7 @@ const TripleSchema = mongoose.Schema({
 /* Sort items by ObjectId, making sure that item order is irrelevant */
 
 TripleSchema.pre('validate', function(next){
-  return require('./Item').find()
+  return Item.find()
     .where('_id')
     .in([this.itemA, this.itemB, this.itemC])
     .limit(3)
@@ -80,7 +81,7 @@ TripleSchema.pre('validate', function(next){
       this.highestItemId = items[2].seqNum;
       this.randomSeq = createHash('md5').update(this._id.toString()).digest("hex");
 
-      const query = Pair.find()
+      return Pair.find()
       .where({$or:[
           {itemA: this.itemA, itemB: this.itemB},
           {itemA: this.itemA, itemB: this.itemC},
@@ -90,7 +91,6 @@ TripleSchema.pre('validate', function(next){
         .limit(3)
         .select('_id seqNum');
 
-      return query.exec()
     })
     .then(pairs => {
       this.picks.AB.pair = pairs[0]._id;

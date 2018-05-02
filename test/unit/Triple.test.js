@@ -17,6 +17,7 @@ describe('Triple', () => {
   beforeEach(() => {
     return Promise.join(
       Item.remove().exec(),
+      Pair.remove().exec(),
       Triple.remove().exec()
     );
   });
@@ -30,29 +31,33 @@ describe('Triple', () => {
         {name: 'second item', imageUrl},
         {name: 'third item' , imageUrl}
       ], itemF => Item.create(itemF))
-      .then(items => {
-        triple = new Triple({
-          itemA: items[2],
-          itemB: items[1],
-          itemC: items[0],
-        });
-
-        return Triple.remove().exec();
-      })
-      .then(() => {
-        return triple.save();
-      })
-      .then(doc => {
-        return doc
-          .populate({path: 'itemA', model: Item})
-          .populate({path: 'itemB', model: Item})
-          .populate({path: 'itemC', model: Item})
-          .execPopulate();
-      })
-      .then(doc => {
-        expect(doc.itemA.seqNum).to.be.below(doc.itemB.seqNum);
-        expect(doc.itemB.seqNum).to.be.below(doc.itemC.seqNum);
+    .then(() => Item.activateNext())
+    .then(() => Item.activateNext())
+    .then(() => Item.activateNext())
+    .then(() => Item.find().sort([['seqNum', 'descending']]))
+    .then(items => {
+      triple = new Triple({
+        itemA: items[2],
+        itemB: items[1],
+        itemC: items[0],
       });
+
+      return Triple.remove().exec();
+    })
+    .then(() => {
+      return triple.save();
+    })
+    .then(doc => {
+      return doc
+        .populate({path: 'itemA', model: Item})
+        .populate({path: 'itemB', model: Item})
+        .populate({path: 'itemC', model: Item})
+        .execPopulate();
+    })
+    .then(doc => {
+      expect(doc.itemA.seqNum).to.be.below(doc.itemB.seqNum);
+      expect(doc.itemB.seqNum).to.be.below(doc.itemC.seqNum);
+    });
   });
 
   it("throws when creating triple with same items", () => {
@@ -71,7 +76,7 @@ describe('Triple', () => {
   });
 
 
-  it('automatically creates triples when adding items', () => {
+  it.skip('automatically creates triples when adding items', () => {
     const imageUrl = 'http://example.com';
 
     return Promise.join(
@@ -122,6 +127,7 @@ describe('Triple', () => {
     );
   });
 
+  // TODO maybe remove
   it('sets highestItemid correctly', () => {
     const imageUrl = 'http://ww.example.com';
 
@@ -130,13 +136,18 @@ describe('Triple', () => {
         {name: 'second item', imageUrl},
         {name: 'third item' , imageUrl}
       ], itemF => Item.create(itemF))
-      .then(items => {
-        return Triple.findOne()
-          .populate({path: 'itemC', model: Item})
-          .exec();
-      })
+      .then(() => Item.activateNext())
+      .then(() => Item.activateNext())
+      .then(() => Item.activateNext())
+      .then(() => Item.find().sort([['seqNum', 'descending']]))
+      .then(items => Triple.create({
+        itemA: items[2],
+        itemB: items[1],
+        itemC: items[0],
+      }))
+      .then(doc => doc.populate({path: 'itemC', model: Item}).execPopulate())
       .then(triple => {
-        expect(triple.highestItemId).to.equal(triple.itemC.id);
+        expect(triple.highestItemId).to.equal(triple.itemC.seqNum);
       });
   });
 
@@ -149,15 +160,15 @@ describe('Triple', () => {
         {name: 'second item', imageUrl},
         {name: 'third item' , imageUrl}
       ], itemF => Item.create(itemF))
-      .then(items => {
-        return Triple.findOne()
-          .populate([
-            {path: 'itemA', model: Item},
-            {path: 'itemB', model: Item},
-            {path: 'itemC', model: Item}
-          ])
-          .exec();
-      })
+      .then(() => Item.activateNext())
+      .then(() => Item.activateNext())
+      .then(() => Item.activateNext())
+      .then(() => Item.find().sort([['seqNum', 'descending']]))
+      .then(items => Triple.create({
+        itemA: items[2],
+        itemB: items[1],
+        itemC: items[0],
+      }))
       .then(t => {
         triple = t;
         return triple.getPairs();
@@ -185,7 +196,15 @@ describe('Triple', () => {
         {name: 'second item', imageUrl},
         {name: 'third item' , imageUrl}
       ], itemF => Item.create(itemF))
-      .then(() => Triple.findOne())
+      .then(() => Item.activateNext())
+      .then(() => Item.activateNext())
+      .then(() => Item.activateNext())
+      .then(() => Item.find().sort([['seqNum', 'descending']]))
+      .then(items => Triple.create({
+        itemA: items[2],
+        itemB: items[1],
+        itemC: items[0],
+      }))
       .then(t =>{
         t.addPick('AB');
         expect(t.support).to.equal(1);
