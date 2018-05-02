@@ -69,8 +69,14 @@ describe('PairSorter', () => {
 
   it('Throws when comparing pairs when the relation information is missing', () => {
     const ps = new PairSorter();
-    return ps.tryInsert(pairs[0])
-      .then(() => expect(ps.tryInsert(pairs[3])).to.be.eventually.rejectedWith(MissingPairsRelationException));
+    return Pair.find({$or: [
+        {itemA: items[0], itemB: items[1]},
+        {itemA: items[0], itemB: items[2]}
+      ]})
+      .then(_p => {
+        return ps.tryInsert(_p[0])
+          .then(() => expect(ps.tryInsert(_p[1])).to.be.eventually.rejectedWith(MissingPairsRelationException));
+      });
   });
 
   it('Correctly sorts directly related pairs when relation information exists', () => {
