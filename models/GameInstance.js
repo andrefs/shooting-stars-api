@@ -9,7 +9,7 @@ import User             from './User';
 import Triple           from './Triple';
 import PlayerMove       from './PlayerMove';
 import Item             from './Item';
-import shortid          from '../lib/shortid';
+import shortid          from '../lib/shortid'; // TODO delete
 import Promise          from 'bluebird';
 import {NoCurrentTurn, TripleIdMismatchError}  from '../lib/errors';
 

@@ -8,20 +8,6 @@ import {log}            from '../lib/logger';
 import Pair             from './Pair';
 import max              from 'lodash/max';
 
-
-const PickSchema = mongoose.Schema({
-  // TODO do we need this?
-  // pair: {
-  //   type: mongoose.Schema.Types.ObjectId,
-  //   ref: 'Pair',
-  //   required: true
-  // },
-  count: {
-    type: 'Number',
-    default: 0
-  }
-});
-
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
 mongoose.plugin(createdModified.createdModifiedPlugin, {index: true});
@@ -47,29 +33,18 @@ const TripleSchema = mongoose.Schema({
     default: 0,
   },
   picks: {
-    type: {
-      AB: {
-        required: true,
-        type: mongoose.Schema.Types.ObjectId,
-        ref: PickSchema
-      },
-      AC: {
-        required: true,
-        type: mongoose.Schema.Types.ObjectId,
-        ref: PickSchema
-      },
-      BC: {
-        required: true,
-        type: mongoose.Schema.Types.ObjectId,
-        ref: PickSchema
-      },
+    AB: {
+      count: {type: Number, default: 0},
+      pair:  {type: mongoose.Schema.Types.ObjectId,ref: 'Pair'}
     },
-    required: true,
-    default: {
-      AB: {count: 0},
-      AC: {count: 0},
-      BC: {count: 0},
-    }
+    AC: {
+      count: {type: Number, default: 0},
+      pair:  {type: mongoose.Schema.Types.ObjectId,ref: 'Pair'}
+    },
+    BC: {
+      count: {type: Number, default: 0},
+      pair:  {type: mongoose.Schema.Types.ObjectId,ref: 'Pair'}
+    },
   },
   ambiguity: {
     type: 'Number',
@@ -98,12 +73,29 @@ TripleSchema.pre('validate', function(next){
     .select('_id seqNum')
     .exec()
     .then(items => {
-      this.itemA = items[0]._id;
-      this.itemB = items[1]._id;
-      this.itemC = items[2]._id;
+      this.itemA = items[0];
+      this.itemB = items[1];
+      this.itemC = items[2];
 
       this.highestItemId = items[2].seqNum;
       this.randomSeq = createHash('md5').update(this._id.toString()).digest("hex");
+
+      const query = Pair.find()
+      .where({$or:[
+          {itemA: this.itemA, itemB: this.itemB},
+          {itemA: this.itemA, itemB: this.itemC},
+          {itemA: this.itemB, itemB: this.itemC},
+        ]})
+        .sort([['seqNum', 'ascending']])
+        .limit(3)
+        .select('_id seqNum');
+
+      return query.exec()
+    })
+    .then(pairs => {
+      this.picks.AB.pair = pairs[0]._id;
+      this.picks.AC.pair = pairs[1]._id;
+      this.picks.BC.pair = pairs[2]._id;
 
       return next();
     });
@@ -138,6 +130,7 @@ TripleSchema.methods.addPick = function(pick){
   this.picks[pick].count++;
   this.support++;
   this.updateAmbiguity();
+  return this;
 };
 
 TripleSchema.methods.updateAmbiguity = function(){
@@ -146,6 +139,7 @@ TripleSchema.methods.updateAmbiguity = function(){
     this.picks.AC.count,
     this.picks.BC.count,
   ]);
+  return this;
 };
 
 TripleSchema.methods.getPairs = function(){
@@ -158,6 +152,11 @@ TripleSchema.methods.getPairs = function(){
     }).limit(3).populate([{path: 'itemA', model: 'Item'},{path: 'itemB', model: 'Item'}])
     .then(pairs => pairs.sort((a, b) => a.cmp(b)));
 };
+
+//TripleSchema.generateNew = function(howMany){
+//  return Pair.find({status: 'stable'}).exec()
+//    .then(stablePairs => {
+//};
 
 TripleSchema.index({itemA: 1, itemB: 1, itemC: 1}, {unique: true});
 

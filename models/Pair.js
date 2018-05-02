@@ -66,7 +66,10 @@ PairSchema.statics.addNextCandidate = function(){
         return require('./Item').activateNext()
           .then(() => this.addNextCandidate());
       }
-      return this.findOneAndUpdate({seqNum: pair.seqNum}, {$set: {status: 'candidate'}}, {new: true});
+      return this.findOneAndUpdate(
+        {seqNum: pair.seqNum},
+        {$set: {status: 'candidate'}}, {new: true}
+      );
     })
 };
 

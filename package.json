@@ -10,7 +10,7 @@
     "test": "npm run test-unit",
     "test-unit": "NODE_ENV=test nyc -n models/**/*.js mocha --require babel-register test/unit/*.test.js",
     "test-integration": "NODE_ENV=test nyc -n routes/**/*.js mocha --require babel-register test/integration/*.test.js",
-    "test:watch": "nodemon --watch lib --watch models --watch routes --watch tests --exec 'npm test'",
+    "test:watch": "nodemon --watch lib --watch models --watch routes --watch test --exec 'npm test'",
     "lint": "eslint **/*.js || exit 0"
   },
   "babel": {
