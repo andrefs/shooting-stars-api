@@ -10,6 +10,7 @@
     "test": "npm run test-unit",
     "test-unit": "NODE_ENV=test nyc -n models/**/*.js mocha --require babel-register test/unit/*.test.js",
     "test-integration": "NODE_ENV=test nyc -n routes/**/*.js mocha --require babel-register test/integration/*.test.js",
+    "test:watch": "nodemon --watch lib --watch models --watch routes --watch tests --exec 'npm test'",
     "lint": "eslint **/*.js || exit 0"
   },
   "babel": {
@@ -42,6 +43,7 @@
   "author": "André Santos",
   "license": "ISC",
   "dependencies": {
+    "avl-promise": "^0.0.2",
     "babel-plugin-transform-builtin-extend": "1.1.2",
     "babel-preset-env": "^1.6.1",
     "babel-register": "^6.24.1",
@@ -60,6 +62,7 @@
     "mongoose-sequence": "^4.0.0",
     "mongoose-type-url": "^1.0.2",
     "morgan": "1.9.0",
+    "node-avl-tree": "^0.1.1",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
     "restify": "^6.3.4",
@@ -77,6 +80,7 @@
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
     "mocha": "^5.0.0",
+    "nodemon": "^1.17.3",
     "nyc": "^11.4.1",
     "sinon": "^4.3.0",
     "source-map-support": "^0.5.3",
