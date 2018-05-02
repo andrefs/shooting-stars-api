@@ -8,6 +8,7 @@ import {log}            from '../lib/logger';
 import Pair             from './Pair';
 import Item             from './Item';
 import max              from 'lodash/max';
+import PairSorter       from '../lib/PairSorter';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -153,10 +154,16 @@ TripleSchema.methods.getPairs = function(){
     .then(pairs => pairs.sort((a, b) => a.cmp(b)));
 };
 
-//TripleSchema.generateNew = function(howMany){
-//  return Pair.find({status: 'stable'}).exec()
-//    .then(stablePairs => {
-//};
+
+
+// TripleSchema.generateNew = function(howMany){
+//   const ps = new PairSorter();
+//   const triples;
+// 
+//   return Pair.find({status: 'stable'}).exec()
+//     .then(stablePairs => {
+// 
+// };
 
 TripleSchema.index({itemA: 1, itemB: 1, itemC: 1}, {unique: true});
 
