@@ -54,29 +54,32 @@ describe('PairSorter', () => {
     return expect(ps.tryInsert(pairs[0])).to.eventually.have.property('key', pairs[0].seqNum);
   });
 
-  it('Throws when comparing pairs with proxy relation', () => {
-    const ps = new PairSorter();
+  describe('PairSorter.compare', () => {
 
-    return Pair.find({$or: [
-        {itemA: items[0], itemB: items[1]},
-        {itemA: items[2], itemB: items[3]}
-      ]})
-      .then(_p => {
-        return ps.tryInsert(_p[0])
-          .then(() => expect(ps.tryInsert(_p[1])).to.be.eventually.rejectedWith(ProxyRelationException));
-      });
-  });
+    it('Throws on pairs with proxy relation', () => {
+      const ps = new PairSorter();
 
-  it('Throws when comparing pairs when the relation information is missing', () => {
-    const ps = new PairSorter();
-    return Pair.find({$or: [
-        {itemA: items[0], itemB: items[1]},
-        {itemA: items[0], itemB: items[2]}
-      ]})
-      .then(_p => {
-        return ps.tryInsert(_p[0])
-          .then(() => expect(ps.tryInsert(_p[1])).to.be.eventually.rejectedWith(MissingPairsRelationException));
-      });
+      return Pair.find({$or: [
+          {itemA: items[0], itemB: items[1]},
+          {itemA: items[2], itemB: items[3]}
+        ]})
+        .then(_p => {
+          return ps.tryInsert(_p[0])
+            .then(() => expect(ps.tryInsert(_p[1])).to.be.eventually.rejectedWith(ProxyRelationException));
+        });
+    });
+
+    it('Throws on pairs when the relation information is missing', () => {
+      const ps = new PairSorter();
+      return Pair.find({$or: [
+          {itemA: items[0], itemB: items[1]},
+          {itemA: items[0], itemB: items[2]}
+        ]})
+        .then(_p => {
+          return ps.tryInsert(_p[0])
+            .then(() => expect(ps.tryInsert(_p[1])).to.be.eventually.rejectedWith(MissingPairsRelationException));
+        });
+    });
   });
 
   it('Correctly sorts directly related pairs when relation information exists', () => {

@@ -9,6 +9,8 @@ import Pair             from './Pair';
 import Item             from './Item';
 import max              from 'lodash/max';
 import PairSorter       from '../lib/PairSorter';
+import {MissingPairsRelationException,
+  ProxyRelationException} from '../lib/errors';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -102,11 +104,11 @@ TripleSchema.pre('validate', function(next){
     });
 });
 
-TripleSchema.statics.getUnplayedTriples = function(howMany, players){
+TripleSchema.statics.getUnplayedTriples = function(numTotal, players){
   // currently returning *always* the first 10 triples
   // TODO: implement logic which takes into account triples already
   //    played by any of the players and intended distribution
-  return Triple.find().limit(howMany).exec();
+  return Triple.find().limit(numTotal).exec();
 };
 
 TripleSchema.statics.updateTripleScores = function(moves){
@@ -155,62 +157,77 @@ TripleSchema.methods.getPairs = function(){
 };
 
 
-const _insertPairs = (pairs, howMany, triples, ps) => {
+TripleSchema.statics._insertPairs = function(pairs, numTotal, created, ps){
   if(pairs.length === 0){ return Promise.resolve(); }
 
-  return ps.tryInsert(pairs.shift())
-    .catch(e => triples.push(...e.getTriples()))
+  const p = pairs.shift();
+  return ps.tryInsert(p)
+    .catch(e => {
+      if(e instanceof MissingPairsRelationException){
+        let triples = e.getTriples();
+        return this.insertMany(triples, {ordered: false})
+          .then(triples => created.push(...triples))
+          .catch(e => {
+            e.writeErrors.forEach(err => { triples[e.index] = null; });
+            triples.forEach(t => { if(t){ created.push(t); } });
+          });
+      } else if (e instanceof ProxyRelationException){
+        // TODO Proxy Relation Exception
+      } else {
+        throw e;
+      }
+    })
     .finally(() => {
-      if(triples.length < howMany && pairs.length){
-        return _insertPairs(pairs, howMany, triples, ps);
+      if(created.length < numTotal && pairs.length){
+        return this._insertPairs(pairs, numTotal, created, ps);
       }
       return Promise.resolve();
    });
 };
 
-const _insertStable = (howMany, triples, ps) => {
+TripleSchema.statics._insertStable = function(numTotal, triples, ps){
   return Pair.find({status: 'stable'})
-    .then(pairs => _insertPairs(pairs, howMany, triples, ps));
+    .then(pairs => this._insertPairs(pairs, numTotal, triples, ps));
 };
 
-const _insertCandidates = (howMany, triples, ps) => {
+TripleSchema.statics._insertCandidates = function(numTotal, triples, ps){
   return Pair.find({status: 'candidate'})
-    .then(pairs => _insertPairs(pairs, howMany, triples, ps));
+    .then(pairs => this._insertPairs(pairs, numTotal, triples, ps));
 };
 
-const _addNextCandidate = (howMany, triples, ps) => {
+TripleSchema.statics._addNextCandidate = function(numTotal, triples, ps){
   return Pair.addNextCandidate()
-    .then(p =>  _insertPairs(p ? [p] : [], howMany, triples, ps))
+    .then(p =>  this._insertPairs(p ? [p] : [], numTotal, triples, ps))
     .then(() => {
-      if(triples.length < howMany){ return _addNextCandidate(howMany, triples, ps); }
+      if(triples.length < numTotal){ return this._addNextCandidate(numTotal, triples, ps); }
       return Promise.resolve(triples);
     });
 };
 
-// condicao: triples.length < howMany
+// condicao: triples.length < numTotal
 // cond failed: Promise.resolve()
 // cond true: f -> pairs -> insertPairs
 
-TripleSchema.statics._generateNewTriples = function(howMany, triples, ps, methods){
-  if(methods.length === 0){ return Promise.resolve(triples); }
+TripleSchema.statics._generateNewTriples = function(numTotal, created, ps, methods){
+  const self = this;
+  if(methods.length === 0){ return Promise.resolve(created); }
 
-  return methods.shift()(howMany, triples, ps)
+  return methods.shift().call(this, numTotal, created, ps)
     .then(() => {
-      if(howMany === triples.length){ return Promise.resolve(triples); }
-      return this._generateNewTriples(howMany, triples, ps, methods);
+      if(numTotal === created.length){ return Promise.resolve(created); }
+      return this._generateNewTriples(numTotal, created, ps, methods);
     })
 };
 
-TripleSchema.statics.generateNew = function(howMany){
-  let triples = [];
+TripleSchema.statics.generateNew = function(numTotal){
+  let created = [];
   let ps      = new PairSorter();
 
-  return this._generateNewTriples(howMany, triples, ps, [
-    _insertStable,
-    _insertCandidates,
-    _addNextCandidate
-  ])
-  .then(triples => this.create(triples));
+  return this._generateNewTriples(numTotal, created, ps, [
+    this._insertStable,
+    this._insertCandidates,
+    this._addNextCandidate
+  ]);
 };
 
 TripleSchema.index({itemA: 1, itemB: 1, itemC: 1}, {unique: true});

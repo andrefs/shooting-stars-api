@@ -59,7 +59,6 @@ describe('Pair', () => {
       });
   });
 
-
   it('creates pairs when calling activateNext', () => {
     const imageUrl = 'http://example.com';
 
@@ -127,7 +126,25 @@ describe('Pair', () => {
     sinon.spy(Item, 'activateNext');
     const p = Pair.addNextCandidate();
     p.catch(() => expect(Item.activateNext).to.have.been.called);
-    expect(p).to.have.been.rejectedWith(NoMoreItemsError);
+    return expect(p).to.have.been.rejectedWith(NoMoreItemsError)
+      .then(() => Item.activateNext.restore());
+  });
+
+  it('won\'t call Item.activateNext if there are unplayed pairs left', () => {
+    const imageUrl = 'http://ww.example.com';
+
+    return Promise.mapSeries([
+        {name: 'first item' , imageUrl},
+        {name: 'second item', imageUrl},
+        {name: 'third item' , imageUrl},
+      ], itemF => Item.create(itemF))
+      .then(() => Pair.addNextCandidate())
+      .then(() => {
+        const spy = sinon.spy(Item, 'activateNext');
+        spy.resetHistory();
+      })
+      .then(() =>  expect(Item.activateNext).to.not.have.been.called)
+      .then(() => Item.activateNext.restore());
   });
 
   it('marks a pair as candidate on addNextCandidate', () => {

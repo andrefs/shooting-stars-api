@@ -225,16 +225,70 @@ describe('Triple', () => {
       });
   });
 
-  it.only('Triple.generateNew calls Item.activateNext when there are no more candidate pairs', () => {
+  it('Triple.generateNew returns correct number of triples', () => {
     const imageUrl = 'http://ww.example.com';
 
     return Promise.mapSeries([
         {name: 'first item' , imageUrl},
         {name: 'second item', imageUrl},
-        {name: 'third item' , imageUrl}
+        {name: 'third item' , imageUrl},
+        {name: 'fourth item', imageUrl},
+        {name: 'fifth item' , imageUrl},
+        {name: 'sixth item' , imageUrl}
       ], itemF => Item.create(itemF))
-      .then(() => Triple.generateNew(1))
-      .then(() => expect(Triple.find()).to.eventually.have.property('length', 1));
+      .then(() => Item.activateNext())
+      .then(() => Item.activateNext())
+      .then(() => Item.activateNext())
+      .then(() => Item.activateNext())
+      .then(() => Item.activateNext())
+      .then(() => Pair.addNextCandidate())
+      .then(() => Pair.addNextCandidate())
+      .then(() => Pair.addNextCandidate())
+      .then(() => Pair.addNextCandidate())
+      .then(() => Triple.generateNew(5))
+      .then(() => expect(Triple.find()).to.eventually.have.property('length', 5));
   });
+
+
+  describe('Triple.generateNew', () => {
+
+    it('won\'t call Pair.addNextCandidate if not needed', () => {
+      const imageUrl = 'http://ww.example.com';
+
+      return Promise.mapSeries([
+          {name: 'first item' ,  imageUrl},
+          {name: 'second item',  imageUrl},
+          {name: 'third item' ,  imageUrl},
+        ], itemF => Item.create(itemF))
+        .then(() => Pair.addNextCandidate())
+        .then(() => Pair.addNextCandidate())
+        .then(() => {
+          const spy = sinon.spy(Pair, 'addNextCandidate');
+          spy.resetHistory();
+          return Triple.generateNew(1);
+        })
+        .then(() => expect(Pair.addNextCandidate).to.not.have.been.called)
+        .then(() => Pair.addNextCandidate.restore());
+    });
+
+    it('Triple.generateNew calls Pair.addNextCandidate() if there are no candidate pairs', () => {
+      const imageUrl = 'http://ww.example.com';
+
+      return Promise.mapSeries([
+          {name: 'first item' , imageUrl},
+          {name: 'second item', imageUrl},
+          {name: 'third item' , imageUrl},
+        ], itemF => Item.create(itemF))
+        .then(() => {
+          const spy = sinon.spy(Pair, 'addNextCandidate');
+          spy.resetHistory();
+          return Triple.generateNew(1);
+        })
+        .then(() =>  expect(Pair.addNextCandidate).to.have.been.called)
+        .then(() => expect(Triple.find()).to.eventually.have.property('length', 1))
+        .then(() => Pair.addNextCandidate.restore());
+    });
+  });
+
 
 });
