@@ -225,4 +225,16 @@ describe('Triple', () => {
       });
   });
 
+  it.only('Triple.generateNew calls Item.activateNext when there are no more candidate pairs', () => {
+    const imageUrl = 'http://ww.example.com';
+
+    return Promise.mapSeries([
+        {name: 'first item' , imageUrl},
+        {name: 'second item', imageUrl},
+        {name: 'third item' , imageUrl}
+      ], itemF => Item.create(itemF))
+      .then(() => Triple.generateNew(1))
+      .then(() => expect(Triple.find()).to.eventually.have.property('length', 1));
+  });
+
 });

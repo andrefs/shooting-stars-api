@@ -155,15 +155,63 @@ TripleSchema.methods.getPairs = function(){
 };
 
 
+const _insertPairs = (pairs, howMany, triples, ps) => {
+  if(pairs.length === 0){ return Promise.resolve(); }
 
-// TripleSchema.generateNew = function(howMany){
-//   const ps = new PairSorter();
-//   const triples;
-// 
-//   return Pair.find({status: 'stable'}).exec()
-//     .then(stablePairs => {
-// 
-// };
+  return ps.tryInsert(pairs.shift())
+    .catch(e => triples.push(...e.getTriples()))
+    .finally(() => {
+      if(triples.length < howMany && pairs.length){
+        return _insertPairs(pairs, howMany, triples, ps);
+      }
+      return Promise.resolve();
+   });
+};
+
+const _insertStable = (howMany, triples, ps) => {
+  return Pair.find({status: 'stable'})
+    .then(pairs => _insertPairs(pairs, howMany, triples, ps));
+};
+
+const _insertCandidates = (howMany, triples, ps) => {
+  return Pair.find({status: 'candidate'})
+    .then(pairs => _insertPairs(pairs, howMany, triples, ps));
+};
+
+const _addNextCandidate = (howMany, triples, ps) => {
+  return Pair.addNextCandidate()
+    .then(p =>  _insertPairs(p ? [p] : [], howMany, triples, ps))
+    .then(() => {
+      if(triples.length < howMany){ return _addNextCandidate(howMany, triples, ps); }
+      return Promise.resolve(triples);
+    });
+};
+
+// condicao: triples.length < howMany
+// cond failed: Promise.resolve()
+// cond true: f -> pairs -> insertPairs
+
+TripleSchema.statics._generateNewTriples = function(howMany, triples, ps, methods){
+  if(methods.length === 0){ return Promise.resolve(triples); }
+
+  return methods.shift()(howMany, triples, ps)
+    .then(() => {
+      if(howMany === triples.length){ return Promise.resolve(triples); }
+      return this._generateNewTriples(howMany, triples, ps, methods);
+    })
+};
+
+TripleSchema.statics.generateNew = function(howMany){
+  let triples = [];
+  let ps      = new PairSorter();
+
+  return this._generateNewTriples(howMany, triples, ps, [
+    _insertStable,
+    _insertCandidates,
+    _addNextCandidate
+  ])
+  .then(triples => this.create(triples));
+};
 
 TripleSchema.index({itemA: 1, itemB: 1, itemC: 1}, {unique: true});
 
