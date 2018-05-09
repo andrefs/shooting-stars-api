@@ -8,8 +8,7 @@ import chai from 'chai';
 import Promise  from 'bluebird';
 import chaiAsPromised from 'chai-as-promised';
 require('../mongoose-helper');
-import {ProxyRelationException,
-  MissingPairsRelationException} from '../../lib/errors';
+import {MissingPairsRelationException} from '../../lib/errors';
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -55,20 +54,6 @@ describe('PairSorter', () => {
   });
 
   describe('PairSorter.compare', () => {
-
-    it('Throws on pairs with proxy relation', () => {
-      const ps = new PairSorter();
-
-      return Pair.find({$or: [
-          {itemA: items[0], itemB: items[1]},
-          {itemA: items[2], itemB: items[3]}
-        ]})
-        .then(_p => {
-          return ps.tryInsert(_p[0])
-            .then(() => expect(ps.tryInsert(_p[1])).to.be.eventually.rejectedWith(ProxyRelationException));
-        });
-    });
-
     it('Throws on pairs when the relation information is missing', () => {
       const ps = new PairSorter();
       return Pair.find({$or: [

@@ -9,8 +9,7 @@ import Pair             from './Pair';
 import Item             from './Item';
 import max              from 'lodash/max';
 import PairSorter       from '../lib/PairSorter';
-import {MissingPairsRelationException,
-  ProxyRelationException} from '../lib/errors';
+import {MissingPairsRelationException} from '../lib/errors';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -171,8 +170,6 @@ TripleSchema.statics._insertPairs = function(pairs, numTotal, created, ps){
             e.writeErrors.forEach(err => { triples[e.index] = null; });
             triples.forEach(t => { if(t){ created.push(t); } });
           });
-      } else if (e instanceof ProxyRelationException){
-        // TODO Proxy Relation Exception
       } else {
         throw e;
       }
