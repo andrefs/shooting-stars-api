@@ -109,4 +109,39 @@ describe('PairSorter', () => {
       });
   });
 
+  it('Correctly compares proxy relations', () => {
+    let ps = new PairSorter();
+    let triples;
+    let pairs;
+
+    return Triple.create([
+      {itemA: items[0], itemB: items[1], itemC: items[2]},
+      {itemA: items[0], itemB: items[1], itemC: items[3]},
+      {itemA: items[0], itemB: items[2], itemC: items[3]},
+      {itemA: items[1], itemB: items[2], itemC: items[3]}
+    ])
+    .then(triples => Promise.mapSeries(triples, triple => triple.addPick('BC').save()))
+    .then(_triples => {
+      triples = _triples;
+      return Pair.find({$or: [
+        {itemA: items[0], itemB: items[1]},
+        {itemA: items[2], itemB: items[3]}
+      ]});
+    })
+    .then(_p => {
+      pairs = _p;
+      return ps.tryInsert(pairs[0])
+    })
+    .then(() => ps.tryInsert(pairs[1]))
+    .then(() => expect(ps.keys()).to.deep.equal([pairs[1].seqNum, pairs[0].seqNum]))
+    .then(() => Promise.mapSeries(triples, triple => triple.addPick('AB').save()))
+    .then(_triples => Promise.mapSeries(triples, triple => triple.addPick('AB').save()))
+    .then(() => {
+      ps = new PairSorter();
+      return ps.tryInsert(pairs[0]);
+    })
+    .then(() => ps.tryInsert(pairs[1]))
+    .then(() => expect(ps.keys()).to.deep.equal([pairs[0].seqNum, pairs[1].seqNum]));
+  });
+
 });
