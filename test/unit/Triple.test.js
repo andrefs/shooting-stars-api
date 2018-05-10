@@ -75,58 +75,6 @@ describe('Triple', () => {
       });
   });
 
-
-  it.skip('automatically creates triples when adding items', () => {
-    const imageUrl = 'http://example.com';
-
-    return Promise.join(
-      expect(Triple.count().exec()).to.eventually.equal(0),
-      expect(Item.count().exec()).to.eventually.equal(0),
-      Item.create({name: 'item1', imageUrl})
-        .then(() => {
-          return Promise.join(
-            expect(Item.count().exec()).to.eventually.equal(1),
-            expect(Triple.count().exec()).to.eventually.equal(0),
-            Item.create({name: 'item2', imageUrl})
-          );
-        })
-        .then(() => {
-          return Promise.join(
-            expect(Item.count().exec()).to.eventually.equal(2),
-            expect(Triple.count().exec()).to.eventually.equal(0),
-            Item.create({name: 'item3', imageUrl})
-          );
-        })
-        .then(() => {
-          return Promise.join(
-            expect(Item.count().exec()).to.eventually.equal(3),
-            expect(Triple.count().exec()).to.eventually.equal(1),
-            Item.create({name: 'item4', imageUrl})
-          );
-        })
-        .then(() => {
-          return Promise.join(
-            expect(Item.count().exec()).to.eventually.equal(4),
-            expect(Triple.count().exec()).to.eventually.equal(4),
-            Item.create({name: 'item5', imageUrl})
-          );
-        })
-        .then(() => {
-          return Promise.join(
-            expect(Item.count().exec()).to.eventually.equal(5),
-            expect(Triple.count().exec()).to.eventually.equal(10),
-            Item.create({name: 'item6', imageUrl})
-          );
-        })
-        .then(() => {
-          return Promise.join(
-            expect(Item.count().exec()).to.eventually.equal(6),
-            expect(Triple.count().exec()).to.eventually.equal(20),
-          );
-        })
-    );
-  });
-
   // TODO maybe remove
   it('sets highestItemid correctly', () => {
     const imageUrl = 'http://ww.example.com';

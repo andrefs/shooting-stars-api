@@ -38,15 +38,15 @@ const TripleSchema = mongoose.Schema({
   picks: {
     AB: {
       count: {type: Number, default: 0},
-      pair:  {type: mongoose.Schema.Types.ObjectId,ref: 'Pair'}
+      pair:  {type: mongoose.Schema.Types.ObjectId, ref: 'Pair'}
     },
     AC: {
       count: {type: Number, default: 0},
-      pair:  {type: mongoose.Schema.Types.ObjectId,ref: 'Pair'}
+      pair:  {type: mongoose.Schema.Types.ObjectId, ref: 'Pair'}
     },
     BC: {
       count: {type: Number, default: 0},
-      pair:  {type: mongoose.Schema.Types.ObjectId,ref: 'Pair'}
+      pair:  {type: mongoose.Schema.Types.ObjectId, ref: 'Pair'}
     },
   },
   ambiguity: {

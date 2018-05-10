@@ -1,5 +1,6 @@
 import Turn     from '../../models/Turn';
 import Item     from '../../models/Item';
+import Pair     from '../../models/Pair';
 import Triple   from '../../models/Triple';
 import User     from '../../models/User';
 import PlayerMove     from '../../models/PlayerMove';
@@ -26,6 +27,7 @@ describe('Turn', () => {
   beforeEach(() => {
     return Promise.join(
       Item.remove().exec(),
+      Pair.remove().exec(),
       Triple.remove().exec(),
       Turn.remove().exec(),
       User.remove().exec(),
@@ -36,8 +38,8 @@ describe('Turn', () => {
           {name:  '2nd item', imageUrl},
           {name:  '3rd item', imageUrl},
         ], itemF => Item.create(itemF))
-        .then(() =>  Triple.findOne().exec())
-        .then(triple =>  new Turn({triple}))
+        .then(() => Triple.generateNew(1))
+        .then(([triple]) => Turn.create({triple: triple._id}))
         .then(t => { turn = t; })
     );
   });
@@ -88,18 +90,14 @@ describe('Turn', () => {
     let user;
     let playerMove;
 
+
     beforeEach(() => {
-      return Promise.join(
-          User.create({username, password}),
-          Triple.findOne().exec()
-        )
-        .then(([player, triple]) => {
+      return User.create({username, password})
+        .then(player => {
           user = player;
-          return PlayerMove.create({player, triple, pick:'AB'});
+          return PlayerMove.create({player, triple: turn.triple, pick:'AB'});
         })
-        .then(pm => {
-          playerMove = pm;
-        });
+        .then(pm => playerMove = pm);
     });
 
     it('correctly, if async player exists', function(){
