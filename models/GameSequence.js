@@ -63,24 +63,16 @@ GameSequenceSchema.post('save', function(doc, next){
 GameSequenceSchema.statics.selectNew = function(playerID){
   const pID = mongoose.Types.ObjectId(playerID);
 
-  return this.generateNew();
-  // TODO selectNew
+  // TODO adapt sequence to player level
 
-  //return require('./User').findOne()
-  //  .where({_id: pID}).select('playedSequences').lean().exec()
-  //  .then(player => {
-
-  //    return this
-  //      .findOne()
-  //      .where('_id')
-  //      .nin(player.playedSequences)
-  //      .sort('seqNum')
-  //      .exec();
-  //  })
-  //  .then(gs => {
-  //    if(!gs){ return Promise.reject(new NoGameSequencesLeft()); }
-  //    return gs;
-  //  });
+  return require('./User').findOne()
+    .where({_id: pID}).select('playedSequences').lean().exec()
+    .then(player => this.findOne()
+      .where('_id').nin(player.playedSequences)
+      .select('ambiguity triples')
+      .populate({path: 'triples', model: 'Triple'})
+      .sort('ambiguity'))
+    .then(gs => gs || this.generateNew());
 };
 
 GameSequenceSchema.statics.generateNew = function(){
