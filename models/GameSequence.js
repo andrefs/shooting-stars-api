@@ -7,6 +7,8 @@ import {createHash}     from 'crypto';
 import {log}            from '../lib/logger';
 import MongooseSequence from 'mongoose-sequence';
 import {NoGameSequencesLeft}  from '../lib/errors';
+import config           from '../config';
+
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -56,42 +58,30 @@ GameSequenceSchema.post('save', function(doc, next){
 GameSequenceSchema.statics.selectNew = function(playerID){
   const pID = mongoose.Types.ObjectId(playerID);
 
-  return require('./User').findOne()
-    .where({_id: pID}).select('playedSequences').lean().exec()
-    .then(player => {
+  return this.generateNew();
+  // TODO selectNew
 
-      return this
-        .findOne()
-        .where('_id')
-        .nin(player.playedSequences)
-        .sort('seqNum')
-        .exec();
-    })
-    .then(gs => {
-      if(!gs){ return Promise.reject(new NoGameSequencesLeft()); }
-      return gs;
-    });
+  //return require('./User').findOne()
+  //  .where({_id: pID}).select('playedSequences').lean().exec()
+  //  .then(player => {
+
+  //    return this
+  //      .findOne()
+  //      .where('_id')
+  //      .nin(player.playedSequences)
+  //      .sort('seqNum')
+  //      .exec();
+  //  })
+  //  .then(gs => {
+  //    if(!gs){ return Promise.reject(new NoGameSequencesLeft()); }
+  //    return gs;
+  //  });
 };
 
-GameSequenceSchema.statics.generate = function(howMany, sequenceSize, highestItemId){
-  return Triple.find()
-    .where('highestItemId')
-    .lte(highestItemId)
-    .limit(howMany*sequenceSize)
-    .sort('randomSeq').exec()
-    .then(triples => {
-      let gameSeqs = [];
-      while(triples.length >= sequenceSize){
-        gameSeqs.push(new this({
-          triples: triples.splice(0,sequenceSize)
-        }));
-      }
-
-      log.debug('GameSequence('+howMany+','+sequenceSize+','+highestItemId+
-        ') called, creating '+gameSeqs.length+' game sequences...');
-
-      return this.create(gameSeqs);
-    });
-};
+GameSequenceSchema.statics.generateNew = function(){
+  const self = this;
+  return Triple.generateNew(config.game.size)
+    .then(triples => self.create({triples}));
+}
 
 module.exports = mongoose.model('GameSequence', GameSequenceSchema);
