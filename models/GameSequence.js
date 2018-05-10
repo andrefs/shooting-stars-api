@@ -26,8 +26,13 @@ const GameSequenceSchema = mongoose.Schema({
     type: Number
   },
   randomSeq: {
-    type: 'String',
+    type: String,
     required: true
+  },
+  ambiguity: {
+    required: true,
+    default:0,
+    type: Number
   }
 });
 
@@ -83,5 +88,14 @@ GameSequenceSchema.statics.generateNew = function(){
   return Triple.generateNew(config.game.size)
     .then(triples => self.create({triples}));
 }
+
+GameSequenceSchema.methods.updateAmbiguity = function(){
+  const self = this;
+  return self.populate({path: 'triples', model: 'Triple'}).execPopulate()
+    .then(() => {
+      self.ambiguity = self.triples.reduce((prev, cur) => prev+cur.ambiguity, 0);
+      return self.save();
+    });
+};
 
 module.exports = mongoose.model('GameSequence', GameSequenceSchema);

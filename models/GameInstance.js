@@ -205,12 +205,17 @@ GameInstanceSchema.methods.wrapUp = function(){
     },{
       path: 'turns.previous',
       model: Turn
+    },
+    {
+      path: 'gameSequence',
+      model: 'GameSequence',
     }])
     .execPopulate()
     .then(() => this.players.sync.addPlayedSequence(this.gameSequence))
     .then(() => this.players.sync.addToTotalScore(this.currentScore.sync))
     .then(() => this.saveMoves())
     .then(moves => Triple.updateTripleScores(moves))
+    .then(triples => this.gameSequence.updateAmbiguity())
     .then(() => this.save());
 };
 

@@ -54,6 +54,10 @@ describe('GameSequence', () => {
     expect(GameSequence.generateNew()).to.be.eventually.rejectedWith(NoMoreItemsError);
   });
 
+  it.skip('correctly calculates ambiguity', () => {
+    // TODO
+  });
+
   // TODO
   // it('sets fields on creation', function() {
   //   this.timeout(15000);

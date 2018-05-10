@@ -56,7 +56,7 @@ describe('GameInstance', () => {
       .then(() => Triple.findOne().exec())
       .then(t  => { triple = t; })
       .then(() => User.create({username, password}))
-      .then(p  => { player = p; });
+      .then(p  => { player = p; })
   });
 
   describe('when created', () => {
@@ -133,6 +133,7 @@ describe('GameInstance', () => {
   });
 
   describe('when adding a move', () => {
+
     it('throws if there\'s no current turn', function(){
       return GameInstance.createNew(player._id)
         .then(gi => {
@@ -166,6 +167,33 @@ describe('GameInstance', () => {
           }
           expect(gi.wrapUp).to.have.been.called;
         })
+    });
+
+    it('wrapUp calls GameInstance.saveMoves and Triple.updateTripleScores', () => {
+      const _addMove = async gi => gi.addMove('AC');
+
+      return Promise.join(
+        Item.remove().exec(),
+        Triple.remove().exec(),
+        Pair.remove().exec(),
+        GameSequence.remove().exec(),
+        Promise.mapSeries([
+            {name:  '1st item', imageUrl},
+            {name:  '2nd item', imageUrl},
+            {name:  '3rd item', imageUrl},
+            {name:  '4th item', imageUrl},
+          ], itemF => Item.create(itemF))
+      )
+      .then(() => GameInstance.createNew(player._id))
+      .then(async gi => {
+        sinon.spy(gi,       'saveMoves');
+        sinon.spy(Triple,   'updateTripleScores');
+        for (let i=0; i<config.game.size; i++){
+          await _addMove(gi);
+        }
+        expect(gi.saveMoves).to.have.been.called;
+        expect(Triple.updateTripleScores).to.have.been.called;
+      })
     });
   });
 });

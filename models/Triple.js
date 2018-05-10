@@ -82,6 +82,7 @@ TripleSchema.pre('validate', function(next){
 
       this.highestItemId = items[2].seqNum;
       this.randomSeq = createHash('md5').update(this._id.toString()).digest("hex");
+      this.updateAmbiguity();
 
       return Pair.find()
       .where({$or:[
