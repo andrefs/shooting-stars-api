@@ -1,5 +1,6 @@
 import User     from '../../models/User';
 import Item     from '../../models/Item';
+import Pair     from '../../models/Pair';
 import Turn     from '../../models/Turn';
 import Triple   from '../../models/Triple';
 import GameSequence   from '../../models/GameSequence';
@@ -10,7 +11,7 @@ import sinonChai from 'sinon-chai';
 chai.use(sinonChai);
 import Promise  from 'bluebird';
 import chaiAsPromised from 'chai-as-promised';
-import {NoCurrentTurnError} from '../../lib/errors';
+import {NoCurrentTurnError,NoMoreItemsError} from '../../lib/errors';
 require('../mongoose-helper');
 import config from '../../config';
 
@@ -21,7 +22,7 @@ const expect = chai.expect;
 describe('GameInstance', () => {
   let player;
   let triple;
-  let gameSeqs;
+  let gameSeq;
   const imageUrl = 'http://ww.example.com';
 
   const handleErr = (err) => {
@@ -37,6 +38,7 @@ describe('GameInstance', () => {
     return Promise.join(
         User.remove().exec(),
         GameInstance.remove().exec(),
+        Pair.remove().exec(),
         Item.remove().exec(),
         Triple.remove().exec(),
         Turn.remove().exec(),
@@ -49,10 +51,10 @@ describe('GameInstance', () => {
             {name:  '4th item', imageUrl},
           ], itemF => Item.create(itemF))
       )
+      .then(() => GameSequence.generateNew())
+      .then(gs => { gameSeq = gs; })
       .then(() => Triple.findOne().exec())
       .then(t  => { triple = t; })
-      .then(() => GameSequence.generate(1,config.game.size,4))
-      .then(gs => { gameSeqs = gs; })
       .then(() => User.create({username, password}))
       .then(p  => { player = p; });
   });
@@ -60,17 +62,19 @@ describe('GameInstance', () => {
   describe('when created', () => {
     it('selects new game sequence', function(){
         return GameInstance.createNew(player._id)
-        .then(gi => {
-          expect(gi.gameSequence).to.not.be.undefined;
-        });
+        .then(gi => expect(gi.gameSequence).to.not.be.undefined);
     });
 
     it('throws if it can\'t select a game sequence', function(){
-      return GameSequence.remove().exec()
-        .then(() => {
-          const p = GameInstance.createNew(player._id);
-          expect(p).to.eventually.be.rejected;
-        });
+      return Promise.join(
+        GameSequence.remove().exec(),
+        Item.remove().exec(),
+        Pair.remove().exec()
+      )
+      .then(() => {
+        const p = GameInstance.createNew(player._id);
+        return expect(p).to.eventually.be.rejectedWith(NoMoreItemsError);
+      });
     });
 
     it('assigns an async player if a suitable one exists', function(){
@@ -78,7 +82,7 @@ describe('GameInstance', () => {
       const password = 'password';
       let async_player;
 
-      return User.create({username, password, playedSequences: [gameSeqs[0]._id]})
+      return User.create({username, password, playedSequences: [gameSeq._id]})
         then(user => {
           async_player = user;
           return GameInstance.createNew(player._id);
