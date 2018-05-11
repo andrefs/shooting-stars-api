@@ -16,7 +16,6 @@ const items = [ {imageUrl:"madonna.png" , name:"Madonna" }, {imageUrl:"gaga.png"
 //const items = [ {imageUrl:"madonna.jpg" , name:"Madonna" }, {imageUrl:"gaga.jpg" , name:"Lady Gaga" }, {imageUrl:"queen.jpg" , name:"Freddie Mercury (Queen)" }];
 
 Promise.mapSeries(items, item => Item.create(item))
-  .then(() => GameSequence.generate(12, 10, 10))
 
   .then(() => User.create({username: "user1@example.com", password: "pwd", playedSequences: [], birthYear: 1960, gender: 'M'}))
   .then(user => GameInstance.createNew(user._id))
