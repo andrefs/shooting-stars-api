@@ -249,9 +249,9 @@ atob@^2.0.0:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/atob/-/atob-2.1.1.tgz#ae2d5a729477f289d60dd7f96a6314a22dd6c22a"
 
-avl-promise@^0.0.2:
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/avl-promise/-/avl-promise-0.0.2.tgz#99c7610ba859f66c0f0bedbc3e8414cc423224ce"
+avl-promise@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/avl-promise/-/avl-promise-0.0.3.tgz#0b997d3070aeaca0da3af18fee9d6ea767dd1a0d"
   dependencies:
     bluebird "^3.5.1"
 
