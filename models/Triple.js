@@ -165,15 +165,14 @@ TripleSchema.statics._insertPairs = function(pairs, numTotal, created, ps){
     .catch(e => {
       if(e instanceof MissingPairsRelationException){
         let triples = e.getTriples();
+
         return this.insertMany(triples, {ordered: false})
           .then(triples => created.push(...triples))
           .catch(e => {
             e.writeErrors.forEach(err => { triples[e.index] = null; });
             triples.forEach(t => { if(t){ created.push(t); } });
           });
-      } else {
-        throw e;
-      }
+      } else { throw e; }
     })
     .finally(() => {
       if(created.length < numTotal && pairs.length){
@@ -184,12 +183,12 @@ TripleSchema.statics._insertPairs = function(pairs, numTotal, created, ps){
 };
 
 TripleSchema.statics._insertStable = function(numTotal, triples, ps){
-  return Pair.find({status: 'stable'})
+  return Pair.find({status: 'stable'}).sort('seqNum')
     .then(pairs => this._insertPairs(pairs, numTotal, triples, ps));
 };
 
 TripleSchema.statics._insertCandidates = function(numTotal, triples, ps){
-  return Pair.find({status: 'candidate'})
+  return Pair.find({status: 'candidate'}).sort('seqNum')
     .then(pairs => this._insertPairs(pairs, numTotal, triples, ps));
 };
 

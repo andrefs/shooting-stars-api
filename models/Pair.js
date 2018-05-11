@@ -73,6 +73,19 @@ PairSchema.statics.addNextCandidate = function(){
     })
 };
 
+PairSchema.methods.markAsCandidate = function(){
+  return this.constructor.findOneAndUpdate(
+    {seqNum: this.seqNum},
+    {$set: {status: 'candidate'}}, {new: true}
+  );
+};
+
+PairSchema.methods.markAsStable = function(){
+  return this.constructor.findOneAndUpdate(
+    {seqNum: this.seqNum},
+    {$set: {status: 'stable'}}, {new: true}
+  );
+};
 
 PairSchema.index({itemA: 1, itemB: 1}, {unique: true});
 

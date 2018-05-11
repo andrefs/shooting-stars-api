@@ -129,4 +129,58 @@ describe('PairSorter', () => {
     .then(() => expect(ps.keys()).to.deep.equal([pairs[0].seqNum, pairs[1].seqNum]));
   });
 
+  it('Marks pair as \'stable\' if able to insert it', () => {
+    let pairs;
+    let triple;
+    const ps = new PairSorter();
+
+    return Pair.find({$or: [
+        {itemA: items[0], itemB: items[1]},
+        {itemA: items[0], itemB: items[2]}
+      ]})
+      .then(_pairs => {
+        pairs = _pairs;
+        expect(pairs[0].status).to.equal('unplayed');
+        expect(pairs[1].status).to.equal('unplayed');
+      })
+      .then(() => Triple.create({
+        itemA: items[0],
+        itemB: items[1],
+        itemC: items[2]
+      }))
+      .then(_triple => _triple.addPick('AC').save())
+      .then(() => ps.tryInsert(pairs[0]))
+      .then(() => ps.tryInsert(pairs[1]))
+      .then(() => expect(Pair.findOne({seqNum: pairs[0].seqNum})).to.eventually.have.property('status', 'stable'))
+      .then(() => expect(Pair.findOne({seqNum: pairs[1].seqNum})).to.eventually.have.property('status', 'stable'));
+  });
+
+
+  it('Marks pair as \'candidate\' if unable to insert it', () => {
+    let pairs;
+    const ps = new PairSorter();
+
+    return Pair.find({$or: [
+        {itemA: items[0], itemB: items[1]},
+        {itemA: items[0], itemB: items[2]}
+      ]})
+      .then(_pairs => {
+        pairs = _pairs;
+        expect(pairs[0].status).to.equal('unplayed');
+        expect(pairs[1].status).to.equal('unplayed');
+
+        return Pair.findOneAndUpdate(
+          {seqNum: pairs[1].seqNum},
+          {$set: {status: 'stable'}}
+        );
+      })
+      .then(() => ps.tryInsert(pairs[0]))
+      .then(() => ps.tryInsert(pairs[1]))
+      .catch(e => {
+        expect(e).to.be.an.instanceof(MissingPairsRelationException);
+        expect(Pair.findOne({seqNum: pairs[0].seqNum})).to.eventually.have.property('status', 'stable');
+        expect(Pair.findOne({seqNum: pairs[1].seqNum})).to.eventually.have.property('status', 'candidate');
+       });
+  });
+
 });
