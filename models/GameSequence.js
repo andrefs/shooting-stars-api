@@ -62,6 +62,7 @@ GameSequenceSchema.post('save', function(doc, next){
 
 GameSequenceSchema.statics.selectNew = function(playerID){
   const pID = mongoose.Types.ObjectId(playerID);
+  log.info('Selecting new game sequence for player', pID.toString());
   let player;
   let maxScore;
   let normScore;
@@ -78,12 +79,16 @@ GameSequenceSchema.statics.selectNew = function(playerID){
         .count();
     })
     .then(availableSeqs => {
-      if(availableSeqs === 0){ return this.generateNew(); }
+      if(availableSeqs === 0){
+        log.info('No sequence available, generating new');
+        return this.generateNew();
+      }
       if(availableSeqs === 1){
         // TODO to optimize users experience, new sequence should
         // probably generated if there's only one sequence left for
         // this user
         //this.generateNew();
+        log.info('Last sequence found, returning');
         return this.findOne()
           .where('_id').nin(player.playedSequences)
           .select('ambiguity triples')
