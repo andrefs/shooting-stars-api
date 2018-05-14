@@ -156,44 +156,63 @@ describe('GameInstance', () => {
         });
     });
 
-    it('calls wrapUp at the end', function(){
-      const _addMove = async gi => gi.addMove('AC');
+    describe('wrapUp', () => {
+      it(' is called at the end', function(){
+        const _addMove = async gi => gi.addMove('AC');
 
-      return GameInstance.createNew(player._id)
+        return GameInstance.createNew(player._id)
+          .then(async gi => {
+            sinon.spy(gi, 'wrapUp');
+            for (let i=0; i<config.game.size; i++){
+              await _addMove(gi);
+            }
+            expect(gi.wrapUp).to.have.been.called;
+          })
+      });
+
+      it('calls GameInstance.saveMoves and Triple.updateTripleScores', () => {
+        const _addMove = async gi => gi.addMove('AC');
+
+        return Promise.join(
+          Item.remove().exec(),
+          Triple.remove().exec(),
+          Pair.remove().exec(),
+          GameSequence.remove().exec(),
+          Promise.mapSeries([
+              {name:  '1st item', imageUrl},
+              {name:  '2nd item', imageUrl},
+              {name:  '3rd item', imageUrl},
+              {name:  '4th item', imageUrl},
+            ], itemF => Item.create(itemF))
+        )
+        .then(() => GameInstance.createNew(player._id))
         .then(async gi => {
-          sinon.spy(gi, 'wrapUp');
+          sinon.spy(gi,       'saveMoves');
+          sinon.spy(Triple,   'updateTripleScores');
           for (let i=0; i<config.game.size; i++){
             await _addMove(gi);
           }
-          expect(gi.wrapUp).to.have.been.called;
+          expect(gi.saveMoves).to.have.been.called;
+          expect(Triple.updateTripleScores).to.have.been.called;
         })
-    });
+      });
 
-    it('wrapUp calls GameInstance.saveMoves and Triple.updateTripleScores', () => {
-      const _addMove = async gi => gi.addMove('AC');
 
-      return Promise.join(
-        Item.remove().exec(),
-        Triple.remove().exec(),
-        Pair.remove().exec(),
-        GameSequence.remove().exec(),
-        Promise.mapSeries([
-            {name:  '1st item', imageUrl},
-            {name:  '2nd item', imageUrl},
-            {name:  '3rd item', imageUrl},
-            {name:  '4th item', imageUrl},
-          ], itemF => Item.create(itemF))
-      )
-      .then(() => GameInstance.createNew(player._id))
-      .then(async gi => {
-        sinon.spy(gi,       'saveMoves');
-        sinon.spy(Triple,   'updateTripleScores');
-        for (let i=0; i<config.game.size; i++){
-          await _addMove(gi);
-        }
-        expect(gi.saveMoves).to.have.been.called;
-        expect(Triple.updateTripleScores).to.have.been.called;
-      })
+      it('correctly updates GameSequence ambiguity', function(){
+        const _addMove = async gi => gi.addMove('AC');
+
+        return GameInstance.createNew(player._id)
+          .then(async gi => {
+            sinon.spy(gi, 'wrapUp');
+            for (let i=0; i<config.game.size; i++){
+              await _addMove(gi);
+            }
+            expect(gi.wrapUp).to.have.been.called;
+            return GameSequence.findOne({_id: gi.gameSequence._id})
+              .populate({path: 'triples', model: 'Triple'});
+          })
+          .then(gs => expect(gs.ambiguity).to.equal(gs.triples.reduce((total, cur) => total += cur.ambiguity, 0)));
+      });
     });
   });
 });

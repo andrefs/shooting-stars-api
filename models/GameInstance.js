@@ -215,7 +215,7 @@ GameInstanceSchema.methods.wrapUp = function(){
     .then(() => this.players.sync.addToTotalScore(this.currentScore.sync))
     .then(() => this.saveMoves())
     .then(moves => Triple.updateTripleScores(moves))
-    .then(triples => this.gameSequence.updateAmbiguity())
+    .then(() => this.gameSequence.updateAmbiguity())
     .then(() => this.save());
 };
 
