@@ -14,7 +14,7 @@ if(!mongo_uri && config && config.db && config.db.uri){
 // TODO compare with Bluebird
 // Set Promise library
 mongoose.Promise = global.Promise;
-if(process.env.NODE_ENV === 'development'){
+if(config.log.db){
   mongoose.set('debug', true);
 }
 

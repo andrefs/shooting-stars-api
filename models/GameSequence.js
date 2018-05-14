@@ -79,6 +79,16 @@ GameSequenceSchema.statics.selectNew = function(playerID){
     })
     .then(availableSeqs => {
       if(availableSeqs === 0){ return this.generateNew(); }
+      if(availableSeqs === 1){
+        // TODO to optimize users experience, new sequence should
+        // probably generated if there's only one sequence left for
+        // this user
+        //this.generateNew();
+        return this.findOne()
+          .where('_id').nin(player.playedSequences)
+          .select('ambiguity triples')
+          .populate({path: 'triples', model: 'Triple'});
+      }
 
       const skip = Math.floor(availableSeqs * normScore);
 
