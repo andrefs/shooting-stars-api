@@ -62,17 +62,35 @@ GameSequenceSchema.post('save', function(doc, next){
 
 GameSequenceSchema.statics.selectNew = function(playerID){
   const pID = mongoose.Types.ObjectId(playerID);
-
-  // TODO adapt sequence to player level
+  let player;
+  let maxScore;
+  let normScore;
 
   return require('./User').findOne()
-    .where({_id: pID}).select('playedSequences').lean().exec()
-    .then(player => this.findOne()
-      .where('_id').nin(player.playedSequences)
-      .select('ambiguity triples')
-      .populate({path: 'triples', model: 'Triple'})
-      .sort('ambiguity'))
-    .then(gs => gs || this.generateNew());
+    .where({_id: pID}).select('playedSequences totalScore').lean().exec()
+    .then(_player => {
+      player = _player;
+      maxScore = config.game.scores.win * config.game.size * player.playedSequences.length;
+      normScore = player.totalScore/maxScore;
+
+      return this.find()
+        .where('_id').nin(player.playedSequences)
+        .count();
+    })
+    .then(availableSeqs => {
+      if(availableSeqs === 0){ return this.generateNew(); }
+
+      const skip = Math.floor(availableSeqs * normScore);
+
+      return this.find()
+        .skip(skip)
+        .where('_id').nin(player.playedSequences)
+        .select('ambiguity triples')
+        .populate({path: 'triples', model: 'Triple'})
+        .sort('ambiguity')
+        .limit(1)
+        .then(([gs]) => gs);
+     });
 };
 
 GameSequenceSchema.statics.generateNew = function(){

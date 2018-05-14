@@ -149,4 +149,66 @@ describe('GameSequence', () => {
   //     ;
   // });
 
+  it('selects new game sequence based on player overall results', function() {
+    this.timeout(15000);
+    const imageUrl = 'http://ww.example.com';
+    let triple;
+    let gameSequences;
+    let highAmb;
+    let middleAmb;
+    let lowAmb;
+
+
+    return Promise.mapSeries([
+        {name:  '1st item', imageUrl},
+        {name:  '2nd item', imageUrl},
+        {name:  '3rd item', imageUrl},
+        {name:  '4th item', imageUrl},
+        {name:  '5th item', imageUrl},
+        {name:  '6th item', imageUrl},
+        {name:  '8th item', imageUrl},
+        {name:  '9th item', imageUrl},
+        {name: '10th item', imageUrl},
+        {name: '11th item', imageUrl},
+        {name: '12th item', imageUrl},
+        {name: '13th item', imageUrl},
+        {name: '14th item', imageUrl},
+        {name: '15th item', imageUrl},
+      ], itemF => Item.create(itemF))
+      .then(() => GameSequence.generateNew())
+      .then(() => GameSequence.generateNew())
+      .then(() => GameSequence.generateNew())
+      .then(() => GameSequence.generateNew())
+      .then(() => GameSequence.generateNew())
+      .then(() => GameSequence.generateNew())
+      .then(() => GameSequence.find())
+      .then(([high, middle, low , ...gss]) => {
+        highAmb = high;
+        middleAmb = middle;
+        lowAmb = low;
+        gameSequences = gss;
+
+        return Promise.join(
+          User.create({
+            username: 'name',
+            totalScore:  (config.game.scores.win * config.game.size * gameSequences.length)/2,
+            playedSequences: gameSequences
+          }),
+          GameSequence.findOneAndUpdate(
+            {_id: highAmb._id},
+            {$set: {ambiguity: 0}}
+          ),
+          GameSequence.findOneAndUpdate(
+            {_id: middleAmb._id},
+            {$set: {ambiguity: 5}}
+          ),
+          GameSequence.findOneAndUpdate(
+            {_id: lowAmb._id},
+            {$set: {ambiguity: 10}}
+          ));
+      })
+      .then(([u]) =>  GameSequence.selectNew(u))
+      .then(gs => expect(gs._id.equals(middleAmb._id)).to.be.true);
+  });
+
 });
