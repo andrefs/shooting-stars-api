@@ -104,8 +104,23 @@ describe('GameSequence', () => {
       .then(gs => expect(GameSequence.generateNew).to.have.been.called);
   });
 
-  it.skip('correctly calculates ambiguity', () => {
-    // TODO
+  it('correctly calculates ambiguity', () => {
+    const imageUrl = 'http://ww.example.com';
+    let gs;
+
+    return Promise.mapSeries([
+        {name: 'first item' , imageUrl},
+        {name: 'second item', imageUrl},
+        {name: 'third item' , imageUrl},
+        {name: 'fourth item', imageUrl}
+      ], itemF => Item.create(itemF))
+      .then(() => GameSequence.generateNew())
+      .then(_gs => {
+        gs = _gs;
+        return Promise.mapSeries(gs.triples, t => t.addPick('AB').save())
+      })
+      .then(() => GameSequence.findOne({seqNum: gs.seqNum}).populate({path: 'triples', model:'Triple'}))
+      .then(gs => expect(gs.updateAmbiguity()).to.eventually.have.property('ambiguity', 2));
   });
 
   // TODO
