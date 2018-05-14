@@ -71,7 +71,7 @@ GameSequenceSchema.statics.selectNew = function(playerID){
     .then(_player => {
       player = _player;
       maxScore = config.game.scores.win * config.game.size * player.playedSequences.length;
-      normScore = player.totalScore/maxScore;
+      normScore = maxScore ? player.totalScore/maxScore : 0.5;
 
       return this.find()
         .where('_id').nin(player.playedSequences)
