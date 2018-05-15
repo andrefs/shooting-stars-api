@@ -71,16 +71,18 @@ describe('GameSequence', () => {
         {name:  '3rd item', imageUrl},
         {name:  '4th item', imageUrl},
       ], itemF => Item.create(itemF))
+      .then(() => GameSequence.generateNew())
+      .then(() => GameSequence.generateNew())
       .then(() => User.create({username, password}))
       .then(user => GameSequence.selectNew(user._id))
       .then(gs => {
         gs1 = gs;
-        return expect(GameSequence.count()).to.eventually.equal(1);
+        return expect(GameSequence.count()).to.eventually.equal(2);
       })
       .then(() => User.create({username: username2, password}))
       .then(user2 => GameSequence.selectNew(user2._id))
       .then(gs2 => expect(gs1._id.equals(gs2._id)).to.be.true)
-      .then(() => expect(GameSequence.count()).to.eventually.equal(1));
+      .then(() => expect(GameSequence.count()).to.eventually.equal(2));
 
   });
 

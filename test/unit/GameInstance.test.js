@@ -33,26 +33,41 @@ describe('GameInstance', () => {
   };
 
   beforeEach(() => {
+
     const username = 'sync_player';
     const password = 'password';
     return Promise.join(
-        User.remove().exec(),
-        GameInstance.remove().exec(),
-        Pair.remove().exec(),
-        Item.remove().exec(),
-        Triple.remove().exec(),
-        Turn.remove().exec(),
-        GameSequence.remove().exec(),
         Promise.promisify(Item.counterReset)('item_counter'),
-        Promise.mapSeries([
-            {name:  '1st item', imageUrl},
-            {name:  '2nd item', imageUrl},
-            {name:  '3rd item', imageUrl},
-            {name:  '4th item', imageUrl},
-          ], itemF => Item.create(itemF))
+        Promise.promisify(Pair.counterReset)('pair_counter'),
+        Promise.promisify(Pair.counterReset)('game_sequence_counter')
       )
-      .then(() => GameSequence.generateNew())
+      .then(() => {
+        return Promise.join(
+          GameInstance.remove().exec(),
+          GameSequence.remove().exec(),
+          Item.remove().exec(),
+          Pair.remove().exec(),
+          Triple.remove().exec(),
+          Turn.remove().exec(),
+          User.remove().exec()
+          );
+      })
+      .then(() => {
+        return Promise.mapSeries([
+          {name:  '1st item', imageUrl},
+          {name:  '2nd item', imageUrl},
+          {name:  '3rd item', imageUrl},
+          {name:  '4th item', imageUrl},
+          {name:  '5th item', imageUrl},
+          {name:  '6th item', imageUrl},
+          {name:  '7th item', imageUrl},
+          {name:  '8th item', imageUrl},
+          {name:  '9th item', imageUrl},
+        ], itemF => Item.create(itemF));
+      })
+      .then(() =>  GameSequence.generateNew())
       .then(gs => { gameSeq = gs; })
+      .then(() =>  GameSequence.generateNew())
       .then(() => Triple.findOne().exec())
       .then(t  => { triple = t; })
       .then(() => User.create({username, password}))
@@ -61,15 +76,18 @@ describe('GameInstance', () => {
 
   describe('when created', () => {
     it('selects new game sequence', function(){
-        return GameInstance.createNew(player._id)
-        .then(gi => expect(gi.gameSequence).to.not.be.undefined);
+      return GameInstance.createNew(player._id)
+        .then(gi => expect(gi.gameSequence).to.not.be.undefined)
     });
 
     it('throws if it can\'t select a game sequence', function(){
       return Promise.join(
         GameSequence.remove().exec(),
         Item.remove().exec(),
-        Pair.remove().exec()
+        Pair.remove().exec(),
+        Triple.remove().exec(),
+        Promise.promisify(Item.counterReset)('item_counter'),
+        Promise.promisify(Item.counterReset)('pair_counter')
       )
       .then(() => {
         const p = GameInstance.createNew(player._id);

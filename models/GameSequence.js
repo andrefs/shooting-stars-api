@@ -80,15 +80,15 @@ GameSequenceSchema.statics.selectNew = function(playerID){
     })
     .then(availableSeqs => {
       if(availableSeqs === 0){
-        log.info('No sequence available, generating new');
+        log.info(`No sequence available for player ${playerID}, generating new`);
         return this.generateNew();
       }
-      if(availableSeqs === 1){
+      else if(availableSeqs === 1){
         // TODO to optimize users experience, new sequence should
         // probably generated if there's only one sequence left for
         // this user
-        //this.generateNew();
-        log.info('Last sequence found, returning');
+        log.info(`Last sequence found for player ${playerID}, generating new and returning the last one`);
+        this.generateNew();
         return this.findOne()
           .where('_id').nin(player.playedSequences)
           .select('ambiguity triples')
@@ -109,9 +109,14 @@ GameSequenceSchema.statics.selectNew = function(playerID){
 };
 
 GameSequenceSchema.statics.generateNew = function(){
+  log.info('Will generate new sequence');
   const self = this;
   return Triple.generateNew(config.game.size)
-    .then(triples => self.create({triples}));
+    .then(triples => self.create({triples}))
+    .then(gs => {
+      log.info('Finished generating new game sequence');
+      return gs;
+    });
 }
 
 GameSequenceSchema.methods.updateAmbiguity = function(){
