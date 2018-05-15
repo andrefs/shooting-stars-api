@@ -7,10 +7,8 @@ import {NoMoreItemsError} from '../../lib/errors';
 describe('Item', () => {
   let user;
 
-  beforeEach(done => {
-      Item.remove().then(() => {
-        return done();
-      });
+  beforeEach(() => {
+    return Item.remove();
   });
 
   it('initializes with default values', () => {
@@ -43,15 +41,15 @@ describe('Item', () => {
   });
 
   it('throws error when calling activateNext iff there are no more items', () => {
-    expect(Item.activateNext()).to.be.rejectedWith(NoMoreItemsError);
+    expect(Item.activateNext()).to.eventually.be.rejectedWith(NoMoreItemsError);
     let item;
-    Item.create({
+    return Item.create({
       name: 'itemName',
       description: 'itemDesc',
       imageUrl: 'itemUrl'
     })
-    .then(() => expect(Item.activateNext()).to.be.fulfilled)
-    .then(() => expect(Item.activateNext()).to.be.rejectedWith(NoMoreItemsError));
+    .then(() => expect(Item.activateNext()).to.eventually.be.fulfilled)
+    .then(() => expect(Item.activateNext()).to.eventually.be.rejectedWith(NoMoreItemsError));
   });
 
 });
