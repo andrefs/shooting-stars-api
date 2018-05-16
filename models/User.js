@@ -146,7 +146,7 @@ UserSchema.methods.playerNearestScores = function(n){
       flipFlop = !flipFlop;
     }
 
-    return elems.map(u => {
+    return elems.filter(u => !!u).map(u => {
       return {
         username: u.username,
         score: u.totalScore,
