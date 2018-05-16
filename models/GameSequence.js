@@ -81,7 +81,12 @@ GameSequenceSchema.statics.selectNew = function(playerID){
     .then(availableSeqs => {
       if(availableSeqs === 0){
         log.info(`No sequence available for player ${pID}, generating new`);
-        return this.generateNew();
+        return this.generateNew()
+          .then(gs => {
+            log.info(`Last sequence found for player ${pID}, generating new and returning the last one`);
+            this.generateNew();
+            return gs;
+          });
       }
       else if(availableSeqs === 1){
         // TODO to optimize users experience, new sequence should
