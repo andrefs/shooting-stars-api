@@ -255,4 +255,20 @@ GameInstanceSchema.methods.setCurrentScore = function(){
 };
 
 
+GameInstanceSchema.statics.newGamesByMonth = function(){
+  return this.aggregate([
+    //{$project: {month: {$month: "$created"}, year: {$year: "created"}}},
+    {$project: {_id:null, month: {$month: "$created"}, year: {$year: "$created"}}},
+    {$group: {
+      _id: {month: "$month", year: "$year"},
+      total: {$sum: 1}}
+    }
+  ])
+  .then(aggs => aggs.map(agg => ({
+    total: agg.total,
+    month: agg._id.month,
+    year: agg._id.year
+  })));
+};
+
 module.exports = mongoose.model('GameInstance', GameInstanceSchema);
