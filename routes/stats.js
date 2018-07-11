@@ -11,10 +11,11 @@ module.exports = function(app, passport){
     return Promise.join(
       User.cumulativeGamesPlayed(),
       User.newUsersByMonth(),
+      User.playersByGender(),
       GameInstance.newGamesByMonth(),
     )
-    .then(([cumulativeGames, newUsersByMonth, gamesByMonth]) => {
-      res.send({cumulativeGames, newUsersByMonth, gamesByMonth});
+    .then(([cumulativeGames, newUsersByMonth, playersByGender, gamesByMonth]) => {
+      res.send({cumulativeGames, newUsersByMonth, playersByGender, gamesByMonth});
       return next();
     });
   });

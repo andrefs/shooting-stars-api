@@ -127,6 +127,13 @@ UserSchema.statics.newUsersByMonth = function(){
   })));
 };
 
+UserSchema.statics.playersByGender = function(){
+  return this.aggregate([
+    {$group:   {_id: '$gender', count: {$sum: 1}}}
+  ])
+  .then(aggs => aggs.map(agg => ({gender: agg._id || 'DNA', totalPlayers: agg.count})));
+}
+
 UserSchema.methods.playerNearestScores = function(n){
   let num = n || 5;
   return Promise.join(
