@@ -95,6 +95,7 @@ const create = () => {
   });
 
   // add routes
+  require('./routes/stats')(api, passport);
   require('./routes/users')(api, passport);
   require('./routes/gameInstances')(api);
   require('./routes/gameSequences')(api);
