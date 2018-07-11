@@ -111,6 +111,22 @@ UserSchema.statics.cumulativeGamesPlayed = function(){
   .then(aggs => aggs.map(agg => ({numGames: agg._id, totalPlayers: agg.count})));
 };
 
+UserSchema.statics.newUsersByMonth = function(){
+  return this.aggregate([
+    //{$project: {month: {$month: "$created"}, year: {$year: "created"}}},
+    {$project: {_id:null, month: {$month: "$created"}, year: {$year: "$created"}}},
+    {$group: {
+      _id: {month: "$month", year: "$year"},
+      total: {$sum: 1}}
+    }
+  ])
+  .then(aggs => aggs.map(agg => ({
+    total: agg.total,
+    month: agg._id.month,
+    year: agg._id.year
+  })));
+};
+
 UserSchema.methods.playerNearestScores = function(n){
   let num = n || 5;
   return Promise.join(
