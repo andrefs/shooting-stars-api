@@ -83,4 +83,15 @@ module.exports = function(app, passport){
       });
   });
 
+  app.get('/players/stats', function(req, res, next){
+    return Promise.join(
+      User.cumulativeGamesPlayed(),
+      User.newUsersByMonth()
+    )
+    .then(([cumulativeGames, newUsersByMonth]) => {
+      res.send({cumulativeGames, newUsersByMonth});
+      return next();
+    });
+  });
+
 };
