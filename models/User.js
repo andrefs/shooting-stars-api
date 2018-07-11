@@ -103,6 +103,14 @@ UserSchema.statics.globalBestScores = function(n){
   });
 };
 
+UserSchema.statics.cumulativeGamesPlayed = function(){
+  return this.aggregate([
+    {$project: {_id: null, numGames: {$size: '$playedSequences'}}},
+    {$group:   {_id: '$numGames', count: {$sum: 1}}}
+  ])
+  .then(aggs => aggs.map(agg => ({numGames: agg._id, totalPlayers: agg.count})));
+};
+
 UserSchema.methods.playerNearestScores = function(n){
   let num = n || 5;
   return Promise.join(
