@@ -12,6 +12,7 @@ module.exports = function(app, passport){
       User.cumulativeGamesPlayed(),
       User.newUsersByMonth(),
       User.playersByGender(),
+      User.averageGamesPerActiveUserByMonth(),
       GameInstance.newGamesByMonth(),
     )
     .then(([cumulativeGames, newUsersByMonth, playersByGender, gamesByMonth]) => {

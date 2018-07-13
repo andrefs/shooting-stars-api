@@ -127,6 +127,31 @@ UserSchema.statics.newUsersByMonth = function(){
   })));
 };
 
+
+UserSchema.statics.averageGamesPerActiveUserByMonth = function(){
+  return this.aggregate([
+    //{$project: {month: {$month: "$created"}, year: {$year: "created"}}},
+    {
+      $project: {
+        _id:null,
+        month: {$month: "$modified"},
+        year: {$year: "$modified"},
+        games: {$size: "$playedSequences"}
+      }
+    },
+    {$group: {
+      _id: {month: "$month", year: "$year"},
+      activeUsers: {$sum: 1},
+      playedGames: {$sum: "$games"}
+    }}
+  ])
+  .then(aggs => aggs.map(agg => ({
+    gamesPerActiveUser: agg.playedGames / agg.activeUsers,
+    month: agg._id.month,
+    year: agg._id.year
+  })));
+};
+
 UserSchema.statics.playersByGender = function(){
   return this.aggregate([
     {$group:   {_id: '$gender', count: {$sum: 1}}}
