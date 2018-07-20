@@ -258,7 +258,7 @@ GameInstanceSchema.methods.setCurrentScore = function(){
 GameInstanceSchema.statics.newGamesByMonth = function(){
   return this.aggregate([
     //{$project: {month: {$month: "$created"}, year: {$year: "created"}}},
-    {$project: {_id:null, month: {$month: "$created"}, year: {$year: "$created"}}},
+    {$project: {month: {$month: "$created"}, year: {$year: "$created"}}},
     {$group: {
       _id: {month: "$month", year: "$year"},
       total: {$sum: 1}}
