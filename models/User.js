@@ -105,7 +105,7 @@ UserSchema.statics.globalBestScores = function(n){
 
 UserSchema.statics.cumulativeGamesPlayed = function(){
   return this.aggregate([
-    {$project: {_id: null, numGames: {$size: '$playedSequences'}}},
+    {$project: {numGames: {$size: '$playedSequences'}}},
     {$group:   {_id: '$numGames', count: {$sum: 1}}}
   ])
   .then(aggs => aggs.map(agg => ({numGames: agg._id, totalPlayers: agg.count})));
@@ -114,7 +114,7 @@ UserSchema.statics.cumulativeGamesPlayed = function(){
 UserSchema.statics.newUsersByMonth = function(){
   return this.aggregate([
     //{$project: {month: {$month: "$created"}, year: {$year: "created"}}},
-    {$project: {_id:null, month: {$month: "$created"}, year: {$year: "$created"}}},
+    {$project: {month: {$month: "$created"}, year: {$year: "$created"}}},
     {$group: {
       _id: {month: "$month", year: "$year"},
       total: {$sum: 1}}
@@ -133,7 +133,6 @@ UserSchema.statics.averageGamesPerActiveUserByMonth = function(){
     //{$project: {month: {$month: "$created"}, year: {$year: "created"}}},
     {
       $project: {
-        _id:null,
         month: {$month: "$modified"},
         year: {$year: "$modified"},
         games: {$size: "$playedSequences"}

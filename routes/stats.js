@@ -15,7 +15,8 @@ module.exports = function(app, passport){
       User.averageGamesPerActiveUserByMonth(),
       GameInstance.newGamesByMonth(),
     )
-    .then(([cumulativeGames, newUsersByMonth, playersByGender, gamesByMonth]) => {
+    .then(([cumulativeGames, newUsersByMonth, playersByGender, gamesByMonth
+      ]) => {
       res.send({cumulativeGames, newUsersByMonth, playersByGender, gamesByMonth});
       return next();
     });
