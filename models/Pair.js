@@ -63,6 +63,7 @@ PairSchema.statics.addNextCandidate = function(){
   return this.findOne({status: 'unplayed'}).sort('seqNum').exec()
     .then(pair => {
       if(!pair){
+        log.info(`  no more pairs, activating next item`);
         return require('./Item').activateNext()
           .then(() => this.addNextCandidate());
       }

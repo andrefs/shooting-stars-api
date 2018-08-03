@@ -25,7 +25,7 @@ module.exports = {
   },
   env: 'development',
   log: {
-    db: true,
+    db: false,
     level: 'info',
     dir: '/tmp'
   }

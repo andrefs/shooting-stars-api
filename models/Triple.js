@@ -183,16 +183,19 @@ TripleSchema.statics._insertPairs = function(pairs, numTotal, created, ps){
 };
 
 TripleSchema.statics._insertStable = function(numTotal, triples, ps){
+  log.info(`  inserting previously stable triples`);
   return Pair.find({status: 'stable'}).sort('seqNum')
     .then(pairs => this._insertPairs(pairs, numTotal, triples, ps));
 };
 
 TripleSchema.statics._insertCandidates = function(numTotal, triples, ps){
+  log.info(`  inserting candidate triples`);
   return Pair.find({status: 'candidate'}).sort('seqNum')
     .then(pairs => this._insertPairs(pairs, numTotal, triples, ps));
 };
 
 TripleSchema.statics._addNextCandidate = function(numTotal, triples, ps){
+  log.info(`  adding next unplayed triple as candidate`);
   return Pair.addNextCandidate()
     .then(p =>  this._insertPairs(p ? [p] : [], numTotal, triples, ps))
     .then(() => {
@@ -217,6 +220,7 @@ TripleSchema.statics._generateNewTriples = function(numTotal, created, ps, metho
 };
 
 TripleSchema.statics.generateNew = function(numTotal){
+  log.info(`Generating ${numTotal} new triples`);
   let created = [];
   let ps      = new PairSorter();
 
