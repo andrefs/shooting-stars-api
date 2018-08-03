@@ -39,7 +39,7 @@ describe('GameInstance', () => {
     return Promise.join(
         Promise.promisify(Item.counterReset)('item_counter'),
         Promise.promisify(Pair.counterReset)('pair_counter'),
-        Promise.promisify(Pair.counterReset)('game_sequence_counter')
+        Promise.promisify(GameSequence.counterReset)('game_sequence_counter')
       )
       .then(() => {
         return Promise.join(
@@ -175,7 +175,7 @@ describe('GameInstance', () => {
     });
 
     describe('wrapUp', () => {
-      it(' is called at the end', function(){
+      it('gets called at the end', function(){
         const _addMove = async gi => gi.addMove('AC');
 
         return GameInstance.createNew(player._id)
@@ -184,35 +184,23 @@ describe('GameInstance', () => {
             for (let i=0; i<config.game.size; i++){
               await _addMove(gi);
             }
-            expect(gi.wrapUp).to.have.been.called;
+            return expect(gi.wrapUp).to.have.been.called;
           })
       });
 
       it('calls GameInstance.saveMoves and Triple.updateTripleScores', () => {
-        const _addMove = async gi => gi.addMove('AC');
+        const _addMove = async gi => gi.addMove('AC')
 
-        return Promise.join(
-          Item.remove().exec(),
-          Triple.remove().exec(),
-          Pair.remove().exec(),
-          GameSequence.remove().exec(),
-          Promise.mapSeries([
-              {name:  '1st item', imageUrl},
-              {name:  '2nd item', imageUrl},
-              {name:  '3rd item', imageUrl},
-              {name:  '4th item', imageUrl},
-            ], itemF => Item.create(itemF))
-        )
-        .then(() => GameInstance.createNew(player._id))
-        .then(async gi => {
-          sinon.spy(gi,       'saveMoves');
-          sinon.spy(Triple,   'updateTripleScores');
-          for (let i=0; i<config.game.size; i++){
-            await _addMove(gi);
-          }
-          expect(gi.saveMoves).to.have.been.called;
-          expect(Triple.updateTripleScores).to.have.been.called;
-        })
+        return GameInstance.createNew(player._id)
+          .then(async gi => {
+            sinon.spy(gi,       'saveMoves');
+            sinon.spy(Triple,   'updateTripleScores');
+            for (let i=0; i<config.game.size; i++){
+              await _addMove(gi);
+            }
+            expect(gi.saveMoves).to.have.been.called;
+            expect(Triple.updateTripleScores).to.have.been.called;
+          });
       });
 
 
