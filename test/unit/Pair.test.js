@@ -63,60 +63,60 @@ describe('Pair', () => {
     const imageUrl = 'http://example.com';
 
     return Promise.join(
-      expect(Pair.count().exec()).to.eventually.equal(0),
-      expect(Item.count().exec()).to.eventually.equal(0),
+      expect(Pair.estimatedDocumentCount()).to.eventually.equal(0),
+      expect(Item.estimatedDocumentCount()).to.eventually.equal(0),
       // won't activate if there are no items
       expect(Item.activateNext()).to.be.rejected,
 
       Item.create({name: 'item1', imageUrl})
         .then(item => {
           return Promise.join(
-            expect(Item.count().exec()).to.eventually.equal(1),
-            expect(Pair.count().exec()).to.eventually.equal(0),
+            expect(Item.estimatedDocumentCount()).to.eventually.equal(1),
+            expect(Pair.estimatedDocumentCount()).to.eventually.equal(0),
             Item.activateNext()
           );
         })
         .then(() => {
           return Promise.join(
-            expect(Item.count().exec()).to.eventually.equal(1),
+            expect(Item.estimatedDocumentCount()).to.eventually.equal(1),
             // won't create pairs if this is the first activated item
-            expect(Pair.count().exec()).to.eventually.equal(0),
+            expect(Pair.estimatedDocumentCount()).to.eventually.equal(0),
             Item.create({name: 'item2', imageUrl})
           );
         })
         .then(() => {
           return Promise.join(
-            expect(Item.count().exec()).to.eventually.equal(2),
-            expect(Pair.count().exec()).to.eventually.equal(0),
+            expect(Item.estimatedDocumentCount()).to.eventually.equal(2),
+            expect(Pair.estimatedDocumentCount()).to.eventually.equal(0),
             Item.activateNext()
           );
         })
         .then(() => {
           return Promise.join(
-            expect(Item.count().exec()).to.eventually.equal(2),
-            expect(Pair.count().exec()).to.eventually.equal(1),
+            expect(Item.estimatedDocumentCount()).to.eventually.equal(2),
+            expect(Pair.estimatedDocumentCount()).to.eventually.equal(1),
             // won't activate if all items have been activated
             expect(Item.activateNext()).to.be.rejected
           );
         })
         .then(() => {
           return Promise.join(
-            expect(Item.count().exec()).to.eventually.equal(2),
-            expect(Pair.count().exec()).to.eventually.equal(1),
+            expect(Item.estimatedDocumentCount()).to.eventually.equal(2),
+            expect(Pair.estimatedDocumentCount()).to.eventually.equal(1),
             Item.create({name: 'item3', imageUrl})
           );
         })
         .then(() => {
           return Promise.join(
-            expect(Item.count().exec()).to.eventually.equal(3),
-            expect(Pair.count().exec()).to.eventually.equal(1),
+            expect(Item.estimatedDocumentCount()).to.eventually.equal(3),
+            expect(Pair.estimatedDocumentCount()).to.eventually.equal(1),
             Item.activateNext()
           );
         })
         .then(() => {
           return Promise.join(
-            expect(Item.count().exec()).to.eventually.equal(3),
-            expect(Pair.count().exec()).to.eventually.equal(3),
+            expect(Item.estimatedDocumentCount()).to.eventually.equal(3),
+            expect(Pair.estimatedDocumentCount()).to.eventually.equal(3),
           );
         })
     );

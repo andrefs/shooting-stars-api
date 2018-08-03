@@ -1,7 +1,7 @@
 module.exports = {
   version: '0.0.1',
   db: {
-    uri: 'mongodb://localhost/shooting-stars-test'
+    uri: 'mongodb://localhost:27017/shooting-stars-test'
   },
   server: {
     name: 'shooting-stars-api',

@@ -22,7 +22,7 @@ if(config.log.db){
 // Database connection
 
 const connect = () => {
-  mongoose.connect(mongo_uri);
+  mongoose.connect(mongo_uri, {useNewUrlParser: true});
   const conn = mongoose.connection;
 
   conn.on('error', (err) => {

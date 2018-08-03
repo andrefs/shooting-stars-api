@@ -76,7 +76,7 @@ GameSequenceSchema.statics.selectNew = function(playerID){
 
       return this.find()
         .where('_id').nin(player.playedSequences)
-        .count();
+        .countDocuments();
     })
     .then(availableSeqs => {
       if(availableSeqs === 0){

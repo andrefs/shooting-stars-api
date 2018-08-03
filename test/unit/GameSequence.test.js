@@ -63,7 +63,7 @@ describe('GameSequence', () => {
     const password  = 'password';
     let gs1;
 
-    expect(GameSequence.count()).to.eventually.equal(0);
+    expect(GameSequence.estimatedDocumentCount()).to.eventually.equal(0);
 
     return Promise.mapSeries([
         {name:  '1st item', imageUrl},
@@ -77,12 +77,12 @@ describe('GameSequence', () => {
       .then(user => GameSequence.selectNew(user._id))
       .then(gs => {
         gs1 = gs;
-        return expect(GameSequence.count()).to.eventually.equal(2);
+        return expect(GameSequence.estimatedDocumentCount()).to.eventually.equal(2);
       })
       .then(() => User.create({username: username2, password}))
       .then(user2 => GameSequence.selectNew(user2._id))
       .then(gs2 => expect(gs1._id.equals(gs2._id)).to.be.true)
-      .then(() => expect(GameSequence.count()).to.eventually.equal(2));
+      .then(() => expect(GameSequence.estimatedDocumentCount()).to.eventually.equal(2));
 
   });
 
@@ -93,7 +93,7 @@ describe('GameSequence', () => {
     const username = 'async_player';
     const password = 'password';
 
-    expect(GameSequence.count()).to.eventually.equal(0);
+    expect(GameSequence.estimatedDocumentCount()).to.eventually.equal(0);
     sinon.spy(GameSequence, 'generateNew');
 
     return Promise.mapSeries([
@@ -104,7 +104,7 @@ describe('GameSequence', () => {
       ], itemF => Item.create(itemF))
       .then(() => User.create({username, password}))
       .then(user => GameSequence.selectNew(user._id))
-      .then(gs => expect(GameSequence.count()).to.eventually.equal(1))
+      .then(gs => expect(GameSequence.estimatedDocumentCount()).to.eventually.equal(1))
       .then(gs => expect(GameSequence.generateNew).to.have.been.called);
   });
 
