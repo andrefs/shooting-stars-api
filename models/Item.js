@@ -4,7 +4,6 @@ import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import {reject}         from 'lodash';
 import MongooseSequence from 'mongoose-sequence';
-import Pair             from './Pair';
 import Promise  from 'bluebird';
 import {NoMoreItemsError}  from '../lib/errors';
 
@@ -48,19 +47,43 @@ ItemSchema.pre('save', function(next){
   return next();
 });
 
+const generateTriples = (doc, otherItems) => {
+  let triples = [];
+  if(otherItems.length < 2){ return []; }
+  for(let i=0; i<otherItems.length-1; i++){
+    for(let j=i+1; j<otherItems.length; j++){
+      triples.push({
+        itemA: doc,
+        itemB: otherItems[i],
+        itemC: otherItems[j]
+      });
+    }
+  }
+  return triples;
+};
+
 ItemSchema.statics.activateNext = function(){
+  let newItem;
+  let oldItems;
+
   return Promise.join(
     this.findOne({isActive: false}).sort('seqNum').exec(),
     this.find({isActive:true}).exec()
   )
-  .then(([newItem, oldItems]) => {
+  .then(([_newItem, _oldItems]) => {
+    newItem  = _newItem;
+    oldItems = _oldItems;
     if(!newItem){ return Promise.reject(new NoMoreItemsError()); }
-    const pairs = generatePairs(newItem, oldItems || []);
-    return Promise.join(
-      newItem.update({$set: {isActive:true}}),
-      Pair.create(pairs)
-    );
+    return newItem.update({$set: {isActive:true}});
   })
+  .then(() => {
+    const pairs   = generatePairs(newItem,   oldItems || []);
+    return require('./Pair').create(pairs);
+  })
+  .then(() => {
+    const triples = generateTriples(newItem, oldItems || []);
+    return require('./Triple').create(triples)
+  });
 };
 
 module.exports = mongoose.model('Item', ItemSchema);
