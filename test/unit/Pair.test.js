@@ -1,5 +1,7 @@
 import Item     from '../../models/Item';
 import Pair   from '../../models/Pair';
+import Triple from '../../models/Triple';
+import PairSorter from '../../lib/PairSorter';
 import sinon    from 'sinon';
 import chai from 'chai';
 import Promise  from 'bluebird';
@@ -16,8 +18,9 @@ describe('Pair', () => {
 
   beforeEach(() => {
     return Promise.join(
-      Item.remove().exec(),
-      Pair.remove().exec()
+      Item.remove(),
+      Pair.remove(),
+      Triple.remove()
     );
   });
 
@@ -59,70 +62,57 @@ describe('Pair', () => {
       });
   });
 
-  it('creates pairs when calling activateNext', () => {
+  it('._setOrder and ._removeOrder correctly set order and isOrdered', () => {
     const imageUrl = 'http://example.com';
 
-    return Promise.join(
-      expect(Pair.estimatedDocumentCount()).to.eventually.equal(0),
-      expect(Item.estimatedDocumentCount()).to.eventually.equal(0),
-      // won't activate if there are no items
-      expect(Item.activateNext()).to.be.rejected,
-
-      Item.create({name: 'item1', imageUrl})
-        .then(item => {
-          return Promise.join(
-            expect(Item.estimatedDocumentCount()).to.eventually.equal(1),
-            expect(Pair.estimatedDocumentCount()).to.eventually.equal(0),
-            Item.activateNext()
-          );
-        })
-        .then(() => {
-          return Promise.join(
-            expect(Item.estimatedDocumentCount()).to.eventually.equal(1),
-            // won't create pairs if this is the first activated item
-            expect(Pair.estimatedDocumentCount()).to.eventually.equal(0),
-            Item.create({name: 'item2', imageUrl})
-          );
-        })
-        .then(() => {
-          return Promise.join(
-            expect(Item.estimatedDocumentCount()).to.eventually.equal(2),
-            expect(Pair.estimatedDocumentCount()).to.eventually.equal(0),
-            Item.activateNext()
-          );
-        })
-        .then(() => {
-          return Promise.join(
-            expect(Item.estimatedDocumentCount()).to.eventually.equal(2),
-            expect(Pair.estimatedDocumentCount()).to.eventually.equal(1),
-            // won't activate if all items have been activated
-            expect(Item.activateNext()).to.be.rejected
-          );
-        })
-        .then(() => {
-          return Promise.join(
-            expect(Item.estimatedDocumentCount()).to.eventually.equal(2),
-            expect(Pair.estimatedDocumentCount()).to.eventually.equal(1),
-            Item.create({name: 'item3', imageUrl})
-          );
-        })
-        .then(() => {
-          return Promise.join(
-            expect(Item.estimatedDocumentCount()).to.eventually.equal(3),
-            expect(Pair.estimatedDocumentCount()).to.eventually.equal(1),
-            Item.activateNext()
-          );
-        })
-        .then(() => {
-          return Promise.join(
-            expect(Item.estimatedDocumentCount()).to.eventually.equal(3),
-            expect(Pair.estimatedDocumentCount()).to.eventually.equal(3),
-          );
-        })
-    );
+    return Promise.mapSeries([
+        {name: 'first item' , imageUrl},
+        {name: 'second item', imageUrl},
+      ], itemF => Item.create(itemF))
+      .then(() => Item.activateNext())
+      .then(() => Item.activateNext())
+      .then(() => Pair.findOne())
+      .then(p => {
+        expect(p.isOrdered).to.be.false;
+        expect(p.order).to.be.null;
+        return p._setOrder(5);
+      })
+      .then(p => {
+        expect(p.isOrdered).to.be.true;
+        expect(p.order).to.equal(5);
+        return p._removeOrder();
+      })
+      .then(p => {
+        expect(p.isOrdered).to.be.false;
+        expect(p.order).to.be.undefined;
+      });
   });
 
-  it('calls Item.activateNext when there are no unplayed pairs left', () => {
+  it('_insertPairs works correctly for one pair', () => {
+    const imageUrl = 'http://example.com';
+
+    const ps = new PairSorter();
+
+    return Promise.mapSeries([
+        {name: 'first item' , imageUrl},
+        {name: 'second item', imageUrl},
+      ], itemF => Item.create(itemF))
+      .then(() => Item.activateNext())
+      .then(() => Item.activateNext())
+      .then(() => Pair.findOne())
+      .then(p  => Pair._insertPairs([p], 0, ps))
+      .then(() => {
+        expect(ps.keys().length).to.equal(1);
+        expect(ps.getRelevantPairs().length).to.equal(0);
+        return Pair.findOne();
+      })
+      .then(p => {
+        expect(p.order).to.equal(1);
+        expect(p.isOrdered).to.be.true;
+      });
+  });
+
+  it.skip('calls Item.activateNext when there are no unplayed pairs left', () => {
     sinon.spy(Item, 'activateNext');
     const p = Pair.addNextCandidate();
     p.catch(() => expect(Item.activateNext).to.have.been.called);
@@ -130,7 +120,7 @@ describe('Pair', () => {
       .then(() => Item.activateNext.restore());
   });
 
-  it('won\'t call Item.activateNext if there are unplayed pairs left', () => {
+  it.skip('won\'t call Item.activateNext if there are unplayed pairs left', () => {
     const imageUrl = 'http://ww.example.com';
 
     return Promise.mapSeries([
@@ -147,7 +137,7 @@ describe('Pair', () => {
       .then(() => Item.activateNext.restore());
   });
 
-  it('marks a pair as candidate on addNextCandidate', () => {
+  it.skip('marks a pair as candidate on addNextCandidate', () => {
     const imageUrl = 'http://example.com';
     const itemFields = [
       {name: 'itemA', imageUrl},

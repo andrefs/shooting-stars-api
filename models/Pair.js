@@ -22,11 +22,14 @@ const PairSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Item'
   },
-  status: {
+  isOrdered: {
     required: true,
-    type: String,
-    default: 'unplayed',
-    enum: ['candidate', 'stable', 'unplayed']
+    type: Boolean,
+    default: false
+  },
+  order: {
+    type: Number,
+    default: null
   }
 });
 
@@ -59,34 +62,50 @@ PairSchema.methods.cmp = function(otherPair){
 };
 
 
-PairSchema.statics.addNextCandidate = function(){
-  return this.findOne({status: 'unplayed'}).sort('seqNum').exec()
-    .then(pair => {
-      if(!pair){
-        log.info(`  no more pairs, activating next item`);
-        return require('./Item').activateNext()
-          .then(() => this.addNextCandidate());
-      }
-      return this.findOneAndUpdate(
-        {seqNum: pair.seqNum},
-        {$set: {status: 'candidate'}}, {new: true}
-      );
+PairSchema.statics.rebuildOrder = function(){
+};
+
+
+PairSchema.statics._order = function(){
+  let ps = new PairSorter();
+
+  return Promise.join(
+    this.find({isOrdered:  true}).sort('order seqNum'),
+    this.find({isOrdered: false}).sort('seqNum')
+  )
+  .then(([ord, unord]) => this._insertPairs([...ord, ...unord], 0, ps))
+  .then(() => {
+    const relevantPairs = ps.getRelevantPairs()
+    return relevantPairs;
+  });
+};
+
+
+PairSchema.statics._insertPairs = function(pairs, order, ps){
+  if(pairs.length === 0){ return Promise.resolve(); }
+
+  const p = pairs.shift();
+  return ps.tryInsert(p)
+    .then(() => {
+      order++;
+      return p._setOrder(order);
     })
+    .catch(()   => p._removeOrder())
+    .finally(() => this._insertPairs(pairs, order, ps));
 };
 
-PairSchema.methods.markAsCandidate = function(){
-  return this.constructor.findOneAndUpdate(
-    {seqNum: this.seqNum},
-    {$set: {status: 'candidate'}}, {new: true}
-  );
+PairSchema.methods._setOrder = function(n){
+  this.order = n;
+  this.isOrdered = true;
+  return this.save();
 };
 
-PairSchema.methods.markAsStable = function(){
-  return this.constructor.findOneAndUpdate(
-    {seqNum: this.seqNum},
-    {$set: {status: 'stable'}}, {new: true}
-  );
+PairSchema.methods._removeOrder = function(){
+  this.order = undefined;
+  this.isOrdered = false;
+  return this.save();
 };
+
 
 PairSchema.index({itemA: 1, itemB: 1}, {unique: true});
 
