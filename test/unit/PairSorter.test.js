@@ -8,13 +8,13 @@ import chai from 'chai';
 import Promise  from 'bluebird';
 import chaiAsPromised from 'chai-as-promised';
 require('../mongoose-helper');
-import {MissingPairsRelationException} from '../../lib/errors';
+import {AmbiguousPairsRelationException,MissingPairsRelationException} from '../../lib/errors';
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
 
-describe('PairSorter', () => {
+describe.only('PairSorter', () => {
   const imageUrl = 'http://ww.example.com';
   let items;
   let pairs;
@@ -62,7 +62,7 @@ describe('PairSorter', () => {
         ]})
         .then(_p => {
           return ps.tryInsert(_p[0])
-            .then(() => expect(ps.tryInsert(_p[1])).to.be.eventually.rejectedWith(MissingPairsRelationException));
+            .then(() => expect(ps.tryInsert(_p[1])).to.be.eventually.rejectedWith(AmbiguousPairsRelationException));
         });
     });
   });
@@ -70,7 +70,7 @@ describe('PairSorter', () => {
   it('Correctly sorts directly related pairs when relation information exists', () => {
     let triple;
     const ps = new PairSorter();
-    return Triple.create({
+    return Triple.findOne({
         itemA: items[0],
         itemB: items[1],
         itemC: items[2]
@@ -99,12 +99,12 @@ describe('PairSorter', () => {
     let triples;
     let pairs;
 
-    return Triple.create([
+    return Triple.find({$or:[
       {itemA: items[0], itemB: items[1], itemC: items[2]},
       {itemA: items[0], itemB: items[1], itemC: items[3]},
       {itemA: items[0], itemB: items[2], itemC: items[3]},
       {itemA: items[1], itemB: items[2], itemC: items[3]}
-    ])
+    ]})
     .then(triples => Promise.mapSeries(triples, triple => triple.addPick('BC').save()))
     .then(_triples => {
       triples = _triples;
@@ -129,7 +129,7 @@ describe('PairSorter', () => {
     .then(() => expect(ps.keys()).to.deep.equal([pairs[0].seqNum, pairs[1].seqNum]));
   });
 
-  it('Marks pair as \'stable\' if able to insert it', () => {
+  it.skip('Marks pair as \'stable\' if able to insert it', () => {
     let pairs;
     let triple;
     const ps = new PairSorter();
@@ -156,7 +156,7 @@ describe('PairSorter', () => {
   });
 
 
-  it('Marks pair as \'candidate\' if unable to insert it', () => {
+  it.skip('Marks pair as \'candidate\' if unable to insert it', () => {
     let pairs;
     const ps = new PairSorter();
 
