@@ -14,7 +14,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 
 
-describe('PairSorter', () => {
+describe.only('PairSorter', () => {
   const imageUrl = 'http://ww.example.com';
   let items;
   let pairs;
@@ -118,7 +118,9 @@ describe('PairSorter', () => {
       return ps.tryInsert(pairs[0])
     })
     .then(() => ps.tryInsert(pairs[1]))
-    .then(() => expect(ps.keys()).to.deep.equal([pairs[1].seqNum, pairs[0].seqNum]))
+    .then(() => {
+      return expect(ps.keys()).to.deep.equal([pairs[1].seqNum, pairs[0].seqNum]);
+    })
     .then(() => Promise.mapSeries(triples, triple => triple.addPick('AB').save()))
     .then(_triples => Promise.mapSeries(triples, triple => triple.addPick('AB').save()))
     .then(() => {

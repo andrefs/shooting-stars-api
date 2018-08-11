@@ -11,7 +11,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 
 
-describe.only('Triple', () => {
+describe('Triple', () => {
   let user;
 
   beforeEach(() => {
