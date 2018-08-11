@@ -8,7 +8,6 @@ import {log}            from '../lib/logger';
 import User             from './User';
 import Triple           from './Triple';
 import PlayerMove       from './PlayerMove';
-import Item             from './Item';
 import shortid          from '../lib/shortid'; // TODO delete
 import Promise          from 'bluebird';
 import {NoCurrentTurn, TripleIdMismatchError}  from '../lib/errors';
@@ -86,7 +85,7 @@ GameInstanceSchema.statics.createNew = function(pId){
         player.save()
       );
     })
-    .then(([gi,p]) => gi.nextTurn());
+    .then(([gi]) => gi.nextTurn());
 };
 
 GameInstanceSchema.methods.setOpponentNames = function(){
