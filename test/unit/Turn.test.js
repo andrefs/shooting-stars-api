@@ -38,8 +38,11 @@ describe('Turn', () => {
           {name:  '2nd item', imageUrl},
           {name:  '3rd item', imageUrl},
         ], itemF => Item.create(itemF))
-        .then(() => Triple.generateNew(1))
-        .then(([triple]) => Turn.create({triple: triple._id}))
+        .then(() => Item.activateNext())
+        .then(() => Item.activateNext())
+        .then(() => Item.activateNext())
+        .then(() => Triple.findOne())
+        .then(triple => Turn.create({triple: triple._id}))
         .then(t => { turn = t; })
     );
   });
@@ -48,43 +51,43 @@ describe('Turn', () => {
   describe('correctly calculate the score', function(){
     it('when everyone agrees', function(){
       turn.moves = {
-        sync:  'AB',
-        async: 'AB',
-        bot:   'AB'
+        player: 'AB',
+        rand1:  'AB',
+        rand2:  'AB'
       };
       turn.setScores();
-      expect(turn.score.bot).to.equal(50);
-      expect(turn.score.sync).to.equal(50);
-      expect(turn.score.async).to.equal(50);
+      expect(turn.score.rand2).to.equal(50);
+      expect(turn.score.player).to.equal(50);
+      expect(turn.score.rand1).to.equal(50);
     });
 
     it('when two players agree', function(){
       turn.moves = {
-        sync:  'AC',
-        async: 'AB',
-        bot:   'AB'
+        player: 'AC',
+        rand1:  'AB',
+        rand2:  'AB'
       };
       turn.setScores();
-      expect(turn.score.sync).to.equal(0);
-      expect(turn.score.bot).to.equal(50);
-      expect(turn.score.async).to.equal(50);
+      expect(turn.score.player).to.equal(0);
+      expect(turn.score.rand2).to.equal(50);
+      expect(turn.score.rand1).to.equal(50);
     });
 
     it('when everyone disagrees', function(){
       turn.moves = {
-        sync:  'AB',
-        async: 'BC',
-        bot:   'AC'
+        player: 'AB',
+        rand1:  'BC',
+        rand2:  'AC'
       };
       turn.setScores();
-      expect(turn.score.bot).to.equal(0);
-      expect(turn.score.sync).to.equal(0);
-      expect(turn.score.async).to.equal(0);
+      expect(turn.score.rand2).to.equal(0);
+      expect(turn.score.player).to.equal(0);
+      expect(turn.score.rand1).to.equal(0);
     });
   });
 
 
-  describe('sets async player move', function(){
+  describe.skip('sets async player move', function(){
     const username = 'username';
     const password = 'password';
     let user;
