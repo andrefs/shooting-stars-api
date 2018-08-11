@@ -11,7 +11,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 
 
-describe('Triple', () => {
+describe.only('Triple', () => {
   let user;
 
   beforeEach(() => {
@@ -76,32 +76,7 @@ describe('Triple', () => {
       })
       .then(() => Item.activateNext())
       .then(() => Item.activateNext())
-      .then(() => Triple.create({itemA:items[0], itemB:items[1], itemC:items[2]}))
       .then(() => expect(Triple.create({itemA:items[0], itemB:items[1], itemC:items[2]})).to.be.rejected);
-  });
-
-  // TODO maybe remove
-  it('sets highestItemid correctly', () => {
-    const imageUrl = 'http://ww.example.com';
-
-    return Promise.mapSeries([
-        {name: 'first item' , imageUrl},
-        {name: 'second item', imageUrl},
-        {name: 'third item' , imageUrl}
-      ], itemF => Item.create(itemF))
-      .then(() => Item.activateNext())
-      .then(() => Item.activateNext())
-      .then(() => Item.activateNext())
-      .then(() => Item.find().sort([['seqNum', 'descending']]))
-      .then(items => Triple.create({
-        itemA: items[2],
-        itemB: items[1],
-        itemC: items[0],
-      }))
-      .then(doc => doc.populate({path: 'itemC', model: Item}).execPopulate())
-      .then(triple => {
-        expect(triple.highestItemId).to.equal(triple.itemC.seqNum);
-      });
   });
 
   it('getPairs returns correct pairs ordered', () => {
@@ -117,23 +92,27 @@ describe('Triple', () => {
       .then(() => Item.activateNext())
       .then(() => Item.activateNext())
       .then(() => Item.find().sort([['seqNum', 'descending']]))
-      .then(items => Triple.create({
+      .then(items => Triple.findOne({
         itemA: items[2],
         itemB: items[1],
         itemC: items[0],
-      }))
+      }).populate([
+        {path:'itemA', model: 'Item'},
+        {path:'itemB', model: 'Item'},
+        {path:'itemC', model: 'Item'},
+      ]))
       .then(t => {
         triple = t;
         return triple.getPairs();
       })
       .then(pairs => {
         expect(pairs.length).to.equal(3);
-        expect(pairs[0].itemA.id).to.equal(triple.itemA.id);
-        expect(pairs[0].itemB.id).to.equal(triple.itemB.id);
-        expect(pairs[1].itemA.id).to.equal(triple.itemA.id);
-        expect(pairs[1].itemB.id).to.equal(triple.itemC.id);
-        expect(pairs[2].itemA.id).to.equal(triple.itemB.id);
-        expect(pairs[2].itemB.id).to.equal(triple.itemC.id);
+        expect(pairs[0].itemA.seqNum).to.equal(triple.itemA.seqNum);
+        expect(pairs[0].itemB.seqNum).to.equal(triple.itemB.seqNum);
+        expect(pairs[1].itemA.seqNum).to.equal(triple.itemA.seqNum);
+        expect(pairs[1].itemB.seqNum).to.equal(triple.itemC.seqNum);
+        expect(pairs[2].itemA.seqNum).to.equal(triple.itemB.seqNum);
+        expect(pairs[2].itemB.seqNum).to.equal(triple.itemC.seqNum);
         expect(pairs[0].cmp(pairs[1])).to.equal(-1);
         expect(pairs[0].cmp(pairs[2])).to.equal(-1);
         expect(pairs[1].cmp(pairs[2])).to.equal(-1);
@@ -153,7 +132,7 @@ describe('Triple', () => {
       .then(() => Item.activateNext())
       .then(() => Item.activateNext())
       .then(() => Item.find().sort([['seqNum', 'descending']]))
-      .then(items => Triple.create({
+      .then(items => Triple.findOne({
         itemA: items[2],
         itemB: items[1],
         itemC: items[0],
@@ -177,71 +156,5 @@ describe('Triple', () => {
         expect(t.ambiguity).to.equal(2);
       });
   });
-
-  it('Triple.generateNew returns correct number of triples', () => {
-    const imageUrl = 'http://ww.example.com';
-
-    return Promise.mapSeries([
-        {name: 'first item' , imageUrl},
-        {name: 'second item', imageUrl},
-        {name: 'third item' , imageUrl},
-        {name: 'fourth item', imageUrl},
-        {name: 'fifth item' , imageUrl},
-        {name: 'sixth item' , imageUrl}
-      ], itemF => Item.create(itemF))
-      .then(() => Item.activateNext())
-      .then(() => Item.activateNext())
-      .then(() => Item.activateNext())
-      .then(() => Item.activateNext())
-      .then(() => Item.activateNext())
-      .then(() => Pair.addNextCandidate())
-      .then(() => Pair.addNextCandidate())
-      .then(() => Pair.addNextCandidate())
-      .then(() => Pair.addNextCandidate())
-      .then(() => Triple.generateNew(5))
-      .then(() => expect(Triple.find()).to.eventually.have.property('length', 5));
-  });
-
-
-  describe('Triple.generateNew', () => {
-
-    it('won\'t call Pair.addNextCandidate if not needed', () => {
-      const imageUrl = 'http://ww.example.com';
-
-      return Promise.mapSeries([
-          {name: 'first item' ,  imageUrl},
-          {name: 'second item',  imageUrl},
-          {name: 'third item' ,  imageUrl},
-        ], itemF => Item.create(itemF))
-        .then(() => Pair.addNextCandidate())
-        .then(() => Pair.addNextCandidate())
-        .then(() => {
-          const spy = sinon.spy(Pair, 'addNextCandidate');
-          spy.resetHistory();
-          return Triple.generateNew(1);
-        })
-        .then(() => expect(Pair.addNextCandidate).to.not.have.been.called)
-        .then(() => Pair.addNextCandidate.restore());
-    });
-
-    it('Triple.generateNew calls Pair.addNextCandidate() if there are no candidate pairs', () => {
-      const imageUrl = 'http://ww.example.com';
-
-      return Promise.mapSeries([
-          {name: 'first item' , imageUrl},
-          {name: 'second item', imageUrl},
-          {name: 'third item' , imageUrl},
-        ], itemF => Item.create(itemF))
-        .then(() => {
-          const spy = sinon.spy(Pair, 'addNextCandidate');
-          spy.resetHistory();
-          return Triple.generateNew(1);
-        })
-        .then(() =>  expect(Pair.addNextCandidate).to.have.been.called)
-        .then(() => expect(Triple.find()).to.eventually.have.property('length', 1))
-        .then(() => Pair.addNextCandidate.restore());
-    });
-  });
-
 
 });

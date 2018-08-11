@@ -19,7 +19,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 
 
-describe.only('GameInstance', () => {
+describe('GameInstance', () => {
   let player;
   let triple;
   let gameSeq;

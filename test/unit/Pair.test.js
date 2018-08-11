@@ -103,7 +103,6 @@ describe('Pair', () => {
       .then(p  => Pair._insertPairs([p], 0, ps))
       .then(() => {
         expect(ps.keys().length).to.equal(1);
-        expect(ps.getRelevantPairs().length).to.equal(0);
         return Pair.findOne();
       })
       .then(p => {
