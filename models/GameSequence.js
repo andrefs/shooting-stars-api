@@ -7,7 +7,6 @@ import createdModified  from 'mongoose-createdmodified';
 import {createHash}     from 'crypto';
 import {log}            from '../lib/logger';
 import MongooseSequence from 'mongoose-sequence';
-import {NoGameSequencesLeft}  from '../lib/errors';
 import config           from '../config';
 import max               from 'lodash/max';
 
