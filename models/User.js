@@ -28,12 +28,17 @@ const UserSchema = mongoose.Schema({
     type: String,
     required: false
   },
-  playedSequences: {
+  playedTriples: {
     type: [{
       type: mongoose.Schema.Types.ObjectId,
-      ref: GameSequence
+      ref: 'Triple'
     }],
     default: []
+  },
+  totalSeqsPlayed: {
+    type: Number,
+    default: 0,
+    required: true
   },
   currentGameInstance: {
     type: mongoose.Schema.Types.ObjectId,
@@ -81,7 +86,8 @@ UserSchema.methods.addToTotalScore = function(score){
 };
 
 UserSchema.methods.addPlayedSequence = function(seq){
-  this.playedSequences.push(seq);
+  this.playedTriples.push(...seq.triples);
+  this.totalSeqsPlayed++;
   return this.save();
 };
 

@@ -76,7 +76,9 @@ ItemSchema.statics.activateNext = function(){
     if(!newItem){ return Promise.reject(new NoMoreItemsError()); }
     return newItem.update({$set: {isActive:true}});
   })
-  .then(() => {
+  .then(() => this.findOne({_id: newItem._id}))
+  .then(_item => {
+    newItem = _item;
     const pairs   = generatePairs(newItem,   oldItems || []);
     return require('./Pair').create(pairs);
   })

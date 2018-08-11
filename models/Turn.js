@@ -8,16 +8,15 @@ import _                from 'lodash';
 import config           from '../config';
 
 const ScoreSchema = mongoose.Schema({
-  sync:  {type: Number, default: 0},
-  async: {type: Number, default: 0},
-  bot:   {type: Number, default: 0}
+  player: {type: Number, default: 0},
+  rand1:  {type: Number, default: 0},
+  rand2:  {type: Number, default: 0}
 });
 
-
 const MovesSchema = mongoose.Schema({
-  sync:  {type: String, enum: ['AB', 'BC', 'AC']},
-  async: {type: String, enum: ['AB', 'BC', 'AC']},
-  bot:   {type: String, enum: ['AB', 'BC', 'AC']}
+  player: {type: String, enum: ['AB', 'BC', 'AC']},
+  rand1:  {type: String, enum: ['AB', 'BC', 'AC']},
+  rand2:  {type: String, enum: ['AB', 'BC', 'AC']}
 });
 
 mongoose.plugin(pagPlugin);
@@ -40,44 +39,34 @@ const TurnSchema = mongoose.Schema({
   }
 }, {minimize:false});
 
-TurnSchema.methods.setMoves = function(players){
-  return this.setAsyncPlayerMove(players.async)
-    .then(() => {
-      this.setBotMove();
-      this.setScores();
-      return this.save();
-    });
-};
+TurnSchema.methods.setMoves = function(){
+  const cumProbs = [];
+  cumProbs[0] = this.triple.picks.AB;
+  cumProbs[1] = cumProbs[0] + this.triple.picks.AC;
+  cumProbs[2] = cumProbs[0] + cumProbs[1] + this.triple.picks.BC;
+  const totalProb = cumProbs[0] + cumProbs[1] + cumProbs[2];
 
-function generateBotMove(){
-  const picks = ['AB','BC','AC'];
-  return picks[Math.floor(Math.random()*picks.length)];
-};
+  const rand1 = Math.floor(Math.random()*Math.floor(totalProb));
+  const rand2 = Math.floor(Math.random()*Math.floor(totalProb));
 
+  if(cumProbs[0] > rand1){ this.moves.rand1 = 'AB'; }
+  if(cumProbs[1] > rand1){ this.moves.rand1 = 'AC'; }
+  else                   { this.moves.rand1 = 'BC'; }
 
-TurnSchema.methods.setAsyncPlayerMove = function(playerId){
-  if(!playerId){
-    this.moves.async = generateBotMove();
-    this.markModified('moves.async');
-    return Promise.resolve(this);
-  }
+  if(cumProbs[0] > rand2){ this.moves.rand2 = 'AB'; }
+  if(cumProbs[1] > rand2){ this.moves.rand2 = 'AC'; }
+  else                   { this.moves.rand2 = 'BC'; }
 
-  return PlayerMove.findOne({player: playerId, triple: this.triple})
-    .exec()
-    .then(pm => {
-      this.moves.async = pm.pick;
-      this.markModified('moves.async');
-    });
-};
+  this.markModified('moves.rand1');
+  this.markModified('moves.rand2');
 
-TurnSchema.methods.setBotMove = function(){
-  this.moves.bot = generateBotMove();
-  this.markModified('moves.bot');
+  this.setScores();
+  return this.save();
 };
 
 
 TurnSchema.methods.setScores = function(){
-  const picks = [this.moves.sync, this.moves.async, this.moves.bot];
+  const picks = [this.moves.player, this.moves.rand1, this.moves.rand2];
   let correctAnswer;
   if(picks[0] === picks[1] || picks[0] === picks[2]){
     correctAnswer = picks[0];
@@ -88,14 +77,14 @@ TurnSchema.methods.setScores = function(){
   }
 
   if(correctAnswer){
-    if(this.moves.sync === correctAnswer){
-      this.score.sync = config.game.scores.win || 10;
+    if(this.moves.player === correctAnswer){
+      this.score.player = config.game.scores.win || 10;
     }
-    if(this.moves.async === correctAnswer){
-      this.score.async = config.game.scores.win || 10;
+    if(this.moves.rand1 === correctAnswer){
+      this.score.rand1 = config.game.scores.win || 10;
     }
-    if(this.moves.bot === correctAnswer){
-      this.score.bot = config.game.scores.win || 10;
+    if(this.moves.rand2 === correctAnswer){
+      this.score.rand2 = config.game.scores.win || 10;
     }
   }
   this.markModified('score');

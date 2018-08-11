@@ -14,7 +14,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 
 
-describe.only('PairSorter', () => {
+describe('PairSorter', () => {
   const imageUrl = 'http://ww.example.com';
   let items;
   let pairs;

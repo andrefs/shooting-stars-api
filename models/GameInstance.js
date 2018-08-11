@@ -12,22 +12,21 @@ import Item             from './Item';
 import shortid          from '../lib/shortid'; // TODO delete
 import Promise          from 'bluebird';
 import {NoCurrentTurn, TripleIdMismatchError}  from '../lib/errors';
+import config from '../config';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
 mongoose.plugin(createdModified.createdModifiedPlugin, {index: true});
 
 const GameInstanceSchema = mongoose.Schema({
-  players: {
-    sync: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: User,
-      required: true
-    },
-    async: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: User
-    },
+  player: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: User,
+    required: true
+  },
+  opponentNames:{
+    rand1: {type: String},
+    rand2: {type: String}
   },
   gameSequence: {
     type: mongoose.Schema.Types.ObjectId,
@@ -49,15 +48,15 @@ const GameInstanceSchema = mongoose.Schema({
   },
   currentScore: {
     type: {
-      sync:  {type: Number, default: 0, required: true},
-      async: {type: Number, default: 0, required: true},
-      bot:   {type: Number, default: 0, required: true},
+      player: {type: Number, default: 0, required: true},
+      rand1:  {type: Number, default: 0, required: true},
+      rand2:  {type: Number, default: 0, required: true},
     },
     required: true,
     default: {
-      sync:  0,
-      async: 0,
-      bot:   0
+      player: 0,
+      rand1:  0,
+      rand2:  0
     }
   },
   isFinished: {
@@ -70,33 +69,35 @@ const GameInstanceSchema = mongoose.Schema({
 
 /** Creates a new game instance and adds a player and a new game sequence to it.
     Adds the created game instance to player.currentGameInstance.
-    @param {Player} syncId
+    @param {Player} pID
  */
-GameInstanceSchema.statics.createNew = function(syncId){
-  let gameInst = new this({players: {sync: syncId}});
+GameInstanceSchema.statics.createNew = function(pId){
+  let gameInst = new this({player: pId});
   return Promise.join(
-      User.findOne({_id: mongoose.Types.ObjectId(syncId)}).exec(),
-      GameSequence.selectNew(gameInst.players.sync)
+      User.findOne({_id: mongoose.Types.ObjectId(pId)}).exec(),
+      GameSequence.createNew(gameInst.player)
     )
     .then(([player, gs]) => {
       gameInst.gameSequence = gs;
       player.currentGameInstance = gameInst;
+      gameInst.setOpponentNames();
       return Promise.join(
         gameInst.save(),
         player.save()
       );
     })
-    .then(([gi, player]) => gi.selectAsyncPlayer())
-    .then(gi => gi.nextTurn());
+    .then(([gi,p]) => gi.nextTurn());
 };
+
+GameInstanceSchema.methods.setOpponentNames = function(){
+  this.opponentNames.rand1 = 'Alice';
+  this.opponentNames.rand2 = 'Alice';
+}
+
 
 GameInstanceSchema.methods.toSanitizedObject = function(){
   return this.populate([{
-      path: 'players.sync',
-      select: 'username',
-      model: 'User'
-    },{
-      path: 'players.async',
+      path: 'player',
       select: 'username',
       model: 'User'
     },{
@@ -132,28 +133,14 @@ GameInstanceSchema.methods.toSanitizedObject = function(){
       delete obj.turns.current.score;
       delete obj.turns.current.moves;
     }
-    if(obj.players.sync){
-      obj.players.sync = {
-        _id: obj.players.sync._id,
-        username: obj.players.sync.username
-      };
-    }
-    if(obj.players.async){
-      obj.players.async = {
-        _id: obj.players.async._id,
-        username: obj.players.async.username
+    if(obj.player){
+      obj.player = {
+        _id: obj.player._id,
+        username: obj.player.username
       };
     }
     return obj;
   });
-};
-
-GameInstanceSchema.methods.selectAsyncPlayer = function(){
-  return User.findOne().where('playedSequences').equals(this.gameSequence)
-    .then(user => {
-      this.players.async = user;
-      return this.save();
-    });
 };
 
 GameInstanceSchema.methods.nextTurn = function(){
@@ -185,9 +172,9 @@ GameInstanceSchema.methods.saveMoves = function(){
   let playerMoves = [];
   this.turns.previous.forEach(t => {
     playerMoves.push({
-      player: this.players.sync,
+      player: this.player,
       triple: t.triple,
-      pick: t.moves.sync
+      pick: t.moves.player
     });
   });
   return PlayerMove.create(playerMoves);
@@ -196,7 +183,7 @@ GameInstanceSchema.methods.saveMoves = function(){
 GameInstanceSchema.methods.wrapUp = function(){
   this.isFinished = true;
   return this.populate([{
-      path: 'players.sync',
+      path: 'player',
       model: User,
       populate: {
         path: 'playedSequences',
@@ -211,27 +198,33 @@ GameInstanceSchema.methods.wrapUp = function(){
       model: 'GameSequence',
     }])
     .execPopulate()
-    .then(() => this.players.sync.addPlayedSequence(this.gameSequence))
-    .then(() => this.players.sync.addToTotalScore(this.currentScore.sync))
+    .then(() => this.player.addPlayedSequence(this.gameSequence))
+    .then(() => this.player.addToTotalScore(this.currentScore.player))
     .then(() => this.saveMoves())
     .then(moves => Triple.updateTripleScores(moves))
-    .then(() => this.gameSequence.updateAmbiguity())
     .then(() => this.save());
 };
 
 GameInstanceSchema.methods.addMove = function(pick){
-  return this.populate({path:'turns.current', model:Turn}).execPopulate()
+  return this.populate({
+    path:'turns.current',
+    model:Turn,
+    populate: {
+      path: 'triple',
+      model: 'Triple'
+    }
+  }).execPopulate()
     .then(() => {
       if(!this.turns.current){
         // no current turn, game must be over
         return Promise.reject(new NoCurrentTurn());
       }
 
-      this.turns.current.moves.sync = pick;
-      this.turns.current.markModified('moves.sync');
-      return this.turns.current.setMoves(this.players);
+      this.turns.current.moves.player = pick;
+      this.turns.current.markModified('moves.player');
+      return this.turns.current.setMoves();
     })
-    .then(() => this.nextTurn())
+    .then(() =>  this.nextTurn())
     .then(() => this.setCurrentScore()) // current score is calculated over finished turns only
     ;
 };
@@ -243,7 +236,7 @@ GameInstanceSchema.methods.setCurrentScore = function(){
     })
     .execPopulate()
     .then(() => {
-      ['sync', 'async', 'bot'].forEach(p => {
+      ['player', 'rand1', 'rand2'].forEach(p => {
         this.currentScore[p] = this.turns.previous
           .map(t => t.score[p])
           .reduce((a,b) => a+b);

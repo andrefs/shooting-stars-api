@@ -4,7 +4,10 @@ import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import {createHash}     from 'crypto';
 import {log}            from '../lib/logger';
+import Promise          from 'bluebird';
 import MongooseSequence from 'mongoose-sequence';
+import Item from './Item';
+import config from '../config';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -63,21 +66,53 @@ PairSchema.methods.cmp = function(otherPair){
 
 
 PairSchema.statics.rebuildOrder = function(){
+// get lock
+  return Promise.join(
+    this.estimatedDocumentCount(),
+    this.countDocuments({isOrdered: true})
+  )
+  .then(([pairs, ord]) => {
+    if(pairs === ord){
+      return Item.activateNext()
+        .then(() => this._rebuildOrder());
+    }
+    return this._rebuildOrder();
+  })
+  // .then release lock;
+};
+
+PairSchema.statics._rebuildOrder = function(){
+  return Promise.join(
+    require('./User').findOne().sort('-totalSeqsPlayed').select('totalSeqsPlayed'),
+    require('./Triple').estimatedDocumentCount()
+  )
+  .then(([u, totalTriples]) => {
+    const triplesPlayed = u.totalSeqsPlayed * config.game.size;
+    if(totalTriples < triplesPlayed + config.game.size){
+      return Item.activateNext()
+        .then(() => this._rebuildOrder());
+    }
+    return this._order();
+  });
 };
 
 
 PairSchema.statics._order = function(){
+  const PairSorter = require('../lib/PairSorter').default;
   let ps = new PairSorter();
+  let tIds;
 
   return Promise.join(
     this.find({isOrdered:  true}).sort('order seqNum'),
     this.find({isOrdered: false}).sort('seqNum')
   )
   .then(([ord, unord]) => this._insertPairs([...ord, ...unord], 0, ps))
-  .then(() => {
-    const relevantPairs = ps.getRelevantPairs()
-    return relevantPairs;
-  });
+  .then(() => ps.getRelevantTriples())
+  .then(triples => {
+    tIds = triples.map(t => t._id);
+    return require('./Triple').update({}, {$set: {isRelevant: false}}, {multi:true});
+  })
+  .then(() => require('./Triple').update({_id: {$in: tIds}}, {$set:{isRelevant:true}}, {multi:true}));
 };
 
 

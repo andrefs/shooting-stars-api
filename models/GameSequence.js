@@ -1,5 +1,6 @@
 import mongoose         from 'mongoose';
 import Triple           from './Triple';
+import Pair             from './Pair';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
@@ -8,6 +9,7 @@ import {log}            from '../lib/logger';
 import MongooseSequence from 'mongoose-sequence';
 import {NoGameSequencesLeft}  from '../lib/errors';
 import config           from '../config';
+import max               from 'lodash/max';
 
 
 mongoose.plugin(pagPlugin);
@@ -29,11 +31,11 @@ const GameSequenceSchema = mongoose.Schema({
     type: String,
     required: true
   },
-  ambiguity: {
-    required: true,
-    default:0,
-    type: Number
-  }
+  //ambiguity: {
+  //  required: true,
+  //  default:0,
+  //  type: Number
+  //}
 });
 
 GameSequenceSchema.plugin(autoIncrement, {
@@ -60,77 +62,46 @@ GameSequenceSchema.post('save', function(doc, next){
   return doc.populate({path: 'triples', model: Triple}, next);
 });
 
-GameSequenceSchema.statics.selectNew = function(playerID){
-  const pID = mongoose.Types.ObjectId(playerID._id || playerID);
-  log.info('Selecting new game sequence for player', pID.toString());
+GameSequenceSchema.statics.createNew = function(playerId){
+  const pId = mongoose.Types.ObjectId(playerId._id || playerId);
+  log.info('Creating new game sequence for player', pId.toString());
   let player;
   let maxScore;
   let normScore;
 
   return require('./User').findOne()
-    .where({_id: pID}).select('playedSequences totalScore').lean().exec()
+    .where({_id: pId}).select('playedTriples totalScore').lean().exec()
     .then(_player => {
       player = _player;
-      maxScore = config.game.scores.win * config.game.size * player.playedSequences.length;
+      maxScore = config.game.scores.win
+        * config.game.size
+        * player.playedTriples.length;
       normScore = maxScore ? player.totalScore/maxScore : 0.5;
 
-      return this.find()
-        .where('_id').nin(player.playedSequences)
+      return Triple.find()
+        .where('_id').nin(player.playedTriples)
         .countDocuments();
     })
-    .then(availableSeqs => {
-      if(availableSeqs === 0){
-        log.info(`No sequence available for player ${pID}, generating new`);
-        return this.generateNew()
-          .then(gs => {
-            log.info(`Last sequence found for player ${pID}, generating new and returning the last one`);
-            this.generateNew();
-            return gs;
-          });
-      }
-      else if(availableSeqs === 1){
-        // TODO to optimize users experience, new sequence should
-        // probably generated if there's only one sequence left for
-        // this user
-        log.info(`Last sequence found for player ${pID}, generating new and returning the last one`);
-        this.generateNew();
-        return this.findOne()
-          .where('_id').nin(player.playedSequences)
-          .select('ambiguity triples')
-          .populate({path: 'triples', model: 'Triple'});
+    .then(availableTriples => {
+      // No triples unplayed by this player, need to generate more
+      if(availableTriples < config.game.size){
+        log.info(`No triples available for player ${pId}, generating new`);
+       return Pair.rebuildOrder()
+        .then(() => this.createNew(pId));
       }
 
-      const skip = Math.floor(availableSeqs * normScore);
+      let skip = Math.floor(availableTriples * normScore);
+      skip = skip-config.game.size/2;
+      skip = skip < 0 ? 0 : skip;
 
-      return this.find()
+      return Triple.find()
         .skip(skip)
-        .where('_id').nin(player.playedSequences)
-        .select('ambiguity triples')
-        .populate({path: 'triples', model: 'Triple'})
+        .where('_id').nin(player.playedTriples)
+        .select('ambiguity')
         .sort('ambiguity')
-        .limit(1)
-        .then(([gs]) => gs);
+        .limit(config.game.size)
+        .then((triples) => this.create({triples}));
      });
-};
-
-GameSequenceSchema.statics.generateNew = function(){
-  log.info('Will generate new sequence');
-  const self = this;
-  return Triple.generateNew(config.game.size)
-    .then(triples => self.create({triples}))
-    .then(gs => {
-      log.info('Finished generating new game sequence');
-      return gs;
-    });
-}
-
-GameSequenceSchema.methods.updateAmbiguity = function(){
-  const self = this;
-  return self.populate({path: 'triples', model: 'Triple'}).execPopulate()
-    .then(() => {
-      self.ambiguity = self.triples.reduce((prev, cur) => prev+cur.ambiguity, 0);
-      return self.save();
-    });
 };
 
 module.exports = mongoose.model('GameSequence', GameSequenceSchema);

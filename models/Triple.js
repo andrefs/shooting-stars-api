@@ -31,6 +31,11 @@ const TripleSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Item'
   },
+  isRelevant: {
+    required: true,
+    type: Boolean,
+    default: false
+  },
   support: {
     type: 'Number',
     default: 0,
