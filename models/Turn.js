@@ -40,22 +40,8 @@ const TurnSchema = mongoose.Schema({
 }, {minimize:false});
 
 TurnSchema.methods.setMoves = function(){
-  const cumProbs = [];
-  cumProbs[0] = this.triple.picks.AB;
-  cumProbs[1] = cumProbs[0] + this.triple.picks.AC;
-  cumProbs[2] = cumProbs[0] + cumProbs[1] + this.triple.picks.BC;
-  const totalProb = cumProbs[0] + cumProbs[1] + cumProbs[2];
-
-  const rand1 = Math.floor(Math.random()*Math.floor(totalProb));
-  const rand2 = Math.floor(Math.random()*Math.floor(totalProb));
-
-  if(cumProbs[0] > rand1){ this.moves.rand1 = 'AB'; }
-  if(cumProbs[1] > rand1){ this.moves.rand1 = 'AC'; }
-  else                   { this.moves.rand1 = 'BC'; }
-
-  if(cumProbs[0] > rand2){ this.moves.rand2 = 'AB'; }
-  if(cumProbs[1] > rand2){ this.moves.rand2 = 'AC'; }
-  else                   { this.moves.rand2 = 'BC'; }
+  this.moves.rand1 = this._generateWeightedRandomMove();
+  this.moves.rand2 = this._generateWeightedRandomMove();
 
   this.markModified('moves.rand1');
   this.markModified('moves.rand2');
@@ -63,6 +49,24 @@ TurnSchema.methods.setMoves = function(){
   this.setScores();
   return this.save();
 };
+
+TurnSchema.methods._generateWeightedRandomMove = function(){
+  const cumProbs = [];
+  cumProbs[0] = this.triple.picks.AB;
+  cumProbs[1] = cumProbs[0] + this.triple.picks.AC;
+  cumProbs[2] = cumProbs[0] + cumProbs[1] + this.triple.picks.BC;
+  const totalProb = cumProbs[0] + cumProbs[1] + cumProbs[2];
+
+  const rand = Math.floor(Math.random()*Math.floor(totalProb));
+
+  let equalProb = [];
+  if(cumProbs[0] >= rand){ equalProb.push('AB'); }
+  if(cumProbs[1] >= rand){ equalProb.push('AC'); }
+  if(cumProbs[2] >= rand){ equalProb.push('BC'); }
+
+  const moveRandPos = Math.floor(Math.random() * equalProb.length);
+  return equalProb[moveRandPos];
+}
 
 
 TurnSchema.methods.setScores = function(){
