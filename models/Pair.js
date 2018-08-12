@@ -83,12 +83,14 @@ PairSchema.statics.rebuildOrder = function(){
 
 PairSchema.statics._rebuildOrder = function(){
   return Promise.join(
-    require('./User').findOne().sort('-totalSeqsPlayed').select('totalSeqsPlayed'),
+    require('./User').findOne().sort('-totalGamesPlayed').select('totalGamesPlayed'),
     require('./Triple').estimatedDocumentCount()
   )
   .then(([u, totalTriples]) => {
-    const triplesPlayed = u.totalSeqsPlayed * config.game.size;
-    if(totalTriples < triplesPlayed + config.game.size){
+    // triples generated = triples played + current game instance
+    const tripGend = (u.totalGamesPlayed+1) * config.game.size;
+
+    if(totalTriples < triplesGenerated + config.game.size){
       return Item.activateNext()
         .then(() => this._rebuildOrder());
     }

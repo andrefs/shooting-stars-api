@@ -98,7 +98,6 @@ const create = () => {
   require('./routes/stats')(api, passport);
   require('./routes/users')(api, passport);
   require('./routes/gameInstances')(api);
-  require('./routes/gameSequences')(api);
   require('./routes/playerMoves')(api);
   require('./routes/turns')(api);
   require('./routes/items')(api);

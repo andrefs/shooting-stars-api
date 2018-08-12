@@ -82,6 +82,10 @@ GameInstanceSchema.statics.createNew = function(pId){
     })
     .then(triples => {
       gameInst.gameSequence = triples;
+      if(player.currentGameInstance){
+        player.pastGameInstances.push(player.currentGameInstance);
+        player.totalGamesPlayed++;
+      }
       player.currentGameInstance = gameInst;
       gameInst.setOpponentNames();
       return Promise.join(
@@ -100,16 +104,35 @@ GameInstanceSchema.methods._createNewGameSequence = function(){
   let normScore;
 
   return require('./User').findOne()
-    .where({_id: pId}).select('playedTriples totalScore').lean().exec()
+    .where({_id: pId})
+    .select('totalGamesPlayed totalScore pastGameInstances currentGameInstance')
+    .populate([{
+        path: 'currentGameInstance',
+        model: 'GameInstance',
+        select: 'gameSequence'
+      },{
+        path: 'pastGameInstances',
+        model: 'GameInstance',
+        select: 'gameSequence'
+     }])
+    .lean().exec()
     .then(_player => {
       player = _player;
       maxScore = config.game.scores.win
         * config.game.size
-        * player.playedTriples.length;
+        * player.totalGamesPlayed;
       normScore = maxScore ? player.totalScore/maxScore : 0.5;
 
+      const triples = [];
+      if(player.pastGameInstances && player.pastGameInstances.length){
+        player.pastGameInstances.forEach(gi => triples.push(...gi.gameSequence));
+      }
+      if(player.currentGameInstance){
+        triples.push(...player.currentGameInstance.gameSequence);
+      }
+
       return Triple.find()
-        .where('_id').nin(player.playedTriples)
+        .where('_id').nin(triples)
         .countDocuments();
     })
     .then(availableTriples => {
@@ -234,7 +257,6 @@ GameInstanceSchema.methods.wrapUp = function(){
       model: Triple
     }])
     .execPopulate()
-    //.then(() => this.player.addPlayedSequence(this.gameSequence))
     .then(() => this.player.addToTotalScore(this.currentScore.player))
     .then(() => this.saveMoves())
     .then(moves => Triple.updateTripleScores(moves))
