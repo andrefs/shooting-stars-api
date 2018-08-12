@@ -3,7 +3,6 @@ import mongoose         from 'mongoose';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
-import GameSequence     from './GameSequence';
 import Promise          from 'bluebird';
 
 mongoose.plugin(pagPlugin);

@@ -1,11 +1,11 @@
 import mongoose         from 'mongoose';
-import GameSequence     from './GameSequence';
 import Turn             from './Turn';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
 import {log}            from '../lib/logger';
 import User             from './User';
+import Pair             from './Pair';
 import Triple           from './Triple';
 import PlayerMove       from './PlayerMove';
 import shortid          from '../lib/shortid'; // TODO delete
@@ -27,11 +27,11 @@ const GameInstanceSchema = mongoose.Schema({
     rand1: {type: String},
     rand2: {type: String}
   },
-  gameSequence: {
+  gameSequence: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: GameSequence,
+    ref: Triple,
     required: true
-  },
+  }],
   turns: {
     previous: {
       type: [{
@@ -71,13 +71,17 @@ const GameInstanceSchema = mongoose.Schema({
     @param {Player} pID
  */
 GameInstanceSchema.statics.createNew = function(pId){
+  let player;
   let gameInst = new this({player: pId});
-  return Promise.join(
-      User.findOne({_id: mongoose.Types.ObjectId(pId)}).exec(),
-      GameSequence.createNew(gameInst.player)
-    )
-    .then(([player, gs]) => {
-      gameInst.gameSequence = gs;
+
+  return User.findOne({_id: mongoose.Types.ObjectId(pId)}).exec()
+    .then(u => {
+      player = u;
+      gameInst.player = u;
+      return gameInst._createNewGameSequence();
+    })
+    .then(triples => {
+      gameInst.gameSequence = triples;
       player.currentGameInstance = gameInst;
       gameInst.setOpponentNames();
       return Promise.join(
@@ -88,9 +92,51 @@ GameInstanceSchema.statics.createNew = function(pId){
     .then(([gi]) => gi.nextTurn());
 };
 
+GameInstanceSchema.methods._createNewGameSequence = function(){
+  const pId = mongoose.Types.ObjectId(this.player._id || this.player);
+  log.info('Creating new game sequence for player', pId.toString());
+  let player;
+  let maxScore;
+  let normScore;
+
+  return require('./User').findOne()
+    .where({_id: pId}).select('playedTriples totalScore').lean().exec()
+    .then(_player => {
+      player = _player;
+      maxScore = config.game.scores.win
+        * config.game.size
+        * player.playedTriples.length;
+      normScore = maxScore ? player.totalScore/maxScore : 0.5;
+
+      return Triple.find()
+        .where('_id').nin(player.playedTriples)
+        .countDocuments();
+    })
+    .then(availableTriples => {
+      // No triples unplayed by this player, need to generate more
+      if(availableTriples < config.game.size){
+        log.info(`No triples available for player ${pId}, generating new`);
+       return Pair.rebuildOrder()
+        .then(() => this._createNewGameSequence(pId));
+      }
+
+      let skip = Math.floor(availableTriples * normScore);
+      skip = skip-config.game.size/2;
+      skip = skip < 0 ? 0 : skip;
+
+      return Triple.find()
+        .skip(skip)
+        .where('_id').nin(player.playedTriples)
+        .select('ambiguity')
+        .sort('ambiguity')
+        .limit(config.game.size)
+     });
+};
+
+
 GameInstanceSchema.methods.setOpponentNames = function(){
   this.opponentNames.rand1 = 'Alice';
-  this.opponentNames.rand2 = 'Alice';
+  this.opponentNames.rand2 = 'Bob';
 }
 
 
@@ -149,21 +195,16 @@ GameInstanceSchema.methods.nextTurn = function(){
     this.turns.current = undefined;
   }
 
-  return GameSequence.findOne({_id: mongoose.Types.ObjectId(this.gameSequence)})
-    .populate({path: 'triples', model: Triple})
-    .exec()
-    .then(gs => {
-      if(this.turns.previous.length === gs.triples.length){
-        return this.wrapUp();
-      }
-      return Turn.create({
-        triple: gs.triples[totalTurns]
-      })
-      .then(turn => {
-        this.turns.current = turn;
-        return this.save();
-      });
-    });
+  if(this.turns.previous.length === this.gameSequence.length){
+    return this.wrapUp();
+  }
+  return Turn.create({
+    triple: this.gameSequence[totalTurns]
+  })
+  .then(turn => {
+    this.turns.current = turn;
+    return this.save();
+  });
 };
 
 GameInstanceSchema.methods.saveMoves = function(){
@@ -184,20 +225,16 @@ GameInstanceSchema.methods.wrapUp = function(){
   return this.populate([{
       path: 'player',
       model: User,
-      populate: {
-        path: 'playedSequences',
-        model: GameSequence
-      }
     },{
       path: 'turns.previous',
       model: Turn
     },
     {
       path: 'gameSequence',
-      model: 'GameSequence',
+      model: Triple
     }])
     .execPopulate()
-    .then(() => this.player.addPlayedSequence(this.gameSequence))
+    //.then(() => this.player.addPlayedSequence(this.gameSequence))
     .then(() => this.player.addToTotalScore(this.currentScore.player))
     .then(() => this.saveMoves())
     .then(moves => Triple.updateTripleScores(moves))

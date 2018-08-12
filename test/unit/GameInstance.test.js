@@ -3,7 +3,6 @@ import Item     from '../../models/Item';
 import Pair     from '../../models/Pair';
 import Turn     from '../../models/Turn';
 import Triple   from '../../models/Triple';
-import GameSequence   from '../../models/GameSequence';
 import GameInstance   from '../../models/GameInstance';
 import chai from 'chai';
 import sinon    from 'sinon';
@@ -22,7 +21,6 @@ const expect = chai.expect;
 describe('GameInstance', () => {
   let player;
   let triple;
-  let gameSeq;
   const imageUrl = 'http://ww.example.com';
 
   const handleErr = (err) => {
@@ -39,12 +37,10 @@ describe('GameInstance', () => {
     return Promise.join(
         Promise.promisify(Item.counterReset)('item_counter'),
         Promise.promisify(Pair.counterReset)('pair_counter'),
-        Promise.promisify(GameSequence.counterReset)('game_sequence_counter')
       )
       .then(() => {
         return Promise.join(
           GameInstance.remove().exec(),
-          GameSequence.remove().exec(),
           Item.remove().exec(),
           Pair.remove().exec(),
           Triple.remove().exec(),
@@ -65,11 +61,14 @@ describe('GameInstance', () => {
           {name:  '9th item', imageUrl},
         ], itemF => Item.create(itemF));
       })
+      .then(() => Item.activateNext())
+      .then(() => Item.activateNext())
+      .then(() => Item.activateNext())
+      .then(() => Item.activateNext())
+      .then(() => Item.activateNext())
+      .then(() => Item.activateNext())
       .then(() => User.create({username, password}))
       .then(p  => { player = p; })
-      .then(() =>  GameSequence.createNew(player._id))
-      .then(gs => { gameSeq = gs; })
-      .then(() =>  GameSequence.createNew(player._id))
       .then(() => Triple.findOne().exec())
       .then(t  => { triple = t; })
   });
@@ -77,12 +76,11 @@ describe('GameInstance', () => {
   describe('when created', () => {
     it('selects new game sequence', function(){
       return GameInstance.createNew(player._id)
-        .then(gi => expect(gi.gameSequence).to.not.be.undefined)
+        .then(gi => expect(gi.gameSequence).to.not.be.undefined);
     });
 
     it('throws if it can\'t select a game sequence', function(){
       return Promise.join(
-        GameSequence.remove().exec(),
         Item.remove().exec(),
         Pair.remove().exec(),
         Triple.remove().exec(),
@@ -100,7 +98,7 @@ describe('GameInstance', () => {
       const password = 'password';
       let async_player;
 
-      return User.create({username, password, playedSequences: [gameSeq._id]})
+      return User.create({username, password})
         then(user => {
           async_player = user;
           return GameInstance.createNew(player._id);
@@ -220,5 +218,211 @@ describe('GameInstance', () => {
           .then(gs => expect(gs.ambiguity).to.equal(gs.triples.reduce((total, cur) => total += cur.ambiguity, 0)));
       });
     });
+  });
+
+  describe('_createNewGameSequence', () => {
+
+    const imageUrl = 'http://ww.example.com';
+    const username  = 'player';
+    const password  = 'password';
+    let player;
+    let gameInst;
+
+
+    beforeEach(() => {
+      return Promise.mapSeries([
+          {name:  '1st item', imageUrl},
+          {name:  '2nd item', imageUrl},
+          {name:  '3rd item', imageUrl},
+          {name:  '4th item', imageUrl},
+          {name:  '5th item', imageUrl},
+          {name:  '6th item', imageUrl},
+          {name:  '7th item', imageUrl},
+          {name:  '8th item', imageUrl},
+          {name:  '9th item', imageUrl},
+        ], itemF => Item.create(itemF))
+        .then(() => User.create({username, password}))
+        .then(u => {
+          player = u;
+          return GameInstance.createNew(player._id);
+        })
+        .then(gi => {
+          gameInst = gi;
+        });
+    });
+
+    it('returns new GameSequence with correct number of triples', function() {
+      return gameInst._createNewGameSequence()
+        .then(triples => expect(triples.length).to.equal(config.game.size));
+    });
+
+    it('throws when there are not enough items', function() {
+      return Promise.join(
+        Item.remove(),
+        Pair.remove(),
+        Triple.remove()
+      )
+      .then(() => expect(gameInst._createNewGameSequence()).to.be.eventually.rejectedWith(NoMoreItemsError));
+    });
+
+    it.skip('selectnew selects existing sequence if available', () => {
+      const imageurl  = 'http://ww.example.com';
+      const username  = 'player';
+      const username2 = 'player2';
+      const password  = 'password';
+      let gs1;
+
+      expect(gamesequence.estimateddocumentcount()).to.eventually.equal(0);
+
+      return promise.mapseries([
+          {name:  '1st item', imageurl},
+          {name:  '2nd item', imageurl},
+          {name:  '3rd item', imageurl},
+          {name:  '4th item', imageurl},
+        ], itemf => item.create(itemf))
+        .then(() => gamesequence.generatenew())
+        .then(() => gamesequence.generatenew())
+        .then(() => user.create({username, password}))
+        .then(user => gamesequence.selectnew(user._id))
+        .then(gs => {
+          gs1 = gs;
+          return expect(gamesequence.estimateddocumentcount()).to.eventually.equal(2);
+        })
+        .then(() => user.create({username: username2, password}))
+        .then(user2 => gamesequence.selectnew(user2._id))
+        .then(gs2 => expect(gs1._id.equals(gs2._id)).to.be.true)
+        .then(() => expect(gamesequence.estimateddocumentcount()).to.eventually.equal(2));
+
+    });
+
+    // todo selectnew returns while still generating the second
+    // sequence, and this messes up following tests
+    it.skip('selectnew generates new sequence if there is none available', () => {
+      const imageurl = 'http://ww.example.com';
+      const username = 'async_player';
+      const password = 'password';
+
+      expect(gamesequence.estimateddocumentcount()).to.eventually.equal(0);
+      sinon.spy(gamesequence, 'generatenew');
+
+      return promise.mapseries([
+          {name: '1st item', imageurl},
+          {name: '2nd item', imageurl},
+          {name: '3rd item', imageurl},
+          {name: '4th item', imageurl},
+        ], itemf => item.create(itemf))
+        .then(() => user.create({username, password}))
+        .then(user => gamesequence.selectnew(user._id))
+        .then(gs => expect(gamesequence.estimateddocumentcount()).to.eventually.equal(1))
+        .then(gs => expect(gamesequence.generatenew).to.have.been.called);
+    });
+
+    it.skip('correctly calculates ambiguity', () => {
+      const imageurl = 'http://ww.example.com';
+      let gs;
+
+      return promise.mapseries([
+          {name: 'first item' , imageurl},
+          {name: 'second item', imageurl},
+          {name: 'third item' , imageurl},
+          {name: 'fourth item', imageurl}
+        ], itemf => item.create(itemf))
+        .then(() => gamesequence.generatenew())
+        .then(_gs => {
+          gs = _gs;
+          return promise.mapseries(gs.triples, t => t.addpick('ab').save())
+        })
+        .then(() => gamesequence.findone({seqnum: gs.seqnum}).populate({path: 'triples', model:'triple'}))
+        .then(gs => expect(gs.updateambiguity()).to.eventually.have.property('ambiguity', 2));
+    });
+
+    // todo
+    // it('sets fields on creation', function() {
+    //   this.timeout(15000);
+    //   const imageurl = 'http://ww.example.com';
+    //   let triple;
+
+    //   return promise.mapseries([
+    //       {name:  '1st item', imageurl},
+    //       {name:  '2nd item', imageurl},
+    //       {name:  '3rd item', imageurl},
+    //       {name:  '4th item', imageurl},
+    //       {name:  '5th item', imageurl},
+    //       {name:  '6th item', imageurl},
+    //       {name:  '7th item', imageurl},
+    //     ], itemf => item.create(itemf))
+    //     .then(() => {
+    //       return gamesequence.generate(3, 3, 5);
+    //     })
+    //     .then(([...gameseqs]) => {
+    //       gameseqs.foreach(gs => {
+    //         expect(gs.highestitemid).to.be.at.most(5);
+    //       });
+    //     })
+    //     ;
+    // });
+
+    it.skip('selects new game sequence based on player overall results', function() {
+      this.timeout(15000);
+      const imageurl = 'http://ww.example.com';
+      let triple;
+      let gamesequences;
+      let highamb;
+      let middleamb;
+      let lowamb;
+
+
+      return promise.mapseries([
+          {name:  '1st item', imageurl},
+          {name:  '2nd item', imageurl},
+          {name:  '3rd item', imageurl},
+          {name:  '4th item', imageurl},
+          {name:  '5th item', imageurl},
+          {name:  '6th item', imageurl},
+          {name:  '8th item', imageurl},
+          {name:  '9th item', imageurl},
+          {name: '10th item', imageurl},
+          {name: '11th item', imageurl},
+          {name: '12th item', imageurl},
+          {name: '13th item', imageurl},
+          {name: '14th item', imageurl},
+          {name: '15th item', imageurl},
+        ], itemf => item.create(itemf))
+        .then(() => gamesequence.generatenew())
+        .then(() => gamesequence.generatenew())
+        .then(() => gamesequence.generatenew())
+        .then(() => gamesequence.generatenew())
+        .then(() => gamesequence.generatenew())
+        .then(() => gamesequence.generatenew())
+        .then(() => gamesequence.find())
+        .then(([high, middle, low , ...gss]) => {
+          highamb = high;
+          middleamb = middle;
+          lowamb = low;
+          gamesequences = gss;
+
+          return promise.join(
+            user.create({
+              username: 'name',
+              totalscore:  (config.game.scores.win * config.game.size * gamesequences.length)/2,
+              playedsequences: gamesequences
+            }),
+            gamesequence.findoneandupdate(
+              {_id: highamb._id},
+              {$set: {ambiguity: 0}}
+            ),
+            gamesequence.findoneandupdate(
+              {_id: middleamb._id},
+              {$set: {ambiguity: 5}}
+            ),
+            gamesequence.findoneandupdate(
+              {_id: lowamb._id},
+              {$set: {ambiguity: 10}}
+            ));
+        })
+        .then(([u]) =>  gamesequence.selectnew(u))
+        .then(gs => expect(gs._id.equals(middleamb._id)).to.be.true);
+    });
+
   });
 });
