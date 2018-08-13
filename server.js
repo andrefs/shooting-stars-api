@@ -101,6 +101,7 @@ const create = () => {
   require('./routes/playerMoves')(api);
   require('./routes/turns')(api);
   require('./routes/items')(api);
+  require('./routes/pairs')(api);
   require('./routes/triples')(api);
 
   return api;

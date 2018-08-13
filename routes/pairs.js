@@ -1,0 +1,61 @@
+import Pair from '../models/Pair';
+import Item from '../models/Item';
+import errors from 'restify-errors';
+import {log}           from '../lib/logger';
+import mongoose from 'mongoose';
+import {InvalidObjectId} from '../lib/errors';
+
+module.exports = function(app){
+
+  app.get('/pairs', function(req, res, next){
+    let query = {};
+    let options = {
+      offset:  0,
+      limit : 10,
+      lean  : true,
+    };
+    if(req.params.includeItems){
+      options.populate = {path: 'itemA itemB', model: Item};
+    }
+    if(req.params.limit){
+      options.limit = parseInt(req.params.limit, 10);
+    }
+    if(req.params.orderedOnly){
+      options.sort = 'order';
+      query.isOrdered = true;
+    }
+
+    Pair.paginate(query, options)
+      .catch(err => {
+        log.error(err);
+        return next(new errors.InvalidContentError(err.errors.name.message));
+      })
+      .then(result => {
+        res.send(result);
+        return next();
+      });
+  });
+
+
+  app.get('/pairs/:id', function(req, res, next){
+    if(!mongoose.Types.ObjectId.isValid(req.params.id)){
+      return next(new InvalidObjectId(req.params.id));
+    }
+    const query = {
+      _id: mongoose.Types.ObjectId(req.params.id)
+    };
+    Pair.findOne(query).lean().exec()
+      .catch(err => {
+        log.error(err);
+        return next(new errors.InvalidContentError(err.errors.name.message));
+      })
+      .then(doc => {
+        if(!doc){
+          return res.send(404);
+        }
+        res.send(doc);
+        return next();
+      });
+  });
+
+};
