@@ -81,6 +81,7 @@ GameInstanceSchema.statics.createNew = function(pId){
       return gameInst._createNewGameSequence();
     })
     .then(triples => {
+      log.info(`New game sequence generated for player ${pId}`);
       gameInst.gameSequence = triples;
       if(player.currentGameInstance){
         player.pastGameInstances.push(player.currentGameInstance);
@@ -142,6 +143,8 @@ GameInstanceSchema.methods._createNewGameSequence = function(){
        return Pair.rebuildOrder()
         .then(() => this._createNewGameSequence(pId));
       }
+
+      log.info(`Found ${availableTriples} triples available for player ${pId} to play`);
 
       let skip = Math.floor(availableTriples * normScore);
       skip = skip-config.game.size/2;
@@ -282,8 +285,12 @@ GameInstanceSchema.methods.addMove = function(pick){
       this.turns.current.markModified('moves.player');
       return this.turns.current.setMoves();
     })
-    .then(() =>  this.nextTurn())
-    .then(() => this.setCurrentScore()) // current score is calculated over finished turns only
+    .then(() => {
+      return this.nextTurn();
+    })
+    .then(() => {
+      return this.setCurrentScore();
+    }) // current score is calculated over finished turns only
     ;
 };
 

@@ -3,7 +3,6 @@ const conn = db.connect();
 const Promise = require('bluebird');
 
 const Item = require('../models/Item');
-const GameSequence = require('../models/GameSequence')
 const User = require('../models/User');
 const GameInstance = require('../models/GameInstance')
 
@@ -17,19 +16,19 @@ const items = [ {imageUrl:"madonna.png" , name:"Madonna" }, {imageUrl:"gaga.png"
 
 Promise.mapSeries(items, item => Item.create(item))
 
-  .then(() => User.create({username: "user1@example.com", password: "pwd", playedSequences: [], birthYear: 1960, gender: 'M'}))
+  .then(() => User.create({username: "user1@example.com", password: "pwd", birthYear: 1960, gender: 'M'}))
   .then(user => GameInstance.createNew(user._id))
 
-  .then(() => User.create({username: "user2@example.com", password: "pwd", playedSequences: [], birthYear: 1972, gender: 'F'}))
+  .then(() => User.create({username: "user2@example.com", password: "pwd", birthYear: 1972, gender: 'F'}))
   .then(user => GameInstance.createNew(user._id))
 
-  .then(() => User.create({username: "user3@example.com", password: "pwd", playedSequences: []}))
+  .then(() => User.create({username: "user3@example.com", password: "pwd"}))
   .then(user => GameInstance.createNew(user._id))
 
-  .then(() => User.create({username: "user4@example.com", password: "pwd", playedSequences: [], birthYear: 1991}))
+  .then(() => User.create({username: "user4@example.com", password: "pwd", birthYear: 1991}))
   .then(user => GameInstance.createNew(user._id))
 
-  .then(() => User.create({username: "user5@example.com", password: "pwd", playedSequences: [], gender: 'F'}))
+  .then(() => User.create({username: "user5@example.com", password: "pwd", gender: 'F'}))
   .then(() => db.disconnect())
   ;
 

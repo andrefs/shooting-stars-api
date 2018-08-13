@@ -53,10 +53,10 @@ const items = exports.items = [
 ];
 
 const users = exports.users = [
-  {"_id" : id(), "username" : "user1@example.com", created: now, modified: now, playedSequences: [], birthYear: 1960, gender: 'M'},
-  {"_id" : id(), "username" : "user2@example.com", created: now, modified: now, playedSequences: [], birthYear: 1972, gender: 'F'},
-  {"_id" : id(), "username" : "user3@example.com", created: now, modified: now, playedSequences: []},
-  {"_id" : id(), "username" : "user4@example.com", created: now, modified: now, playedSequences: [], birthYear: 1991},
-  {"_id" : id(), "username" : "user5@example.com", created: now, modified: now, playedSequences: [], gender: 'F'}
+  {"_id" : id(), "username" : "user1@example.com", created: now, modified: now, birthYear: 1960, gender: 'M'},
+  {"_id" : id(), "username" : "user2@example.com", created: now, modified: now, birthYear: 1972, gender: 'F'},
+  {"_id" : id(), "username" : "user3@example.com", created: now, modified: now},
+  {"_id" : id(), "username" : "user4@example.com", created: now, modified: now, birthYear: 1991},
+  {"_id" : id(), "username" : "user5@example.com", created: now, modified: now, gender: 'F'}
 ];
 

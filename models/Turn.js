@@ -6,6 +6,7 @@ import Triple           from './Triple';
 import PlayerMove       from './PlayerMove';
 import _                from 'lodash';
 import config           from '../config';
+import randProb         from '../lib/randProb';
 
 const ScoreSchema = mongoose.Schema({
   player: {type: Number, default: 0},
@@ -40,8 +41,10 @@ const TurnSchema = mongoose.Schema({
 }, {minimize:false});
 
 TurnSchema.methods.setMoves = function(){
-  this.moves.rand1 = this._generateWeightedRandomMove();
-  this.moves.rand2 = this._generateWeightedRandomMove();
+  const m1 = this._generateWeightedRandomMove();
+  const m2 = this._generateWeightedRandomMove();
+  this.moves.rand1 = m1;
+  this.moves.rand2 = m2;
 
   this.markModified('moves.rand1');
   this.markModified('moves.rand2');
@@ -51,21 +54,16 @@ TurnSchema.methods.setMoves = function(){
 };
 
 TurnSchema.methods._generateWeightedRandomMove = function(){
-  const cumProbs = [];
-  cumProbs[0] = this.triple.picks.AB;
-  cumProbs[1] = cumProbs[0] + this.triple.picks.AC;
-  cumProbs[2] = cumProbs[0] + cumProbs[1] + this.triple.picks.BC;
-  const totalProb = cumProbs[0] + cumProbs[1] + cumProbs[2];
+  const picks = [
+    this.triple.picks.AB.count,
+    this.triple.picks.AC.count,
+    this.triple.picks.BC.count
+  ];
 
-  const rand = Math.floor(Math.random()*Math.floor(totalProb));
+  const randPos = randProb(picks);
 
-  let equalProb = [];
-  if(cumProbs[0] >= rand){ equalProb.push('AB'); }
-  if(cumProbs[1] >= rand){ equalProb.push('AC'); }
-  if(cumProbs[2] >= rand){ equalProb.push('BC'); }
-
-  const moveRandPos = Math.floor(Math.random() * equalProb.length);
-  return equalProb[moveRandPos];
+  const moves = ['AB', 'AC', 'BC'];
+  return moves[randPos];
 }
 
 

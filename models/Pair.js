@@ -88,9 +88,9 @@ PairSchema.statics._rebuildOrder = function(){
   )
   .then(([u, totalTriples]) => {
     // triples generated = triples played + current game instance
-    const tripGend = (u.totalGamesPlayed+1) * config.game.size;
+    const tripGend = ((u.totalGamesPlayed || 0)+1) * config.game.size;
 
-    if(totalTriples < triplesGenerated + config.game.size){
+    if(totalTriples < tripGend + config.game.size){
       return Item.activateNext()
         .then(() => this._rebuildOrder());
     }

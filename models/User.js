@@ -39,6 +39,11 @@ const UserSchema = mongoose.Schema({
     ref: 'GameInstance',
     required: false
   },
+  totalGamesPlayed: {
+    type: Number,
+    required: true,
+    default: 0
+  },
   totalScore : {
     type: Number,
     required: true,
@@ -91,7 +96,7 @@ UserSchema.statics.globalBestScores = function(n){
       return {
         username: u.username,
         score: u.totalScore,
-        games: u.playedSequences.length
+        games: u.totalGamesPlayed
       };
     });
   });
@@ -199,7 +204,7 @@ UserSchema.methods.playerNearestScores = function(n){
       return {
         username: u.username,
         score: u.totalScore,
-        games: u.playedSequences.length
+        games: u.totalGamesPlayed
       };
     });
   });
