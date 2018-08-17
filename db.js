@@ -1,5 +1,6 @@
 import config   from './config';
 import mongoose from 'mongoose';
+import Promise  from 'bluebird';
 import {log}    from './lib/logger';
 
 // Get correct URI
@@ -13,7 +14,7 @@ if(!mongo_uri && config && config.db && config.db.uri){
 
 // TODO compare with Bluebird
 // Set Promise library
-mongoose.Promise = global.Promise;
+mongoose.Promise = Promise;
 if(config.log.db){
   mongoose.set('debug', true);
 }
