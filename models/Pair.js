@@ -7,7 +7,9 @@ import {log}            from '../lib/logger';
 import Promise          from 'bluebird';
 import MongooseSequence from 'mongoose-sequence';
 import Item from './Item';
+import Lock from './Lock';
 import config from '../config';
+
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
@@ -66,19 +68,24 @@ PairSchema.methods.cmp = function(otherPair){
 
 
 PairSchema.statics.rebuildOrder = function(){
-// get lock
-  return Promise.join(
-    this.estimatedDocumentCount(),
-    this.countDocuments({isOrdered: true})
-  )
-  .then(([pairs, ord]) => {
-    if(pairs === ord){
-      return Item.activateNext()
-        .then(() => this._rebuildOrder());
-    }
-    return this._rebuildOrder();
-  })
-  // .then release lock;
+  let lock;
+
+  return Lock.acquire('pairOrder', 'rabelz')
+    .then(_l => {
+      lock = _l;
+      return Promise.join(
+        this.estimatedDocumentCount(),
+        this.countDocuments({isOrdered: true})
+      );
+    })
+    .then(([pairs, ord]) => {
+      if(pairs === ord){
+        return Item.activateNext()
+          .then(() => this._rebuildOrder());
+      }
+      return this._rebuildOrder();
+    })
+    .finally(() => lock.release());
 };
 
 PairSchema.statics._rebuildOrder = function(){
