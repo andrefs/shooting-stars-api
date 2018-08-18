@@ -5,6 +5,8 @@ const config   = require('./config');
 const server   = require('./server');        // loads server transpiling with babel
 const db       = require('./db');
 const passport = require('./lib/passport').default;
+const Promise  = require('bluebird');
+const serverShutdown = Promise.promisify(server.shutdown);
 
 /**
  * Lift Server and connect to DB
@@ -26,3 +28,40 @@ api.listen(config.server.port, function() {
 	});
 });
 
+
+// this function is called when you want the server to die gracefully
+// i.e. wait for existing connections
+const gracefulShutdown = function() {
+  log.warn("Received kill signal, shutting down gracefully.");
+  return serverShutdown()
+    .then(() => db.disconnect())
+    .then(() => {
+      log.warn("Closed out remaining connections.");
+
+      process.exit();
+
+      // if after
+      setTimeout(function() {
+         log.warn("Could not close connections in time, forcefully shutting down");
+         process.exit();
+      }, 10*1000);
+    });
+}
+
+let shuttingDown = false;
+
+// listen for TERM signal .e.g. kill
+process.on ('SIGTERM', () => {
+  if(!shuttingDown){
+    shuttingDown = true;
+    return gracefulShutdown();
+  }
+});
+
+// listen for INT signal e.g. Ctrl-C
+process.on ('SIGINT', () => {
+  if(!shuttingDown){
+    shuttingDown = true;
+    return gracefulShutdown();
+  }
+});

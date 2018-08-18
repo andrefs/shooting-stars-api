@@ -103,12 +103,13 @@ const create = () => {
   require('./routes/items')(api);
   require('./routes/pairs')(api);
   require('./routes/triples')(api);
+  require('./routes/admin')(api);
 
   return api;
 };
 
-const shutdown = () => {
-  api.close();
+const shutdown = callback => {
+  api.close(callback);
 };
 
 

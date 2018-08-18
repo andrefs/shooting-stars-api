@@ -41,6 +41,11 @@ LockSchema.methods.release = function(){
     });
 };
 
+LockSchema.statics.releaseAllFromClient = function(clientId){
+  log.warn(`Releasing all locks from client ${clientId}`);
+  return this.deleteMany({clientId});
+};
+
 function timeoutPromise(delay) {
   return new Promise((resolve) => {
     setTimeout(() => {

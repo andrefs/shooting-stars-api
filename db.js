@@ -2,6 +2,7 @@ import config   from './config';
 import mongoose from 'mongoose';
 import Promise  from 'bluebird';
 import {log}    from './lib/logger';
+import Lock     from './models/Lock';
 
 // Get correct URI
 let mongo_uri = process.env.MONGO_URI;
@@ -34,7 +35,13 @@ const connect = () => {
 };
 
 const disconnect = () => {
-  return mongoose.disconnect();
+  // cleanup
+  return Lock.releaseAllFromClient(process.pid)
+    .then(() => {
+      log.warn('Disconnecting from MongoDB');
+      mongoose.disconnect();
+    });
 };
+
 
 export {mongoose, connect, disconnect};

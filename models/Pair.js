@@ -69,9 +69,16 @@ PairSchema.methods.cmp = function(otherPair){
 
 PairSchema.statics.rebuildOrder = function(){
   let lock;
+  let lockStart;
+  let rebuildStart;
+  let lockWait;
+  let rebuildTime;
 
-  return Lock.acquire('pairOrder', 'rabelz')
+  lockStart = process.hrtime();
+  return Lock.acquire('pairOrder', process.pid)
     .then(_l => {
+      lockWait = process.hrtime(lockStart);
+      rebuildStart = process.hrtime();
       lock = _l;
       return Promise.join(
         this.estimatedDocumentCount(),
@@ -85,6 +92,23 @@ PairSchema.statics.rebuildOrder = function(){
       }
       return this._rebuildOrder();
     })
+    .then(res => {
+      rebuildTime = process.hrtime(rebuildStart);
+      return Promise.join(
+        require('./Triple').countDocuments({isRelevant: true}),
+        this.countDocuments({isOrdered: true})
+      );
+    })
+    .then(([triples, pairs]) => {
+      log.warn(`Pairs order rebuilt, waited ${lockWait}s for the lock and took ${rebuildTime}s to produce ${triples} relevant triples and ${pairs} ordered pairs`);
+      return Promise.resolve({
+        rebuildTime,
+        lockWait,
+        relevantTriples: triples,
+        orderedPairs: pairs
+      });
+    })
+    .catch(err => console.log('XXXXXXXXXXXXXXXXXXX ERR', err))
     .finally(() => lock.release());
 };
 
