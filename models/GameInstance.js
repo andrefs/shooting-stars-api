@@ -99,7 +99,7 @@ GameInstanceSchema.statics.createNew = function(pId){
 
 GameInstanceSchema.methods._createNewGameSequence = function(){
   const pId = mongoose.Types.ObjectId(this.player._id || this.player);
-  log.info('Creating new game sequence for player', pId.toString());
+  log.info('Creating new game sequence for player '+pId.toString());
   let player;
   let maxScore;
   let normScore;

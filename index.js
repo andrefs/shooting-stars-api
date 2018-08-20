@@ -17,7 +17,7 @@ api.listen(config.server.port, function() {
   const conn = db.connect();
 
   conn.on('error', (err) => {
-     log.error("Database error:", err);
+     log.error("Database error: "+ err);
   });
   conn.once('open', (err) => {
     log.info(`Connection to ${config.db.uri}`);
