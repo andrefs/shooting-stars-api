@@ -108,7 +108,6 @@ PairSchema.statics.rebuildOrder = function(){
         orderedPairs: pairs
       });
     })
-    .catch(err => log.error('XXXXXXXXXXXXXXXXXXX ERR', err))
     .finally(() => lock.release());
 };
 
