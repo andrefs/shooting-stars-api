@@ -10,7 +10,7 @@ if(!mongo_uri && config && config.db && config.db.uri){
     mongo_uri = config.db.uri;
 } else {
     mongo_uri = 'mongodb://localhost/shooting-stars_noconfig';
-    log.info(`MongoDB URI not set, using hardcoded default: ${mongo_uri} ...`);
+    log.warn(`MongoDB URI not set, using hardcoded default: ${mongo_uri} ...`);
 }
 
 // TODO compare with Bluebird
@@ -38,7 +38,7 @@ const disconnect = () => {
   // cleanup
   return Lock.releaseAllFromClient(process.pid)
     .then(() => {
-      log.warn('Disconnecting from MongoDB');
+      log.info('Disconnecting from MongoDB');
       mongoose.disconnect();
     });
 };

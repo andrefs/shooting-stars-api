@@ -100,7 +100,7 @@ PairSchema.statics.rebuildOrder = function(){
       );
     })
     .then(([triples, pairs]) => {
-      log.warn(`Pairs order rebuilt, waited ${lockWait}s for the lock and took ${rebuildTime}s to produce ${triples} relevant triples and ${pairs} ordered pairs`);
+      log.info(`Pairs order rebuilt, waited ${lockWait}s for the lock and took ${rebuildTime}s to produce ${triples} relevant triples and ${pairs} ordered pairs`);
       return Promise.resolve({
         rebuildTime,
         lockWait,
@@ -108,7 +108,7 @@ PairSchema.statics.rebuildOrder = function(){
         orderedPairs: pairs
       });
     })
-    .catch(err => console.log('XXXXXXXXXXXXXXXXXXX ERR', err))
+    .catch(err => log.error('XXXXXXXXXXXXXXXXXXX ERR', err))
     .finally(() => lock.release());
 };
 

@@ -32,11 +32,11 @@ api.listen(config.server.port, function() {
 // this function is called when you want the server to die gracefully
 // i.e. wait for existing connections
 const gracefulShutdown = function() {
-  log.warn("Received kill signal, shutting down gracefully.");
+  log.info("Received kill signal, shutting down gracefully.");
   return serverShutdown()
     .then(() => db.disconnect())
     .then(() => {
-      log.warn("Closed out remaining connections.");
+      log.info("Closed out remaining connections.");
 
       process.exit();
 

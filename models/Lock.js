@@ -42,7 +42,7 @@ LockSchema.methods.release = function(){
 };
 
 LockSchema.statics.releaseAllFromClient = function(clientId){
-  log.warn(`Releasing all locks from client ${clientId}`);
+  log.info(`Releasing all locks from client ${clientId}`);
   return this.deleteMany({clientId});
 };
 
