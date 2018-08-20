@@ -17,15 +17,18 @@ const LockSchema = mongoose.Schema({
 
 
 LockSchema.statics.acquire = function(lockId, clientId, options = {}){
-  return this.findOne({name: lockId})
+  return this.findOneAndUpdate(
+      {name: lockId},
+      {$setOnInsert: {clientId}},
+      {new: true, upsert: true}
+    )
     .then(lock => {
-      if(!lock){
-        log.verbose(`Client ${clientId} acquiring lock ${lockId}`);
-        return this.create({name: lockId, clientId});
+      if(lock.clientId !== clientId.toString()){
+        log.verbose(`Client ${clientId} could not acquire lock ${lockId}, will retry...`);
+        return timeoutPromise(options.timeout || 5000)
+          .then(() => this.acquire(lockId, clientId, options));
       }
-      log.verbose(`Client ${clientId} could not acquire lock ${lockId}, will retry...`);
-      return timeoutPromise(options.timeout || 5000)
-        .then(() => this.acquire(lockId, clientId, options));
+      return Promise.resolve(lock);
     });
 };
 
