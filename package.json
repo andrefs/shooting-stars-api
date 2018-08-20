@@ -11,7 +11,8 @@
     "test-unit": "NODE_ENV=test nyc -n models/**/*.js mocha --require babel-register test/unit/*.test.js",
     "test-integration": "NODE_ENV=test nyc -n routes/**/*.js mocha --require babel-register test/integration/*.test.js",
     "test:watch": "nodemon --watch lib --watch models --watch routes --watch test --exec 'npm test'",
-    "order:cron": "pm2 start --interpreter babel-node scripts/rebuild-order.js --cron \"* * * * *\"",
+    "prod:cron": "pm2 start --interpreter babel-node scripts/rebuild-order.js --cron \"* * * * *\"",
+    "prod:cluster": "pm2 start index.js -i -1",
     "lint": "eslint **/*.js || exit 0"
   },
   "babel": {

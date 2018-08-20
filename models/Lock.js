@@ -12,33 +12,44 @@ const LockSchema = mongoose.Schema({
   clientId: {
     type: String,
     required: true
+  },
+  execId: {
+    type: String,
+    required: true
   }
 });
 
 
 LockSchema.statics.acquire = function(lockId, clientId, options = {}){
+  const execId = 0+Date.now();
+
   return this.findOneAndUpdate(
       {name: lockId},
-      {$setOnInsert: {clientId}},
+      {$setOnInsert: {clientId, execId}},
       {new: true, upsert: true}
     )
     .then(lock => {
-      if(lock.clientId !== clientId.toString()){
-        log.verbose(`Client ${clientId} could not acquire lock ${lockId}, will retry...`);
-        return timeoutPromise(options.timeout || 5000)
-          .then(() => this.acquire(lockId, clientId, options));
+      if(lock.clientId === clientId.toString() && lock.execId === execId.toString()){
+        log.verbose(`Client ${clientId} acquired lock ${lockId} with execId ${execId}`);
+        return Promise.resolve(lock);
       }
-      return Promise.resolve(lock);
+      log.verbose(`Client ${clientId} could not acquire lock ${lockId}, will retry...`);
+      return timeoutPromise(options.timeout || 5000)
+        .then(() => this.acquire(lockId, clientId, options));
     });
 };
 
 LockSchema.methods.release = function(){
-  return this.constructor.deleteOne({name: this.name, clientId: this.clientId})
+  return this.constructor.deleteOne({
+      name: this.name,
+      clientId: this.clientId,
+      execId: this.execId
+    })
     .then(res => {
       if(res.n === 1){
-        log.verbose(`Client ${this.clientId} released lock ${this.name}`);
+        log.verbose(`Client ${this.clientId} released lock ${this.name} with execId ${this.execId}`);
         return Promise.resolve();
-        }
+      }
       if(res.n === 0){ throw new LockNotOwnedException(); }
       return Promise.reject(res.ok);
     });
