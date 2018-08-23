@@ -9,7 +9,7 @@ module.exports = {
     host: 'localhost'
   },
   auth: {
-    disabled: true,
+    disabled: false,
     jwt: {
       secret: 'Edit this string and keep it secret'
     }

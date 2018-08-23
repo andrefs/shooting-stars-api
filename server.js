@@ -32,7 +32,7 @@ const create = () => {
   const cors = corsMiddleware({
     preflightMaxAge: 5,
     origins: ['*'],
-    allowHeaders: ['API-Token'],
+    allowHeaders: ['API-Token','Authorization'],
     exposeHeaders: ['API-Token-Expiry']
   });
 
@@ -60,8 +60,19 @@ const create = () => {
   /**
    * Prevent access to unauthorized paths
    */
-  var unauthPaths = ['/status','/login','/auth/register'];
-  api.use(jwt({secret: config.auth.jwt.secret, requestProperty: 'auth'})
+  var unauthPaths = ['/status','/auth/login','/auth/register'];
+  api.use(jwt({
+      secret: config.auth.jwt.secret,
+      requestProperty: 'auth',
+      getToken: function fromHeaderOrQuerystring (req) {
+        if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+            return req.headers.authorization.split(' ')[1];
+        } else if (req.query && req.query.token) {
+          return req.query.token;
+        }
+        return null;
+      }
+    })
     .unless(req => {
       if(config.auth.disabled){ return true; }
       const pathname = url.parse(req.url).pathname;

@@ -24,28 +24,54 @@ module.exports = function(app, passport){
       });
   });
 
+  app.get('/user', function(req, res, next){
+    return User.findOne({'_id': mongoose.Types.ObjectId(req.auth.sub)})
+      .lean()
+      .then(user => {
+        return GameInstance.findOne({'_id': user.currentGameInstance})
+      })
+      .catch(err => {
+        log.error(err);
+        return next(new errors.InvalidContentError(err.errors.name.message));
+      })
+      .then(user => {
+        if(!user){
+          res.send(404);
+          return;
+        }
+        res.send(user);
+        return next();
+      });
+  });
+
+
   app.post('/auth/register', function(req, res, next){
     return User.findOne({'username':req.body.username}).lean().exec()
       .then(user => {
         // Check if user already exists
         if(user){ res.send(400, {error:'User already exists'}); }
 
+        // TODO validate username & password length etc
+
         // Create new user
-        return User.create({username: req.body.username});
+        return User.create({
+          username: req.body.username,
+          password: req.body.password
+        });
       })
       .then(user => {
         let token = getJwt(req.body.username, config.auth.jwt.secret);
         res.send(201,{
           token,
           user: {
-            _id: user['_id'],
+            _id: user['_id'], // TODO should we really send the _id?
             username: user.username
           }
         });
       });
   });
 
-  app.post('/login',
+  app.post('/auth/login',
     passport.authenticate('local-login', {session:false}),
     function(req, res){
       let token = getJwt(req.user, config.auth.jwt.secret);
@@ -53,7 +79,7 @@ module.exports = function(app, passport){
       res.send({
         token: token,
         user: {
-          _id: req.user['_id'],
+          _id: req.user['_id'], // TODO should we really send the _id?
           username: req.user.username
         }
       });
