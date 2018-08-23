@@ -4,7 +4,7 @@ import mongoose       from 'mongoose';
 import {log, stream}  from './lib/logger';
 import bunyanWinston  from 'bunyan-winston-adapter';
 import passport       from './lib/passport';
-import jwt            from 'restify-jwt';
+import jwt            from 'restify-jwt-community';
 import url            from 'url';
 import morgan         from 'morgan';
 import uuid           from 'uuid';
