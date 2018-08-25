@@ -1,5 +1,7 @@
+const pjson    = require('../package.json')
+
 module.exports = {
-  version: '0.0.1',
+  version: pjson.version,
   db: {
     uri: 'mongodb://localhost:27017/shooting-stars-dev'
   },
