@@ -60,7 +60,12 @@ const create = () => {
   /**
    * Prevent access to unauthorized paths
    */
-  var unauthPaths = ['/status','/auth/login','/auth/register'];
+  var unauthPaths = [
+    '/status',
+    '/auth/login',
+    '/auth/register',
+    '/auth/registerGuest'
+  ];
   api.use(jwt({
       secret: config.auth.jwt.secret,
       requestProperty: 'auth',

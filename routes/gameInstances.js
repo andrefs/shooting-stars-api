@@ -6,12 +6,16 @@ import {log}           from '../lib/logger';
 import mongoose        from 'mongoose';
 import {InvalidObjectId, UnfinishedGameInstance, NoCurrentGame} from '../lib/errors';
 import User            from '../models/User';
+import Promise         from 'bluebird';
 
 module.exports = function(app){
 
-  app.get('/gameInstances/current', function(req, res, next){
+ app.get('/gameInstances/current', function(req, res, next){
     return User.findOne({'_id': mongoose.Types.ObjectId(req.auth.sub)})
       .then(user => {
+        if(!user.currentGameInstance){
+          return Promise.resolve();
+        }
         return GameInstance.findOne({'_id': user.currentGameInstance})
       })
       .catch(err => {

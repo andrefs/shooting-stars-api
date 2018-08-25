@@ -60,7 +60,24 @@ module.exports = function(app, passport){
         });
       })
       .then(user => {
-        let token = getJwt(req.body.username, config.auth.jwt.secret);
+        let token = getJwt(user._id, config.auth.jwt.secret);
+        res.send(201,{
+          token,
+          user: {
+            _id: user['_id'], // TODO should we really send the _id?
+            username: user.username
+          }
+        });
+      });
+  });
+
+  app.post('/auth/registerGuest', function(req, res, next){
+    return User.estimatedDocumentCount()
+      .then(userCount => User.create({
+        username: 'guest'+(userCount+1)
+      }))
+      .then(user => {
+        let token = getJwt(user._id, config.auth.jwt.secret);
         res.send(201,{
           token,
           user: {
