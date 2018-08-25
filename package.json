@@ -1,6 +1,6 @@
 {
   "name": "shooting-stars-api",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "API for the Shooting Stars game",
   "main": "index.js",
   "scripts": {
@@ -11,8 +11,8 @@
     "test-unit": "NODE_ENV=test nyc -n models/**/*.js mocha --require babel-register test/unit/*.test.js",
     "test-integration": "NODE_ENV=test nyc -n routes/**/*.js mocha --require babel-register test/integration/*.test.js",
     "test:watch": "nodemon --watch lib --watch models --watch routes --watch test --exec 'npm test'",
-    "prod:cron": "pm2 start --interpreter babel-node scripts/rebuild-order.js --cron \"* * * * *\"",
-    "prod:cluster": "pm2 start index.js -i -1",
+    "prod:cron": "pm2 start --name \"ss-api rebuild-cron\" --interpreter babel-node scripts/rebuild-order.js --cron \"* * * * *\"",
+    "prod:cluster": "pm2 start index.js -i -1 --name=\"ss-api\"",
     "lint": "eslint **/*.js || exit 0"
   },
   "babel": {
