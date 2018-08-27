@@ -84,27 +84,9 @@ UserSchema.methods.addToTotalScore = function(score){
   return this.save();
 };
 
-UserSchema.statics.globalBestScores = function(n){
-  return this.find()
-  .limit(n||5)
-  .sort('-totalScore')
-  .select('username totalScore playedSequences')
-  .lean()
-  .exec()
-  .then(users => {
-    return users.map(u => {
-      return {
-        username: u.username,
-        score: u.totalScore,
-        games: u.totalGamesPlayed
-      };
-    });
-  });
-};
-
 UserSchema.statics.cumulativeGamesPlayed = function(){
   return this.aggregate([
-    {$project: {numGames: {$size: '$playedSequences'}}},
+    {$project: {numGames: '$totalGamesPlayed'}},
     {$group:   {_id: '$numGames', count: {$sum: 1}}}
   ])
   .then(aggs => aggs.map(agg => ({numGames: agg._id, totalPlayers: agg.count})));
@@ -134,7 +116,7 @@ UserSchema.statics.averageGamesPerActiveUserByMonth = function(){
       $project: {
         month: {$month: "$modified"},
         year: {$year: "$modified"},
-        games: {$size: "$playedSequences"}
+        games: "$totalGamesPlayed"
       }
     },
     {$group: {
@@ -157,6 +139,25 @@ UserSchema.statics.playersByGender = function(){
   .then(aggs => aggs.map(agg => ({gender: agg._id || 'DNA', totalPlayers: agg.count})));
 }
 
+
+UserSchema.statics.globalBestScores = function(n){
+  return this.find()
+  .limit(n||5)
+  .sort('-totalScore')
+  .select('username totalScore totalGamesPlayed')
+  .lean()
+  .exec()
+  .then(users => {
+    return users.map(u => {
+      return {
+        username: u.username,
+        score: u.totalScore,
+        games: u.totalGamesPlayed
+      };
+    });
+  });
+};
+
 UserSchema.methods.playerNearestScores = function(n){
   let num = n || 5;
   return Promise.join(
@@ -166,7 +167,7 @@ UserSchema.methods.playerNearestScores = function(n){
         _id: {$ne: this._id}
       })
       .limit(num)
-      .select('username totalScore playedSequences')
+      .select('username totalScore totalGamesPlayed')
       .sort('totalScore')
       .lean()
       .exec(),
@@ -177,7 +178,7 @@ UserSchema.methods.playerNearestScores = function(n){
       })
       .where('totalScore').lte(this.totalScore)
       .limit(num)
-      .select('username totalScore playedSequences')
+      .select('username totalScore totalGamesPlayed')
       .sort('-totalScore')
       .lean()
       .exec()
