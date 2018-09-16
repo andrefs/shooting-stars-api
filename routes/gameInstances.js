@@ -64,12 +64,12 @@ module.exports = function(app){
       })
   });
 
-  app.post('/gameInstances/currentTurn/:pick', function(req, res, next){
+  app.post('/gameInstances/current/:turn/:pick', function(req, res, next){
     return User.findOne({'_id': mongoose.Types.ObjectId(req.auth.sub)})
       .then(user => GameInstance.findOne({'_id': user.currentGameInstance}))
       .then(gi => {
         if(!gi){ throw new NoCurrentGame(); }
-        return gi.addMove(req.params.pick);
+        return gi.addMove(req.params.turn, req.params.pick);
       })
       .then(gi => gi.toSanitizedObject())
       .then(obj => {

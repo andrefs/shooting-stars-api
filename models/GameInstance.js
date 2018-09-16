@@ -10,7 +10,7 @@ import Triple           from './Triple';
 import PlayerMove       from './PlayerMove';
 import shortid          from '../lib/shortid'; // TODO delete
 import Promise          from 'bluebird';
-import {NoCurrentTurn, TripleIdMismatchError}  from '../lib/errors';
+import {CurrentTurnMismatch, NoCurrentTurn, TripleIdMismatchError}  from '../lib/errors';
 import config from '../config';
 
 mongoose.plugin(pagPlugin);
@@ -94,7 +94,7 @@ GameInstanceSchema.statics.createNew = function(pId){
         player.save()
       );
     })
-    .then(([gi]) => gi.nextTurn());
+    .then(([gi]) => gi.nextTurn(0));
 };
 
 GameInstanceSchema.methods._createNewGameSequence = function(){
@@ -214,10 +214,15 @@ GameInstanceSchema.methods.toSanitizedObject = function(){
   });
 };
 
-GameInstanceSchema.methods.nextTurn = function(){
+GameInstanceSchema.methods.nextTurn = function(currentTurnNumber){
   const totalTurns = this.turns.previous.length + (this.turns.current ? 1 : 0);
+  if(currentTurnNumber !== totalTurns){
+    return Promise.reject(new CurrentTurnMismatch());
+  }
+
   if(this.turns.current){
-    this.turns.previous.push(this.turns.current);
+    //this.turns.previous.push(this.turns.current);
+    this.turns.previous = [...this.turns.previous, this.turns.current];
     this.turns.current = undefined;
   }
 
@@ -266,7 +271,8 @@ GameInstanceSchema.methods.wrapUp = function(){
     .then(() => this.save());
 };
 
-GameInstanceSchema.methods.addMove = function(pick){
+GameInstanceSchema.methods.addMove = function(turnNumber, pick){
+  const tn = parseInt(turnNumber, 10);
   return this.populate({
     path:'turns.current',
     model:Turn,
@@ -276,6 +282,7 @@ GameInstanceSchema.methods.addMove = function(pick){
     }
   }).execPopulate()
     .then(() => {
+    const expectedTurn = this.turns.previous.length+1;
       if(!this.turns.current){
         // no current turn, game must be over
         return Promise.reject(new NoCurrentTurn());
@@ -286,7 +293,7 @@ GameInstanceSchema.methods.addMove = function(pick){
       return this.turns.current.setMoves();
     })
     .then(() => {
-      return this.nextTurn();
+      return this.nextTurn(tn);
     })
     .then(() => {
       return this.setCurrentScore();
