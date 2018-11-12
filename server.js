@@ -57,6 +57,7 @@ const create = () => {
   api.use((req,res,next) => { req.id = uuid.v4(); return next(); });
   api.use(morgan(':id :method :url :response-time',{stream}));
 
+
   /**
    * Prevent access to unauthorized paths
    */
@@ -91,6 +92,7 @@ const create = () => {
         req.auth.sub = req.params.userId;
         delete req.params.userId;
       }
+      log.info(`Request by user ${req.auth.sub}`);
       return next();
     });
   }
