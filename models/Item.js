@@ -15,7 +15,8 @@ const autoIncrement = MongooseSequence(mongoose);
 const ItemSchema = mongoose.Schema({
   name: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
   description: {
     type: String,
@@ -23,7 +24,11 @@ const ItemSchema = mongoose.Schema({
   },
   imageUrl: {
     type: String,
-    required: true
+    required: false
+  },
+  imagePath: {
+    type: String,
+    required: false
   },
   isActive: {
     type: Boolean,
