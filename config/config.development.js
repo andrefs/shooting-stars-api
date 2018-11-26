@@ -3,7 +3,7 @@ const pjson    = require('../package.json')
 module.exports = {
   version: pjson.version,
   db: {
-    uri: 'mongodb://localhost:27017/shooting-stars-dev'
+    uri: 'mongodb://localhost:27017/shooting-stars-usertest'
   },
   server: {
     name: 'shooting-stars-api',
@@ -30,5 +30,9 @@ module.exports = {
     db: false,
     level: 'info',
     dir: '/tmp'
+  },
+  images: {
+    folder: 'images',
+    path: '/items/images'
   }
 };

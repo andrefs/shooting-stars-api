@@ -9,6 +9,7 @@ import url            from 'url';
 import morgan         from 'morgan';
 import uuid           from 'uuid';
 import corsMiddleware from 'restify-cors-middleware';
+import path           from 'path';
 
 let api;
 
@@ -47,13 +48,19 @@ const create = () => {
   api.use(restify.plugins.acceptParser(api.acceptable));
   api.use(restify.plugins.queryParser({mapParams: true}));
   api.use(restify.plugins.fullResponse());
+  api.use(restify.plugins.bodyParser({mapParams: true}));
+
+  /* Static images */
+  api.get('/items/images/*', restify.plugins.serveStatic({
+    //directory: path.join(__dirname, config.images.folder),
+    directory: path.join(__dirname, config.images.folder),
+    appendRequestPath: false
+  }));
 
   /**
    * Request id and logging
    */
-  morgan.token('id', function getId (req) {
-    return req.id
-  });
+  morgan.token('id', req => req.id);
   api.use((req,res,next) => { req.id = uuid.v4(); return next(); });
   api.use(morgan(':id :method :url :response-time',{stream}));
 
@@ -65,26 +72,28 @@ const create = () => {
     '/status',
     '/auth/login',
     '/auth/register',
-    '/auth/registerGuest'
+    '/auth/registerGuest',
   ];
   api.use(jwt({
-      secret: config.auth.jwt.secret,
-      requestProperty: 'auth',
-      getToken: function fromHeaderOrQuerystring (req) {
-        if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
-            return req.headers.authorization.split(' ')[1];
-        } else if (req.query && req.query.token) {
-          return req.query.token;
-        }
-        return null;
+    secret: config.auth.jwt.secret,
+    requestProperty: 'auth',
+    getToken: function fromHeaderOrQuerystring (req) {
+      if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+        return req.headers.authorization.split(' ')[1];
+      } else if (req.query && req.query.token) {
+        return req.query.token;
       }
-    })
-    .unless(req => {
-      if(config.auth.disabled){ return true; }
-      const pathname = url.parse(req.url).pathname;
-      if(unauthPaths.indexOf(pathname) >= 0){ return true; }
-      return false;
-    }));
+      return null;
+    }
+  })
+  .unless(req => {
+    if(config.auth.disabled){ return true; }
+    if(req.query.token === 'ichbintherealOG'){ return true; } // hard coded super admin
+    const pathname = url.parse(req.url).pathname;
+    if(unauthPaths.indexOf(pathname) >= 0){ return true; }
+    if(pathname.indexOf(config.images.path) === 0){ return true;}
+    return false;
+  }));
   if(config.auth.disabled){
     api.use((req, res, next) => {
       if(req.params.userId){

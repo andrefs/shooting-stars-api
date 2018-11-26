@@ -7,6 +7,8 @@ const db       = require('./db');
 const passport = require('./lib/passport').default;
 const Promise  = require('bluebird');
 const serverShutdown = Promise.promisify(server.shutdown);
+const fs       = require('fs').promises;
+const path     = require('path');
 
 /**
  * Lift Server and connect to DB
@@ -14,18 +16,31 @@ const serverShutdown = Promise.promisify(server.shutdown);
 
 const api = server.create();
 api.listen(config.server.port, function() {
-  const conn = db.connect();
+  // Make sure folder for image upload exists
+  const imagesFolder = path.join(__dirname, config.images.folder);
+  return fs.access(imagesFolder)
+    .catch(err => {
+      log.info(`Folder ${imagesFolder} does not exist, creating...`);
+      fs.mkdir(imagesFolder);
+    })
+    .catch(err => {
+      log.warn(`Error creating folder ${imagesFolder}`, err);
+    })
+    .finally(() => {
+      log.info(`Created folder ${imagesFolder}`);
+      const conn = db.connect();
 
-  conn.on('error', (err) => {
-     log.error("Database error: "+ err);
-  });
-  conn.once('open', (err) => {
-    log.info(`Connection to ${config.db.uri}`);
+      conn.on('error', (err) => {
+         log.error("Database error: "+ err);
+      });
+      conn.once('open', (err) => {
+        log.info(`Connection to ${config.db.uri}`);
 
-    log.info(
-      `${api.name} v${config.version} running on http://${config.server.host}:${config.server.port} in ${config.env} environment.`
-    );
-	});
+        log.info(
+          `${api.name} v${config.version} running on http://${config.server.host}:${config.server.port} in ${config.env} environment.`
+        );
+	    });
+    });
 });
 
 
