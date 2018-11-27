@@ -3,7 +3,7 @@ import errors   from 'restify-errors';
 import {log}           from '../lib/logger';
 import mongoose from 'mongoose';
 import config   from '../config';
-import {getJwt} from '../lib/jwt';
+import {getJwt, parseJwt} from '../lib/jwt';
 import Promise          from 'bluebird';
 
 module.exports = function(app, passport){
@@ -28,7 +28,7 @@ module.exports = function(app, passport){
     return User.findOne({'_id': mongoose.Types.ObjectId(req.auth.sub)})
       .lean()
       .then(user => {
-        return GameInstance.findOne({'_id': user.currentGameInstance})
+        return GameInstance.findOne({'_id': user.currentGameInstance});
       })
       .catch(err => {
         log.error(err);
@@ -44,19 +44,31 @@ module.exports = function(app, passport){
       });
   });
 
-
   app.post('/auth/register', function(req, res, next){
-    return User.findOne({'username':req.body.username}).lean().exec()
+    return User.findOne({username: req.body.username}).lean().exec()
       .then(user => {
         // Check if user already exists
-        if(user){ res.send(400, {error:'User already exists'}); }
+        if(user){ res.send(400, {error:'Username already exists'}); }
 
         // TODO validate username & password length etc
 
-        // Create new user
+        // User was guest, update username & password
+        if(req.body.token){
+          const _id = parseJwt(req.body.token, config.auth.jwt.secret).sub;
+          return User.findOne({_id: mongoose.Types.ObjectId(_id)})
+            .then(user => {
+              user.username = req.body.username;
+              user.password = req.body.password;
+              user.isGuest  = false;
+              return user.save();
+            });
+        }
+
+        // User is brand new (this should be rare)
         return User.create({
           username: req.body.username,
-          password: req.body.password
+          password: req.body.password,
+          isGuest: false
         });
       })
       .then(user => {
@@ -65,16 +77,19 @@ module.exports = function(app, passport){
           token,
           user: {
             _id: user['_id'], // TODO should we really send the _id?
-            username: user.username
+            username: user.username,
+            isGuest: false
           }
         });
+        return next();
       });
   });
 
   app.post('/auth/registerGuest', function(req, res, next){
     return User.estimatedDocumentCount()
       .then(userCount => User.create({
-        username: 'guest'+(userCount+1)
+        username: 'guest'+(userCount+1),
+        isGuest: true
       }))
       .then(user => {
         let token = getJwt(user._id, config.auth.jwt.secret);
@@ -82,24 +97,28 @@ module.exports = function(app, passport){
           token,
           user: {
             _id: user['_id'], // TODO should we really send the _id?
-            username: user.username
+            username: user.username,
+            isGuest: true
           }
         });
+        return next();
       });
   });
 
   app.post('/auth/login',
     passport.authenticate('local-login', {session:false}),
     function(req, res){
-      let token = getJwt(req.user, config.auth.jwt.secret);
+      let token = getJwt(req.user._id, config.auth.jwt.secret);
       log.info(`User logged in with local-login: ${req.user.username}`);
       res.send({
         token: token,
         user: {
           _id: req.user['_id'], // TODO should we really send the _id?
-          username: req.user.username
+          username: req.user.username,
+          isGuest: false
         }
       });
+      return next();
     });
 
   app.get('/players/bestScores', function(req, res, next){
@@ -117,7 +136,6 @@ module.exports = function(app, passport){
   });
 
 
-
   app.get('/players/usernames', function(req, res, next){
     return User.find().select('username').lean()
       .then(users => {
@@ -125,5 +143,5 @@ module.exports = function(app, passport){
         return next();
       });
   });
-
 };
+

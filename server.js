@@ -44,7 +44,6 @@ const create = () => {
    * Middleware
    */
   api.use(restify.plugins.requestLogger());
-  api.use(restify.plugins.jsonBodyParser({mapParams: true}));
   api.use(restify.plugins.acceptParser(api.acceptable));
   api.use(restify.plugins.queryParser({mapParams: true}));
   api.use(restify.plugins.fullResponse());

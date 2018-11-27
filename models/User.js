@@ -48,6 +48,11 @@ const UserSchema = mongoose.Schema({
     type: Number,
     required: true,
     default: 0
+  },
+  isGuest: {
+    type: Boolean,
+    required: true,
+    default: true
   }
 },{minimize:false});
 
