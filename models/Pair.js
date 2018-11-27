@@ -9,7 +9,6 @@ import MongooseSequence from 'mongoose-sequence';
 import Item from './Item';
 import Lock from './Lock';
 import config from '../config';
-import {NoMoreItemsError} from '../lib/errors';
 
 
 mongoose.plugin(pagPlugin);
@@ -109,12 +108,6 @@ PairSchema.statics.rebuildOrder = function(){
         orderedPairs: pairs
       });
     })
-    // .catch(err => {
-    //   if(err instanceof NoMoreItemsError){
-    //     return Promise.reject(err);
-    //   }
-    //   log.error(err);
-    // })
     .finally(() => lock ? lock.release(): Promise.resolve());
 };
 

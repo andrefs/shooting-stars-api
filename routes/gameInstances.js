@@ -59,9 +59,10 @@ module.exports = function(app){
         return next();
       })
       .catch(err => {
+        res.send(400, {err: {name: err.name, message: err.message}});
         log.error(err);
         return next(err);
-      })
+      });
   });
 
   app.post('/gameInstances/current/:turn/:pick', function(req, res, next){
