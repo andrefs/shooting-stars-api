@@ -4,7 +4,7 @@ import GameInstance from '../models/GameInstance';
 import errors          from 'restify-errors';
 import {log}           from '../lib/logger';
 import mongoose        from 'mongoose';
-import {InvalidObjectId, UnfinishedGameInstance, NoCurrentGame} from '../lib/errors';
+import {InvalidObjectId, UnfinishedGameInstance, NoCurrentGame, NoMoreItemsError} from '../lib/errors';
 import User            from '../models/User';
 import Promise         from 'bluebird';
 
@@ -40,8 +40,10 @@ module.exports = function(app){
    */
 
   app.post('/gameInstances/current', function(req, res, next){
+    let user;
     return User.findOne({'_id': mongoose.Types.ObjectId(req.auth.sub)})
-      .then(user => {
+      .then(u => {
+        user = u;
         if(user.currentGameInstance){
           return GameInstance.findOne({'_id': user.currentGameInstance})
             .then(gi => {
@@ -59,8 +61,13 @@ module.exports = function(app){
         return next();
       })
       .catch(err => {
-        res.send(400, {err: {name: err.name, message: err.message}});
+        if(err instanceof NoMoreItemsError){
+          log.info(`Player ${user._id} finished all available game sequences`);
+          res.send(400, {err: {name: err.name, message: err.message}});
+          return next(err);
+        }
         log.error(err);
+        res.send(err);
         return next(err);
       });
   });

@@ -84,10 +84,13 @@ UserSchema.methods.comparePassword = function(password) {
   return bcrypt.compareSync(password, this.password);
 };
 
-UserSchema.methods.addToTotalScore = function(score){
-  this.totalScore += score;
+UserSchema.methods.wrapUpGameInstance = function(gameInst){
+  this.totalScore += gameInst.currentScore.player;
+  this.pastGameInstances.push(this.currentGameInstance);
+  this.currentGameInstance = null;
+  this.totalGamesPlayed++;
   return this.save();
-};
+}
 
 UserSchema.statics.cumulativeGamesPlayed = function(){
   return this.aggregate([

@@ -83,10 +83,6 @@ GameInstanceSchema.statics.createNew = function(pId){
     .then(triples => {
       log.info(`New game sequence generated for player ${pId}`);
       gameInst.gameSequence = triples;
-      if(player.currentGameInstance){
-        player.pastGameInstances.push(player.currentGameInstance);
-        player.totalGamesPlayed++;
-      }
       player.currentGameInstance = gameInst;
       gameInst.setOpponentNames();
       return Promise.join(
@@ -265,7 +261,7 @@ GameInstanceSchema.methods.wrapUp = function(){
       model: Triple
     }])
     .execPopulate()
-    .then(() => this.player.addToTotalScore(this.currentScore.player))
+    .then(() => this.player.wrapUpGameInstance(this))
     .then(() => this.saveMoves())
     .then(moves => Triple.updateTripleScores(moves))
     .then(() => this.save());
