@@ -44,9 +44,23 @@ module.exports = function(app, passport){
       });
   });
 
+  app.patch('/user', function(req, res, next){
+    return User.findOne({'_id': mongoose.Types.ObjectId(req.auth.sub)})
+      .then(user => {
+        user.email = req.body.email;
+        user.gender = req.body.gender;
+        user.birthYear = req.body.birthYear;
+        return user.save();
+      })
+      .then(() => {
+        res.send(204);
+        return next();
+      });
+  });
+
   app.post('/auth/register',
     passport.authenticate('local-register', {session: false}),
-    function(req, res){
+    function(req, res, next){
       let token = getJwt(req.user._id, config.auth.jwt.secret);
       log.info(`User registered in with local-register: ${req.user.username}`);
       res.send(201,{
