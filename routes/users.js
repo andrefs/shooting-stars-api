@@ -3,7 +3,7 @@ import errors   from 'restify-errors';
 import {log}           from '../lib/logger';
 import mongoose from 'mongoose';
 import config   from '../config';
-import {getJwt, parseJwt} from '../lib/jwt';
+import {getJwt} from '../lib/jwt';
 import Promise          from 'bluebird';
 
 module.exports = function(app, passport){
@@ -44,46 +44,21 @@ module.exports = function(app, passport){
       });
   });
 
-  app.post('/auth/register', function(req, res, next){
-    return User.findOne({username: req.body.username}).lean().exec()
-      .then(user => {
-        // Check if user already exists
-        if(user){ res.send(400, {error:'Username already exists'}); }
-
-        // TODO validate username & password length etc
-
-        // User was guest, update username & password
-        if(req.body.token){
-          const _id = parseJwt(req.body.token, config.auth.jwt.secret).sub;
-          return User.findOne({_id: mongoose.Types.ObjectId(_id)})
-            .then(user => {
-              user.username = req.body.username;
-              user.password = req.body.password;
-              user.isGuest  = false;
-              return user.save();
-            });
-        }
-
-        // User is brand new (this should be rare)
-        return User.create({
-          username: req.body.username,
-          password: req.body.password,
+  app.post('/auth/register',
+    passport.authenticate('local-register', {session: false}),
+    function(req, res){
+      let token = getJwt(req.user._id, config.auth.jwt.secret);
+      log.info(`User registered in with local-register: ${req.user.username}`);
+      res.send(201,{
+        token,
+        user: {
+          _id: req.user['_id'], // TODO should we really send the _id?
+          username: req.user.username,
           isGuest: false
-        });
-      })
-      .then(user => {
-        let token = getJwt(user._id, config.auth.jwt.secret);
-        res.send(201,{
-          token,
-          user: {
-            _id: user['_id'], // TODO should we really send the _id?
-            username: user.username,
-            isGuest: false
-          }
-        });
-        return next();
+        }
       });
-  });
+      return next();
+    });
 
   app.post('/auth/registerGuest', function(req, res, next){
     return User.estimatedDocumentCount()
