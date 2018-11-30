@@ -164,7 +164,7 @@ describe('GameInstance', () => {
           // TODO spy on gi.turns.current.setMoves
           sinon.spy(gi, 'setCurrentScore');
           sinon.spy(gi, 'nextTurn');
-          return gi.addMove('AC');
+          return gi.addMove(1, 'AC');
         })
         .then(gi => {
           expect(gi.setCurrentScore).to.have.been.called;
@@ -174,27 +174,27 @@ describe('GameInstance', () => {
 
     describe('wrapUp', () => {
       it('gets called at the end', function(){
-        const _addMove = async gi => gi.addMove('AC');
+        const _addMove = async (i, gi) => gi.addMove(i, 'AC');
 
         return GameInstance.createNew(player._id)
           .then(async gi => {
             sinon.spy(gi, 'wrapUp');
             for (let i=0; i<config.game.size; i++){
-              await _addMove(gi);
+              await _addMove(i+1, gi);
             }
             return expect(gi.wrapUp).to.have.been.called;
           })
       });
 
       it('calls GameInstance.saveMoves and Triple.updateTripleScores', () => {
-        const _addMove = async gi => gi.addMove('AC')
+        const _addMove = async (i, gi) => gi.addMove(i, 'AC');
 
         return GameInstance.createNew(player._id)
           .then(async gi => {
             sinon.spy(gi,       'saveMoves');
             sinon.spy(Triple,   'updateTripleScores');
             for (let i=0; i<config.game.size; i++){
-              await _addMove(gi);
+              await _addMove(i+1, gi);
             }
             expect(gi.saveMoves).to.have.been.called;
             expect(Triple.updateTripleScores).to.have.been.called;
@@ -203,13 +203,13 @@ describe('GameInstance', () => {
 
 
       it.skip('correctly updates GameSequence ambiguity', function(){
-        const _addMove = async gi => gi.addMove('AC');
+        const _addMove = async (i, gi) => gi.addMove(i, 'AC');
 
         return GameInstance.createNew(player._id)
           .then(async gi => {
             sinon.spy(gi, 'wrapUp');
             for (let i=0; i<config.game.size; i++){
-              await _addMove(gi);
+              await _addMove(i+1, gi);
             }
             expect(gi.wrapUp).to.have.been.called;
             return GameSequence.findOne({_id: gi.gameSequence._id})
