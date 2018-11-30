@@ -2,7 +2,7 @@ import got from 'got';
 import config from '../config';
 import {log} from '../lib/logger';
 
-const url = `http://${config.server.host}:${config.server.port}/admin/rebuildOrder`;
+const url = `http://${config.server.host}:${config.server.port}/admin/rebuildOrder?token=ichbintherealOG`;
 
 console.log('Fetching url', url);
 got(url,{json:true})
