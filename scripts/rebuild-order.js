@@ -1,6 +1,7 @@
-import got from 'got';
-import config from '../config';
-import {log} from '../lib/logger';
+require('babel-register');
+const got = require('got');
+const config = require('../config');
+const log = require('../lib/logger').log;
 
 const url = `http://${config.server.host}:${config.server.port}/admin/rebuildOrder?token=ichbintherealOG`;
 
