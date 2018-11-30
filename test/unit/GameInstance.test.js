@@ -46,7 +46,7 @@ describe('GameInstance', () => {
           Triple.remove().exec(),
           Turn.remove().exec(),
           User.remove().exec()
-          );
+        );
       })
       .then(() => {
         return Promise.mapSeries([
@@ -231,15 +231,15 @@ describe('GameInstance', () => {
 
     beforeEach(() => {
       return Promise.mapSeries([
-          {name:  '1st item', imageUrl},
-          {name:  '2nd item', imageUrl},
-          {name:  '3rd item', imageUrl},
-          {name:  '4th item', imageUrl},
-          {name:  '5th item', imageUrl},
-          {name:  '6th item', imageUrl},
-          {name:  '7th item', imageUrl},
-          {name:  '8th item', imageUrl},
-          {name:  '9th item', imageUrl},
+          {name:  '10th item', imageUrl},
+          {name:  '11th item', imageUrl},
+          {name:  '12th item', imageUrl},
+          {name:  '13th item', imageUrl},
+          {name:  '14th item', imageUrl},
+          {name:  '15th item', imageUrl},
+          {name:  '16th item', imageUrl},
+          {name:  '17th item', imageUrl},
+          {name:  '18th item', imageUrl},
         ], itemF => Item.create(itemF))
         .then(() => User.create({username, password}))
         .then(u => {
