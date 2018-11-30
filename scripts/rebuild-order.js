@@ -12,7 +12,7 @@ got(url,{json:true})
     //process.exit(0);
   })
   .catch(err => {
-    console.log(error.response.body);
+    console.log(err.response.body);
   });
 
 
