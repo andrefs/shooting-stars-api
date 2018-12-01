@@ -11,7 +11,7 @@
     "test-unit": "NODE_ENV=test nyc -n models/**/*.js mocha --require babel-register test/unit/*.test.js",
     "test-integration": "NODE_ENV=test nyc -n routes/**/*.js mocha --require babel-register test/integration/*.test.js",
     "test:watch": "nodemon --watch lib --watch models --watch routes --watch test --exec 'npm test'",
-    "prod:cron": "NODE_ENV=production sleep $((1 + RANDOM % 60)) ;  pm2 start --name \"ss-api rebuild-cron\" scripts/rebuild-order.js --cron \"* * * * *\"",
+    "prod:cron": "sleep $((1 + RANDOM % 60)) ; NODE_ENV=production pm2 start --name \"ss-api rebuild-cron\" scripts/rebuild-order.js --cron \"* * * * *\"",
     "prod:cluster": "NODE_ENV=production pm2 start -i -1 index.js --name=\"ss-api\"",
     "lint": "eslint **/*.js || exit 0"
   },
