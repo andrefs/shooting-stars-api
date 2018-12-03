@@ -50,6 +50,7 @@ module.exports = function(app, passport){
         user.email = req.body.email;
         user.gender = req.body.gender;
         user.birthYear = req.body.birthYear;
+        user.topicKnowledge = req.body.topicKnowledge;
         return user.save();
       })
       .then(() => {

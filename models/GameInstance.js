@@ -8,9 +8,9 @@ import User             from './User';
 import Pair             from './Pair';
 import Triple           from './Triple';
 import PlayerMove       from './PlayerMove';
-import shortid          from '../lib/shortid'; // TODO delete
 import Promise          from 'bluebird';
 import {CurrentTurnMismatch, NoCurrentTurn, TripleIdMismatchError}  from '../lib/errors';
+import {sampleSize}     from 'lodash';
 import config from '../config';
 
 mongoose.plugin(pagPlugin);
@@ -157,9 +157,42 @@ GameInstanceSchema.methods._createNewGameSequence = function(){
 
 
 GameInstanceSchema.methods.setOpponentNames = function(){
-  this.opponentNames.rand1 = 'Alice';
-  this.opponentNames.rand2 = 'Bob';
-}
+  const namesList = [
+    'Bishop',         // Aliens
+    'R2-D2',          // Star Wars
+    'Optimus Prime',  // Transformers
+    'Roy Batty',      // Blade Runner
+    'Skynet',         // Terminator
+    'False Maria',    // Metropolis
+    'Wall-E',         // Wall-E
+    'Bender',         // Futurama
+    'Robocop',        // Robocop
+    'Johnny 5',       // Short Circuit
+    'HAL 9000',       // 2001: A Space Odissey
+    'Data',           // Star Trek
+    'The Iron Giant', // The Iron Giant
+    'KITT',           // Knight Rider
+    'Baymax',         // Big Hero6
+    'GLaDOS',         // Portal
+    'Agent Smith',    // Matrix
+    'TARS',           // Interstellar
+    'Samantha',       // Her
+    'Deep Thought',   // The Hitchhiker’s Guide To The Galaxy
+    'WOPR',           // War Games
+    'Dr. Know',       // A.I. Artificial Intelligence
+    'The Red Queen',  // Resident Evil
+    'Jarvis',         // Iron Man
+    'Number 6',       // Battlestar Galactica
+    'Gertie',         // Maniac
+    'AWESOM-O',       // South Park
+    'Chappie',        // Chappie
+  ];
+
+  const [rand1, rand2] = sampleSize(namesList, 2);
+
+  this.opponentNames.rand1 = rand1 || 'Alice';
+  this.opponentNames.rand2 = rand2 || 'Bob';
+};
 
 
 GameInstanceSchema.methods.toSanitizedObject = function(){

@@ -38,6 +38,10 @@ const UserSchema = mongoose.Schema({
     }],
     default: []
   },
+  topicKnowledge: {
+    type: Number,
+    required: false
+  },
   currentGameInstance: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'GameInstance',
