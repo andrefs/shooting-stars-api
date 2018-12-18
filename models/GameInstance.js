@@ -99,6 +99,7 @@ GameInstanceSchema.methods._createNewGameSequence = function(){
   let player;
   let maxScore;
   let normScore;
+  let playedTriples;
 
   return require('./User').findOne()
     .where({_id: pId})
@@ -120,16 +121,16 @@ GameInstanceSchema.methods._createNewGameSequence = function(){
         * player.totalGamesPlayed;
       normScore = maxScore ? player.totalScore/maxScore : 0.5;
 
-      const triples = [];
+      playedTriples = [];
       if(player.pastGameInstances && player.pastGameInstances.length){
-        player.pastGameInstances.forEach(gi => triples.push(...gi.gameSequence));
+        player.pastGameInstances.forEach(gi => playedTriples.push(...gi.gameSequence));
       }
       if(player.currentGameInstance){
-        triples.push(...player.currentGameInstance.gameSequence);
+        playedTriples.push(...player.currentGameInstance.gameSequence);
       }
 
       return Triple.find()
-        .where('_id').nin(triples)
+        .where('_id').nin(playedTriples)
         .countDocuments();
     })
     .then(availableTriples => {
@@ -148,7 +149,7 @@ GameInstanceSchema.methods._createNewGameSequence = function(){
 
       return Triple.find()
         .skip(skip)
-        .where('_id').nin(player.playedTriples)
+        .where('_id').nin(playedTriples)
         .select('ambiguity')
         .sort('ambiguity')
         .limit(config.game.size)

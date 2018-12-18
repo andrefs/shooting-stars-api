@@ -27,4 +27,6 @@ const PlayerMoveSchema = mongoose.Schema({
   },
 });
 
+PlayerMoveSchema.index({player: 1, triple: 1}, {unique: true});
+
 module.exports = mongoose.model('PlayerMove', PlayerMoveSchema);
