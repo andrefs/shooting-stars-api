@@ -9,7 +9,7 @@ require('../mongoose-helper');
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
-describe.only('User', () => {
+describe('User', () => {
   let user;
 
   beforeEach(() => {
