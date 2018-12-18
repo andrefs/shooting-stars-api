@@ -1,18 +1,28 @@
 import User     from '../../models/User';
-import sinon    from 'sinon';
-import {expect} from 'chai';
+import chai from 'chai';
+import sinonChai from 'sinon-chai';
+chai.use(sinonChai);
+import Promise  from 'bluebird';
+import chaiAsPromised from 'chai-as-promised';
 require('../mongoose-helper');
 
-describe('User', () => {
+chai.use(chaiAsPromised);
+const expect = chai.expect;
+
+describe.only('User', () => {
   let user;
 
-  beforeEach(done => {
+  beforeEach(() => {
+    return Promise.join(
+      User.remove().exec()
+    )
+    .then(() => {
       user = new User({
         username: 'user1',
         password: '123456'
       });
-
-      return done();
+      // return user.save();
+    });
   });
 
   it('initializes with default values', () => {
@@ -28,11 +38,29 @@ describe('User', () => {
     });
   });
 
-  it('#calcPasswordHash', () => {
-    const passwordHash = "$2a$10$FJJK8YSwJbA4vu4mtnmA3ukrLTxeWUCHX4F/z6Zj/3Jvuget.bSG2";
-    user.save().then(() => {
-      expect(user.password).to.equal(passwordHash);
-    });
-  });
+  it('saves optional info', () => {
+    const email = '  test@example.com  ';
+    const birthYear = 1980;
+    const gender = 'male';
+    const topicKnowledge = 3;
 
+    const user2 = new User({
+      username: 'user2',
+      password: '123456'
+    });
+    return user2.save()
+      .then(user2 => user2.addOptionalInfo(
+        email,
+        gender,
+        birthYear,
+        topicKnowledge
+      ))
+      .then(user2 => {
+        expect(user2.email).to.equal(email.trim());
+        expect(user2.gender).to.equal(gender);
+        expect(user2.birthYear).to.equal(birthYear);
+        expect(user2.topicKnowledge).to.equal(topicKnowledge);
+      });
+  });
 });
+

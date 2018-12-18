@@ -98,7 +98,15 @@ UserSchema.methods.wrapUpGameInstance = function(gameInst){
   this.currentGameInstance = null;
   this.totalGamesPlayed++;
   return this.save();
-}
+};
+
+UserSchema.methods.addOptionalInfo = function(email, gender, birthYear, topicKnowledge){
+  this.email = email.trim();
+  this.gender = gender;
+  this.birthYear = birthYear;
+  this.topicKnowledge = topicKnowledge;
+  return this.save();
+};
 
 UserSchema.statics.cumulativeGamesPlayed = function(){
   return this.aggregate([
@@ -110,10 +118,10 @@ UserSchema.statics.cumulativeGamesPlayed = function(){
 
 UserSchema.statics.newUsersByMonth = function(){
   return this.aggregate([
-    //{$project: {month: {$month: "$created"}, year: {$year: "created"}}},
-    {$project: {month: {$month: "$created"}, year: {$year: "$created"}}},
+    // {$project: {month: {$month: "$created"}, year: {$year: "created"}}},
+    {$project: {month: {$month: '$created'}, year: {$year: '$created'}}},
     {$group: {
-      _id: {month: "$month", year: "$year"},
+      _id: {month: '$month', year: '$year'},
       total: {$sum: 1}}
     }
   ])
@@ -127,18 +135,18 @@ UserSchema.statics.newUsersByMonth = function(){
 
 UserSchema.statics.averageGamesPerActiveUserByMonth = function(){
   return this.aggregate([
-    //{$project: {month: {$month: "$created"}, year: {$year: "created"}}},
+    // {$project: {month: {$month: "$created"}, year: {$year: "created"}}},
     {
       $project: {
-        month: {$month: "$modified"},
-        year: {$year: "$modified"},
-        games: "$totalGamesPlayed"
+        month: {$month: '$modified'},
+        year: {$year: '$modified'},
+        games: '$totalGamesPlayed'
       }
     },
     {$group: {
-      _id: {month: "$month", year: "$year"},
+      _id: {month: '$month', year: '$year'},
       activeUsers: {$sum: 1},
-      playedGames: {$sum: "$games"}
+      playedGames: {$sum: '$games'}
     }}
   ])
   .then(aggs => aggs.map(agg => ({
@@ -153,7 +161,7 @@ UserSchema.statics.playersByGender = function(){
     {$group:   {_id: '$gender', count: {$sum: 1}}}
   ])
   .then(aggs => aggs.map(agg => ({gender: agg._id || 'DNA', totalPlayers: agg.count})));
-}
+};
 
 
 UserSchema.statics.globalBestScores = function(n){

@@ -46,13 +46,12 @@ module.exports = function(app, passport){
 
   app.patch('/user', function(req, res, next){
     return User.findOne({'_id': mongoose.Types.ObjectId(req.auth.sub)})
-      .then(user => {
-        user.email = req.body.email;
-        user.gender = req.body.gender;
-        user.birthYear = req.body.birthYear;
-        user.topicKnowledge = req.body.topicKnowledge;
-        return user.save();
-      })
+      .then(user => user.addOptionalInfo(
+        req.body.email,
+        req.body.gender,
+        req.body.birthYear,
+        req.body.topicKnowledge
+      ))
       .then(() => {
         res.send(204);
         return next();
