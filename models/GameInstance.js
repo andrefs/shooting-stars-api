@@ -249,22 +249,27 @@ GameInstanceSchema.methods.nextTurn = function(currentTurnNumber){
     return Promise.reject(new CurrentTurnMismatch());
   }
 
+  // FIXME code is weird
   if(this.turns.current){
-    //this.turns.previous.push(this.turns.current);
     this.turns.previous = [...this.turns.previous, this.turns.current];
     this.turns.current = undefined;
   }
 
-  if(this.turns.previous.length === this.gameSequence.length){
-    return this.wrapUp();
-  }
-  return Turn.create({
-    triple: this.gameSequence[totalTurns]
-  })
-  .then(turn => {
-    this.turns.current = turn;
-    return this.save();
-  });
+  return (this.turns.previous.length !== this.gameSequence.length ?
+      Turn.create({triple: this.gameSequence[totalTurns]}) :
+      Promise.resolve()
+    )
+    .then(turn => {
+      if(turn){ this.turns.current = turn; }
+      return this.save();
+    })
+    .then(() => this.setCurrentScore()) // current score is calculated over finished turns only
+    .then(() => {
+      if(this.turns.previous.length === this.gameSequence.length){
+        return this.wrapUp();
+      }
+      return this;
+    });
 };
 
 GameInstanceSchema.methods.saveMoves = function(){
@@ -311,7 +316,6 @@ GameInstanceSchema.methods.addMove = function(turnNumber, pick){
     }
   }).execPopulate()
     .then(() => {
-    const expectedTurn = this.turns.previous.length+1;
       if(!this.turns.current){
         // no current turn, game must be over
         return Promise.reject(new NoCurrentTurn());
@@ -321,16 +325,13 @@ GameInstanceSchema.methods.addMove = function(turnNumber, pick){
       this.turns.current.markModified('moves.player');
       return this.turns.current.setMoves();
     })
-    .then(() => {
-      return this.nextTurn(tn);
-    })
-    .then(() => {
-      return this.setCurrentScore();
-    }) // current score is calculated over finished turns only
+    .then(() => this.nextTurn(tn))
     ;
 };
 
 GameInstanceSchema.methods.setCurrentScore = function(){
+  if(!this.turns.previous.length){ return Promise.resolve(this); }
+
   return this.populate({
       path: 'turns.previous',
       model: Turn,
