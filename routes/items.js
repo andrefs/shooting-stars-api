@@ -27,7 +27,7 @@ module.exports = function(app){
       fs.readFile(tmpFile)
         .then(buf => md5(buf))
         .then(fileName => {
-          filePath = path.join(config.images.folder, fileName)+'.png';
+          filePath = path.join(config.images.folder, fileName)+'.jpg';
           log.info(`Copying image file to ${filePath}`);
           return Jimp.read(tmpFile);
         })
