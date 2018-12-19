@@ -11,6 +11,7 @@ import PlayerMove       from './PlayerMove';
 import Promise          from 'bluebird';
 import {CurrentTurnMismatch, NoCurrentTurn, TripleIdMismatchError}  from '../lib/errors';
 import {sampleSize}     from 'lodash';
+import {knuthShuffle} from 'knuth-shuffle';
 import config from '../config';
 
 mongoose.plugin(pagPlugin);
@@ -82,7 +83,7 @@ GameInstanceSchema.statics.createNew = function(pId){
     })
     .then(triples => {
       log.info(`New game sequence generated for player ${pId}`);
-      gameInst.gameSequence = triples;
+      gameInst.gameSequence = knuthShuffle(triples);
       player.currentGameInstance = gameInst;
       gameInst.setOpponentNames();
       return Promise.join(
