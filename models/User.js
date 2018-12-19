@@ -187,7 +187,7 @@ UserSchema.methods.playerNearestScores = function(n){
   return Promise.join(
     this.constructor
       .find({
-        totalScore: {$gte: this.totalScore},
+        totalScore: {$gt: this.totalScore},
         _id: {$ne: this._id}
       })
       .limit(num)

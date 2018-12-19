@@ -19,7 +19,7 @@ module.exports = function(app){
         return GameInstance.findOne({'_id': user.currentGameInstance})
       })
       .catch(err => {
-        log.error(err);
+        log.warn(err);
         return next(new errors.InvalidContentError(err.errors.name.message));
       })
       .then(gi => {

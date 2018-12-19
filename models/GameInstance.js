@@ -230,6 +230,7 @@ GameInstanceSchema.methods.toSanitizedObject = function(){
   .execPopulate()
   .then(gi => {
     let obj = gi.toObject();
+    obj.seqLength = obj.gameSequence.length;
     delete obj.gameSequence;
     if(obj.turns.current){
       delete obj.turns.current.score;
