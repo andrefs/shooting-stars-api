@@ -20,7 +20,7 @@ module.exports = function(app){
       })
       .catch(err => {
         log.warn(err);
-        return next(new errors.InvalidContentError(err.errors.name.message));
+        return next(new errors.InvalidContentError(err.message));
       })
       .then(gi => {
         if(!gi){
