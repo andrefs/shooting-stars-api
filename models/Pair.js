@@ -140,13 +140,17 @@ PairSchema.statics._order = function(){
     this.find({isOrdered:  true}).sort('order seqNum'),
     this.find({isOrdered: false}).sort('seqNum')
   )
-  .then(([ord, unord]) => this._insertPairs([...ord, ...unord], 0, ps))
+  .then(([ord, unord]) => {
+    log.info('Iterating until no pairs can be inserted');
+    return this._insertPairs([...ord, ...unord], ps);
+  })
   // reset old order
   .then(() => this.update({}, {$set: {isOrdered: false}}, {multi:true}))
   // save new order
   .then(() => {
-    const updates = ps.keys().map((sn, i) => [{seqNum: sn}, {order: 1+i, isOrdered: true}]);
-    return Promise.each(updates, (([query, update]) => this.update(query, update)));
+    const updates = ps.keys()
+      .map((sn, i) => [{seqNum: sn}, {order: 1+i, isOrdered: true}]);
+    return Promise.each(updates, ([query, update]) => this.update(query, update));
   })
   .then(() => ps.getRelevantTriples())
   .then(triples => {
@@ -157,17 +161,26 @@ PairSchema.statics._order = function(){
 };
 
 
-PairSchema.statics._insertPairs = function(pairs, order, ps){
-  if(pairs.length === 0){ return Promise.resolve(); }
+PairSchema.statics._insertPairs = function(pairs, ps){
+  if(pairs.length === 0){
+    log.info('There are no pairs to insert');
+    return Promise.resolve();
+  }
 
-  const p = pairs.shift();
-  return ps.tryInsert(p)
-    .then(() => {
-      order++;
-      return p._setOrder(order);
-    })
-    .catch(()   => p._removeOrder())
-    .finally(() => this._insertPairs(pairs, order, ps));
+  let unordPairs = [];
+
+  return Promise.each(pairs, p => {
+    return ps.tryInsert(p)
+      .catch(() => unordPairs.push(p));
+  })
+  .then(() => {
+    if(pairs.length === unordPairs.length){
+      log.info('    no pairs were inserted');
+      return Promise.resolve();
+    }
+    log.info('    total '+(pairs.length-unordPairs.length)+' pairs inserted');
+    return this._insertPairs(unordPairs, ps);
+  });
 };
 
 PairSchema.methods._setOrder = function(n){
