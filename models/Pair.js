@@ -86,7 +86,9 @@ PairSchema.statics.rebuildOrder = function(){
       );
     })
     .then(([pairs, ord]) => {
+      // all pairs are ordered
       if(pairs === ord){
+        // activate next item and rebuild pairs order
         return Item.activateNext()
           .then(() => this._rebuildOrder());
       }
@@ -139,6 +141,13 @@ PairSchema.statics._order = function(){
     this.find({isOrdered: false}).sort('seqNum')
   )
   .then(([ord, unord]) => this._insertPairs([...ord, ...unord], 0, ps))
+  // reset old order
+  .then(() => this.update({}, {$set: {isOrdered: false}}, {multi:true}))
+  // save new order
+  .then(() => {
+    const updates = ps.keys().map((sn, i) => [{seqNum: sn}, {order: 1+i, isOrdered: true}]);
+    return Promise.each(updates, (([query, update]) => this.update(query, update)));
+  })
   .then(() => ps.getRelevantTriples())
   .then(triples => {
     tIds = triples.map(t => t._id);
