@@ -98,16 +98,17 @@ PairSchema.statics.rebuildOrder = function(){
       rebuildTime = process.hrtime(rebuildStart);
       return Promise.join(
         require('./Triple').countDocuments({isRelevant: true}),
-        this.countDocuments({isOrdered: true})
+        this.find({isOrdered: true}).select('seqNum').lean()
       );
     })
     .then(([triples, pairs]) => {
-      log.info(`Pairs order rebuilt, waited ${lockWait}s for the lock and took ${rebuildTime}s to produce ${triples} relevant triples and ${pairs} ordered pairs`);
+      log.info(`Pairs order rebuilt, waited ${lockWait}s for the lock and took ${rebuildTime}s to produce ${triples} relevant triples and ${pairs.length} ordered pairs`);
       return Promise.resolve({
         rebuildTime,
         lockWait,
         relevantTriples: triples,
-        orderedPairs: pairs
+        totalOrderedPairs: pairs.length,
+        pairs: pairs.map(p => p.seqNum)
       });
     })
     .finally(() => lock ? lock.release(): Promise.resolve());

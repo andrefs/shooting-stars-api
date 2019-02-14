@@ -9,7 +9,7 @@ console.log('Fetching url', url);
 got(url,{json:true})
   .then(resp => {
     console.log(resp.body);
-    log.warn(`Pairs order rebuilt, waited ${resp.body.lockWait}s for the lock and took ${resp.body.rebuildTime}s to produce ${resp.body.relevantTriples} relevant triples and ${resp.body.orderedPairs} ordered pairs`);
+    log.warn(`Pairs order rebuilt, waited ${resp.body.lockWait}s for the lock and took ${resp.body.rebuildTime}s to produce ${resp.body.relevantTriples} relevant triples and ${resp.body.totalOrderedPairs} ordered pairs: ${resp.body.pairs}`);
     //process.exit(0);
   })
   .catch(err => {
