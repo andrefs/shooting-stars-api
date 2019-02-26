@@ -151,8 +151,8 @@ GameInstanceSchema.methods._createNewGameSequence = function(){
       return Triple.find()
         .skip(skip)
         .where('_id').nin(playedTriples)
-        .select('ambiguity')
-        .sort('ambiguity')
+        .select('ambiguity isRelevant')
+        .sort('-isRelevant ambiguity')
         .limit(config.game.size)
      });
 };

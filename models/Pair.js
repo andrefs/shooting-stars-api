@@ -139,7 +139,7 @@ PairSchema.statics._order = function(){
 
   return Promise.join(
     this.find({isOrdered:  true}).sort('order seqNum'),
-    this.find({isOrdered: false}).sort('seqNum')
+    this.find({isOrdered: false}).sort('order seqNum')
   )
   .then(([ord, unord]) => {
     log.info('Iterating until no pairs can be inserted');
