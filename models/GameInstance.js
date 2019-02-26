@@ -138,8 +138,8 @@ GameInstanceSchema.methods._createNewGameSequence = function(){
       // No triples unplayed by this player, need to generate more
       if(availableTriples < config.game.size){
         log.info(`No triples available for player ${pId}, generating new`);
-       return Pair.rebuildOrder()
-        .then(() => this._createNewGameSequence(pId));
+        return Pair.rebuildOrder()
+          .then(() => this._createNewGameSequence(pId));
       }
 
       log.info(`Found ${availableTriples} triples available for player ${pId} to play`);

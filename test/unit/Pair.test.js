@@ -100,14 +100,14 @@ describe('Pair', () => {
       .then(() => Item.activateNext())
       .then(() => Item.activateNext())
       .then(() => Pair.findOne())
-      .then(p  => Pair._insertPairs([p], 0, ps))
+      .then(p  => Pair._insertPairs([p], ps))
       .then(() => {
         expect(ps.keys().length).to.equal(1);
         return Pair.findOne();
       })
       .then(p => {
-        expect(p.order).to.equal(1);
-        expect(p.isOrdered).to.be.true;
+        expect(p.order).to.be.null;
+        expect(p.isOrdered).to.be.false;
       });
   });
 
