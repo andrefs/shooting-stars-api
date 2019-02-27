@@ -1,5 +1,6 @@
 import Triple from '../models/Triple';
 import Item from '../models/Item';
+import Pair from '../models/Pair';
 import errors from 'restify-errors';
 import {log}           from '../lib/logger';
 import mongoose from 'mongoose';
@@ -15,6 +16,9 @@ module.exports = function(app){
     };
     if(req.params.includeItems){
       options.populate = {path: 'itemA itemB itemC', model: Item};
+    }
+    if(req.params.includePairs){
+      options.populate = {path: 'picks.AB.pair picks.AC.pair picks.BC.pair', model: Pair};
     }
     if(req.params.limit){
       options.limit = parseInt(req.params.limit, 10);
