@@ -98,7 +98,7 @@ PairSchema.statics.rebuildOrder = function(){
       rebuildTime = process.hrtime(rebuildStart);
       return Promise.join(
         require('./Triple').countDocuments({isRelevant: true}),
-        this.find({isOrdered: true}).select('seqNum').lean()
+        this.find({isOrdered: true}).select('seqNum order').sort('order').lean()
       );
     })
     .then(([triples, pairs]) => {
@@ -137,28 +137,25 @@ PairSchema.statics._order = function(){
   let ps = new PairSorter();
   let tIds;
 
-  return Promise.join(
-    this.find({isOrdered:  true}).sort('order seqNum'),
-    this.find({isOrdered: false}).sort('order seqNum')
-  )
-  .then(([ord, unord]) => {
-    log.info('Iterating until no pairs can be inserted');
-    return this._insertPairs([...ord, ...unord], ps);
-  })
-  // reset old order
-  .then(() => this.update({}, {$set: {isOrdered: false}}, {multi:true}))
-  // save new order
-  .then(() => {
-    const updates = ps.keys()
-      .map((sn, i) => [{seqNum: sn}, {order: 1+i, isOrdered: true}]);
-    return Promise.each(updates, ([query, update]) => this.update(query, update));
-  })
-  .then(() => ps.getRelevantTriples())
-  .then(triples => {
-    tIds = triples.map(t => t._id);
-    return require('./Triple').update({}, {$set: {isRelevant: false}}, {multi:true});
-  })
-  .then(() => require('./Triple').update({_id: {$in: tIds}}, {$set:{isRelevant:true}}, {multi:true}));
+  return this.find().sort('seqNum').lean()
+    .then(pairs => {
+      log.info('Iterating until no pairs can be inserted');
+      return this._insertPairs(pairs, ps);
+    })
+    // reset old order
+    .then(() => this.update({}, {$set: {isOrdered: false}}, {multi:true}))
+    // save new order
+    .then(() => {
+      const updates = ps.keys()
+        .map((sn, i) => [{seqNum: sn}, {order: 1+i, isOrdered: true}]);
+      return Promise.each(updates, ([query, update]) => this.update(query, update));
+    })
+    .then(() => ps.getRelevantTriples())
+    .then(triples => {
+      tIds = triples.map(t => t._id);
+      return require('./Triple').update({}, {$set: {isRelevant: false}}, {multi:true});
+    })
+    .then(() => require('./Triple').update({_id: {$in: tIds}}, {$set:{isRelevant:true}}, {multi:true}));
 };
 
 
