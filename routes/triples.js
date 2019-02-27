@@ -14,11 +14,14 @@ module.exports = function(app){
       limit : 10,
       lean  : true,
     };
-    if(req.params.includeItems){
-      options.populate = {path: 'itemA itemB itemC', model: Item};
-    }
-    if(req.params.includePairs){
-      options.populate = {path: 'picks.AB.pair picks.AC.pair picks.BC.pair', model: Pair};
+    if(req.params.includeItems || req.params.includePairs){
+      options.populate = [];
+      if(req.params.includeItems){
+        options.populate.push({path: 'itemA itemB itemC', model: Item});
+      }
+      if(req.params.includePairs){
+        options.populate.push({path: 'picks.AB.pair picks.AC.pair picks.BC.pair', model: Pair});
+      }
     }
     if(req.params.limit){
       options.limit = parseInt(req.params.limit, 10);
