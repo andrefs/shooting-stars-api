@@ -160,6 +160,20 @@ TripleSchema.methods.getPairs = function() {
     .then(pairs => pairs.sort((a, b) => a.cmp(b)));
 };
 
-TripleSchema.index({ itemA: 1, itemB: 1, itemC: 1 }, { unique: true });
+TripleSchema.statics.distCertaintySupport = function(){
+  return this.aggregate([
+    {$group: {
+      _id: {certainty: "$certainty", support: "$support"},
+      total: {$sum: 1}}
+    }
+  ])
+  .then(aggs => aggs.map(agg => ({
+    total: agg.total,
+    certainty: agg._id.certainty,
+    support: agg._id.support
+  })));
+};
+
+TripleSchema.index({itemA: 1, itemB: 1, itemC: 1}, {unique: true});
 
 export default mongoose.model('Triple', TripleSchema);
