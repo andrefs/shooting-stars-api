@@ -52,7 +52,7 @@ const TripleSchema = mongoose.Schema({
       pair: { type: mongoose.Schema.Types.ObjectId, ref: 'Pair' }
     },
   },
-  ambiguity: {
+  certainty: {
     type: 'Number',
     default: 0
   },
@@ -85,7 +85,7 @@ TripleSchema.pre('validate', function(next) {
 
       this.highestItemId = items[2].seqNum;
       this.randomSeq = createHash('md5').update(this._id.toString()).digest("hex");
-      this.updateAmbiguity();
+      this.updateCertainty();
 
       return Pair.find()
         .where({
@@ -136,12 +136,12 @@ TripleSchema.statics.updateTripleScores = async (moves) => {
 TripleSchema.methods.addPick = function(pick) {
   this.picks[pick].count++;
   this.support++;
-  this.updateAmbiguity();
+  this.updateCertainty();
   return this;
 };
 
-TripleSchema.methods.updateAmbiguity = function() {
-  this.ambiguity = _.max([
+TripleSchema.methods.updateCertainty = function() {
+  this.certainty = _.max([
     this.picks.AB.count,
     this.picks.AC.count,
     this.picks.BC.count,

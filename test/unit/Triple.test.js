@@ -96,7 +96,7 @@ describe('Triple', () => {
     expect(pairs[1].cmp(pairs[2])).toEqual(-1);
   });
 
-  it('updates ambiguity and support when addPick is called', async () => {
+  it('updates certainty and support when addPick is called', async () => {
     const imageUrl = 'http://ww.example.com';
 
     await Item.create({ name: 'first item', imageUrl });
@@ -118,19 +118,19 @@ describe('Triple', () => {
     t.addPick('AB');
     expect(t.support).toEqual(1);
     expect(t.picks.AB.count).toEqual(1);
-    expect(t.ambiguity).toEqual(1);
+    expect(t.certainty).toEqual(1);
 
     t.addPick('AC');
     expect(t.support).toEqual(2);
     expect(t.picks.AB.count).toEqual(1);
     expect(t.picks.AC.count).toEqual(1);
-    expect(t.ambiguity).toEqual(1);
+    expect(t.certainty).toEqual(1);
 
     t.addPick('AB');
     expect(t.support).toEqual(3);
     expect(t.picks.AB.count).toEqual(2);
     expect(t.picks.AC.count).toEqual(1);
-    expect(t.ambiguity).toEqual(2);
+    expect(t.certainty).toEqual(2);
   });
 
 });

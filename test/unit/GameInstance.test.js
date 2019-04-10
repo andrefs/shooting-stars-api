@@ -167,7 +167,7 @@ describe('GameInstance', () => {
       });
 
 
-      it.skip('correctly updates GameSequence ambiguity', function() {
+      it.skip('correctly updates GameSequence certainty', function() {
         const _addMove = async (i, gi) => gi.addMove(i, 'AC');
 
         return GameInstance.createNew(player._id)
@@ -180,7 +180,7 @@ describe('GameInstance', () => {
             return GameSequence.findOne({ _id: gi.gameSequence._id })
               .populate({ path: 'triples', model: 'Triple' });
           })
-          .then(gs => expect(gs.ambiguity).to.equal(gs.triples.reduce((total, cur) => total += cur.ambiguity, 0)));
+          .then(gs => expect(gs.certainty).to.equal(gs.triples.reduce((total, cur) => total += cur.certainty, 0)));
       });
     });
   });
@@ -273,7 +273,7 @@ describe('GameInstance', () => {
         .then(gs => expect(gamesequence.generatenew).to.have.been.called);
     });
 
-    it.skip('correctly calculates ambiguity', () => {
+    it.skip('correctly calculates certainty', () => {
       const imageurl = 'http://ww.example.com';
       let gs;
 
