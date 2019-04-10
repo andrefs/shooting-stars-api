@@ -161,7 +161,7 @@ TripleSchema.methods.getPairs = function(){
     .then(pairs => pairs.sort((a, b) => a.cmp(b)));
 };
 
-TripleSchema.statics.distCertainty = function(){
+TripleSchema.statics.distCertaintySupport = function(){
   return this.aggregate([
     {$group: {
       _id: {certainty: "$certainty", support: "$support"},
