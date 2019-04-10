@@ -15,7 +15,7 @@ module.exports = function(app, passport){
       User.playersByGender(),
       User.averageGamesPerActiveUserByMonth(),
       GameInstance.newGamesByMonth(),
-      Triple.distAmbiguitySupport()
+      Triple.distCertaintySupport()
     )
     .then(([
         cumulativeGames,
@@ -23,7 +23,7 @@ module.exports = function(app, passport){
         playersByGender,
         gamesByMonth,
         averageGames,
-        distAmbiguitySupport
+        distCertaintySupport
       ]) => {
         res.send({
           cumulativeGames,
@@ -31,7 +31,7 @@ module.exports = function(app, passport){
           playersByGender,
           gamesByMonth,
           averageGames,
-          distAmbiguitySupport
+          distCertaintySupport
         });
         return next();
     });

@@ -54,7 +54,7 @@ const TripleSchema = mongoose.Schema({
       pair:  {type: mongoose.Schema.Types.ObjectId, ref: 'Pair'}
     },
   },
-  ambiguity: {
+  certainty: {
     type: 'Number',
     default: 0
   },
@@ -87,7 +87,7 @@ TripleSchema.pre('validate', function(next){
 
       this.highestItemId = items[2].seqNum;
       this.randomSeq = createHash('md5').update(this._id.toString()).digest("hex");
-      this.updateAmbiguity();
+      this.updateCertainty();
 
       return Pair.find()
       .where({$or:[
@@ -137,12 +137,12 @@ TripleSchema.statics.updateTripleScores = function(moves){
 TripleSchema.methods.addPick = function(pick){
   this.picks[pick].count++;
   this.support++;
-  this.updateAmbiguity();
+  this.updateCertainty();
   return this;
 };
 
-TripleSchema.methods.updateAmbiguity = function(){
-  this.ambiguity = max([
+TripleSchema.methods.updateCertainty = function(){
+  this.certainty = max([
     this.picks.AB.count,
     this.picks.AC.count,
     this.picks.BC.count,
@@ -161,16 +161,16 @@ TripleSchema.methods.getPairs = function(){
     .then(pairs => pairs.sort((a, b) => a.cmp(b)));
 };
 
-TripleSchema.statics.distAmbiguitySupport = function(){
+TripleSchema.statics.distCertainty = function(){
   return this.aggregate([
     {$group: {
-      _id: {ambiguity: "$ambiguity", support: "$support"},
+      _id: {certainty: "$certainty", support: "$support"},
       total: {$sum: 1}}
     }
   ])
   .then(aggs => aggs.map(agg => ({
     total: agg.total,
-    ambiguity: agg._id.ambiguity,
+    certainty: agg._id.certainty,
     support: agg._id.support
   })));
 };
