@@ -161,6 +161,20 @@ TripleSchema.methods.getPairs = function(){
     .then(pairs => pairs.sort((a, b) => a.cmp(b)));
 };
 
+TripleSchema.statics.distAmbiguitySupport = function(){
+  return this.aggregate([
+    {$group: {
+      _id: {ambiguity: "$ambiguity", support: "$support"},
+      total: {$sum: 1}}
+    }
+  ])
+  .then(aggs => aggs.map(agg => ({
+    total: agg.total,
+    ambiguity: agg._id.ambiguity,
+    support: agg._id.support
+  })));
+};
+
 TripleSchema.index({itemA: 1, itemB: 1, itemC: 1}, {unique: true});
 
 module.exports = mongoose.model('Triple', TripleSchema);

@@ -1,5 +1,6 @@
 import User     from '../models/User';
 import GameInstance     from '../models/GameInstance';
+import Triple   from '../models/Triple';
 import errors   from 'restify-errors';
 import {log}           from '../lib/logger';
 import mongoose from 'mongoose';
@@ -14,11 +15,25 @@ module.exports = function(app, passport){
       User.playersByGender(),
       User.averageGamesPerActiveUserByMonth(),
       GameInstance.newGamesByMonth(),
+      Triple.distAmbiguitySupport()
     )
-    .then(([cumulativeGames, newUsersByMonth, playersByGender, gamesByMonth
+    .then(([
+        cumulativeGames,
+        newUsersByMonth,
+        playersByGender,
+        gamesByMonth,
+        averageGames,
+        distAmbiguitySupport
       ]) => {
-      res.send({cumulativeGames, newUsersByMonth, playersByGender, gamesByMonth});
-      return next();
+        res.send({
+          cumulativeGames,
+          newUsersByMonth,
+          playersByGender,
+          gamesByMonth,
+          averageGames,
+          distAmbiguitySupport
+        });
+        return next();
     });
   });
 
