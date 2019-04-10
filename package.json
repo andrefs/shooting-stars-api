@@ -1,6 +1,6 @@
 {
   "name": "shooting-stars-api",
-  "version": "5.3.0",
+  "version": "6.0.0",
   "description": "API for the Shooting Stars game",
   "main": "index.js",
   "scripts": {
