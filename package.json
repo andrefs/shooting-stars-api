@@ -46,6 +46,7 @@
   "license": "ISC",
   "dependencies": {
     "avl-promise": "^0.1.0",
+    "axios": "^0.18.0",
     "babel-plugin-transform-builtin-extend": "1.1.2",
     "babel-preset-env": "^1.7.0",
     "babel-register": "^6.24.1",
