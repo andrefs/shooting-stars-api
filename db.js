@@ -5,12 +5,18 @@ import { log } from './lib/logger.js';
 import Lock from './models/Lock.js';
 
 // Get correct URI
-let mongo_uri = process.env.MONGO_URI;
-if (!mongo_uri && config && config.db && config.db.uri) {
-  mongo_uri = config.db.uri;
-} else {
-  mongo_uri = 'mongodb://localhost/shooting-stars_noconfig';
-  log.warn(`MongoDB URI not set, using hardcoded default: ${mongo_uri} ...`);
+let uri = process.env.MONGO_URI;
+if (!uri && config && config.db && config.db.uri) {
+  uri = config.db.uri;
+} else if (!uri && config && config.db && config.db.host) {
+  let auth = '';
+  if (config.db.user) { auth += config.db.user + ':'; }
+  if (config.db.pass) { auth += config.db.pass + '@'; }
+  uri = `mongodb://${auth}${config.db.host}:${config.db.port}/${config.db.name}`;
+}
+if (!uri) {
+  uri = 'mongodb://localhost/shooting-stars_noconfig';
+  log.warn(`MongoDB URI not set, using hardcoded default: ${uri} ...`);
 }
 
 // TODO compare with Bluebird
@@ -24,7 +30,7 @@ if (config.log.db) {
 // Database connection
 
 const connect = () => {
-  mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true });
+  mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
   const conn = mongoose.connection;
 
   conn.on('error', (err) => {
