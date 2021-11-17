@@ -5,13 +5,10 @@ import {log}    from './lib/logger';
 import Lock     from './models/Lock';
 
 // Get correct URI
-let mongo_uri = process.env.MONGO_URI;
-if(!mongo_uri && config && config.db && config.db.uri){
-    mongo_uri = config.db.uri;
-} else {
-    mongo_uri = 'mongodb://localhost/shooting-stars_noconfig';
-    log.warn(`MongoDB URI not set, using hardcoded default: ${mongo_uri} ...`);
-}
+let auth = '';
+if(config.db.user){ auth += user+':'; }
+if(config.db.pass){ auth += pass+'@' }
+const uri = `mongodb://${auth}${config.db.host}:${config.db.port}/${config.db.name}`
 
 // TODO compare with Bluebird
 // Set Promise library
@@ -24,7 +21,7 @@ if(config.log.db){
 // Database connection
 
 const connect = () => {
-  mongoose.connect(mongo_uri, {useNewUrlParser: true});
+  mongoose.connect(uri, {useNewUrlParser: true});
   const conn = mongoose.connection;
 
   conn.on('error', (err) => {
