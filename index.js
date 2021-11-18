@@ -48,8 +48,13 @@ const loadItemsJson = async () => {
       });
       return Promise.all(itemsData.map(item => Item.loadItem(item)));
     })
-    .catch(() => {
-      log.info(`File ${jfile} not found, skipping loading items from file...`);
+    .catch(e => {
+      if (e.code && e.code === 'ENOENT') {
+        log.info(`File ${jfile} not found, skipping loading items from file...`);
+      } else {
+        log.warn(`Error accessing file ${jfile}`, e);
+        throw e;
+      }
     });
 };
 
