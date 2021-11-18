@@ -30,6 +30,8 @@ if (config.log.db) {
 // Database connection
 
 const connect = () => {
+
+  log.info('Connecting to MongoDB ' + uri);
   mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
   const conn = mongoose.connection;
 
