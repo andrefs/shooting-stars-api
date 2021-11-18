@@ -31,11 +31,15 @@ module.exports = {
   gameApp: {
     url: 'http://localhost:15112'
   },
-  env: 'development',
+  env: 'production',
   log: {
     db: true,
     level: 'silly',
     dir: '/tmp'
+  },
+  loadItems: {
+    folder: process.env.LOAD_ITEMS_FOLDER || '/data/items',
+    file: 'items.json',
   },
   images: {
     folder: 'images',

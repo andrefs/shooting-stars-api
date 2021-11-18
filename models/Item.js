@@ -2,7 +2,14 @@ import mongoose         from 'mongoose';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
 import createdModified  from 'mongoose-createdmodified';
+import config   from '../config';
+import path from 'path';
+import Jimp from 'jimp';
+import {log}           from '../lib/logger';
+import errors from 'restify-errors';
+import md5 from 'md5';
 import {reject}         from 'lodash';
+import {promises as fs} from 'fs';
 import MongooseSequence from 'mongoose-sequence';
 import Promise  from 'bluebird';
 import {NoMoreItemsError}  from '../lib/errors';
@@ -47,6 +54,8 @@ const generatePairs = (doc, otherItems) => {
   }));
 };
 
+
+
 ItemSchema.pre('save', function(next){
   this.wasNew = this.isNew;
   return next();
@@ -89,8 +98,35 @@ ItemSchema.statics.activateNext = function(){
   })
   .then(() => {
     const triples = generateTriples(newItem, oldItems || []);
-    return require('./Triple').create(triples)
+    return require('./Triple').create(triples);
   });
+};
+
+ItemSchema.statics.loadItem = function({name, description, imageUrl, tmpPath}){
+  let item = {};
+  item.name = name;
+  item.description = description;
+  item.imageUrl = imageUrl;
+
+  let filePath;
+
+  return fs.readFile(tmpPath)
+    .then(buf => md5(buf))
+    .then(fileName => {
+      filePath = path.join(config.images.folder, fileName)+'.jpg';
+      log.info(`Copying image file to ${filePath}`);
+      return Jimp.read(tmpPath);
+    })
+    .then(file => file.write(filePath))
+    //.then(() => fs.unlink(tmpPath))
+    .then(() => {
+      item.imagePath = filePath;
+      return this.create(item);
+    })
+    .catch((err) => {
+      log.error(err);
+      throw new errors.InternalError(err.message);
+    });
 };
 
 module.exports = mongoose.model('Item', ItemSchema);

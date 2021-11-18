@@ -7,8 +7,9 @@ import Lock     from './models/Lock';
 // Get correct URI
 let auth = '';
 if(config.db.user){ auth += user+':'; }
-if(config.db.pass){ auth += pass+'@' }
-const uri = `mongodb://${auth}${config.db.host}:${config.db.port}/${config.db.name}`
+if(config.db.pass){ auth += pass+'@'; }
+const uri = `mongodb://${auth}${config.db.host}:` +
+            `${config.db.port}/${config.db.name}`;
 
 // TODO compare with Bluebird
 // Set Promise library
@@ -19,18 +20,9 @@ if(config.log.db){
 
 
 // Database connection
-
-const connect = () => {
-
+const connect = async () => {
   log.info('Connecting to MongoDB '+uri);
-  mongoose.connect(uri, {useNewUrlParser: true});
-  const conn = mongoose.connection;
-
-  conn.on('error', (err) => {
-    log.error('Mongoose default connection error: ' + err);
-    process.exit(1)
-  });
-  return conn;
+  return mongoose.connect(uri, {useNewUrlParser: true});
 };
 
 const disconnect = () => {
@@ -43,4 +35,4 @@ const disconnect = () => {
 };
 
 
-export {mongoose, connect, disconnect};
+export {mongoose, connect, disconnect, uri};
