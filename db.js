@@ -4,7 +4,6 @@ import Promise from 'bluebird';
 import { log } from './lib/logger.js';
 import Lock from './models/Lock.js';
 
-// Get correct URI
 let uri = process.env.MONGO_URI;
 if (!uri && config && config.db && config.db.uri) {
   uri = config.db.uri;
@@ -28,18 +27,10 @@ if (config.log.db) {
 
 
 // Database connection
-
-const connect = () => {
-
+const connect = async () => {
   log.info('Connecting to MongoDB ' + uri);
-  mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-  const conn = mongoose.connection;
-
-  conn.on('error', (err) => {
-    log.error('Mongoose default connection error: ' + err);
-    process.exit(1)
-  });
-  return conn;
+  return mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+};
 };
 
 const disconnect = async () => {
@@ -50,4 +41,4 @@ const disconnect = async () => {
 };
 
 
-export { mongoose, connect, disconnect };
+export { mongoose, connect, disconnect, uri };

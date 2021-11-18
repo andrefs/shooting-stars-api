@@ -5,11 +5,6 @@ import errors from 'restify-errors';
 import { log } from '../lib/logger.js';
 import mongoose from 'mongoose';
 import { InvalidObjectId } from '../lib/errors/index.js';
-import md5 from 'md5';
-import { readFile } from 'fs/promises';
-import config from '../config/index.cjs';
-import path from 'path';
-import Jimp from 'jimp';
 
 export default function(app) {
 
@@ -21,22 +16,8 @@ export default function(app) {
     item.imageUrl = req.params.imageUrl;
 
     if (req.files && req.files.image) {
-      const tmpFile = req.files.image.path;
-      let filePath;
-
-      readFile(tmpFile)
-        .then(buf => md5(buf))
-        .then(fileName => {
-          filePath = path.join(config.images.folder, fileName) + '.jpg';
-          log.info(`Copying image file to ${filePath}`);
-          return Jimp.read(tmpFile);
-        })
-        .then(file => file.write(filePath))
-        .then(() => fs.unlink(tmpFile))
-        .then(() => {
-          item.imagePath = filePath;
-          return item.save();
-        })
+      item.tmpPath = req.files.image.path;
+      Item.loadItem(item)
         .then(doc => {
           res.send(201, doc);
           return next();
