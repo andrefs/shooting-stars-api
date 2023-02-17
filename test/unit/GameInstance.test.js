@@ -4,18 +4,11 @@ import Pair from '../../models/Pair';
 import Turn from '../../models/Turn';
 import Triple from '../../models/Triple';
 import GameInstance from '../../models/GameInstance';
-import chai from 'chai';
-import sinon from 'sinon';
-import sinonChai from 'sinon-chai';
-chai.use(sinonChai);
 import Promise from 'bluebird';
-import chaiAsPromised from 'chai-as-promised';
 import { NoCurrentTurnError, NoMoreItemsError } from '../../lib/errors';
 require('../mongoose-helper');
 import config from '../../config';
 
-chai.use(chaiAsPromised);
-const expect = chai.expect;
 
 
 describe('GameInstance', () => {
@@ -36,12 +29,14 @@ describe('GameInstance', () => {
 
     await Promise.promisify(Item.counterReset)('item_counter');
     await Promise.promisify(Pair.counterReset)('pair_counter');
-    await GameInstance.remove().exec();
-    await Item.remove().exec();
-    await Pair.remove().exec();
-    await Triple.remove().exec();
-    await Turn.remove().exec();
-    await User.remove().exec();
+
+    await GameInstance.deleteMany();
+    await Item.deleteMany();
+    await Pair.deleteMany();
+    await Triple.deleteMany();;
+    await Turn.deleteMany();;
+    await User.deleteMany();;
+
     await Item.create({ name: '1st item', imageUrl });
     await Item.create({ name: '2nd item', imageUrl });
     await Item.create({ name: '3rd item', imageUrl });
@@ -51,6 +46,7 @@ describe('GameInstance', () => {
     await Item.create({ name: '7th item', imageUrl });
     await Item.create({ name: '8th item', imageUrl });
     await Item.create({ name: '9th item', imageUrl });
+
     await Item.activateNext();
     await Item.activateNext();
     await Item.activateNext();
@@ -65,37 +61,30 @@ describe('GameInstance', () => {
   describe('when created', () => {
     it('selects new game sequence', function() {
       return GameInstance.createNew(player._id)
-        .then(gi => expect(gi.gameSequence).to.not.be.undefined);
+        .then(gi => expect(gi.gameSequence).toBeDefined());
     });
 
-    it('throws if it can\'t select a game sequence', function() {
-      return Promise.join(
-        Item.remove().exec(),
-        Pair.remove().exec(),
-        Triple.remove().exec(),
-        Promise.promisify(Item.counterReset)('item_counter'),
-        Promise.promisify(Item.counterReset)('pair_counter')
-      )
-        .then(() => {
-          const p = GameInstance.createNew(player._id);
-          return expect(p).to.eventually.be.rejectedWith(NoMoreItemsError);
-        });
+    it('throws if it can\'t select a game sequence', async () => {
+      await Item.deleteMany();
+      await Pair.deleteMany();
+      await Triple.deleteMany();
+      await Promise.promisify(Item.counterReset)('item_counter');
+      await Promise.promisify(Item.counterReset)('pair_counter');
+
+      const p = GameInstance.createNew(player._id);
+      await expect(p).rejects.toThrow(NoMoreItemsError);
     });
 
-    it.skip('assigns an async player if a suitable one exists', function() {
+    it.skip('assigns an async player if a suitable one exists', async () => {
       const username = 'async_player';
       const password = 'password';
       let async_player;
 
-      return User.create({ username, password })
-      then(user => {
-        async_player = user;
-        return GameInstance.createNew(player._id);
-      })
-        .then(gi => {
-          expect(gi.players.async).to.not.be.undefined;
-          expect(gi.players.async.toString()).to.equal(async_player._id.toString());
-        });
+      const user = await User.create({ username, password });
+      const gi = await GameInstance.createNew(user._id);
+
+      expect(gi.players.async).toBeDefined();
+      expect(gi.players.async.toString()).toEqual(async_player._id.toString());
     });
 
     it.skip('does not assign async player if a suitable one cannot be found', function() {
@@ -108,7 +97,7 @@ describe('GameInstance', () => {
     it('bootstraps properties', function() {
       return GameInstance.createNew(player._id)
         .then(gi => {
-          expect(gi.gameSequence).to.not.be.undefined;
+          expect(gi.gameSequence).toBeDefined();
         });
     });
   });
@@ -129,65 +118,58 @@ describe('GameInstance', () => {
     })
       .then(gi => gi.setCurrentScore())
       .then(gi => {
-        expect(gi.currentScore).to.deep.equal({
-          player: 100,
-          rand1: 100,
-          rand2: 100
-        });
+        expect(gi.currentScore).toMatchInlineSnapshot(`
+{
+  "player": 100,
+  "rand1": 100,
+  "rand2": 100,
+}
+`);
       });
   });
 
   describe('when adding a move', () => {
 
-    it('throws if there\'s no current turn', function() {
-      return GameInstance.createNew(player._id)
-        .then(gi => {
-          gi.turns.current = undefined;
-          expect(gi.addMove()).to.be.eventually.rejectedWith(NoCurrentTurnError);
-        });
+    it('throws if there\'s no current turn', async () => {
+      const gi = await GameInstance.createNew(player._id)
+      gi.turns.current = undefined;
+      expect(gi.addMove()).rejects.toThrow(NoCurrentTurnError);
     });
 
-    it('calls setCurrentScore and nextTurn', function() {
-      return GameInstance.createNew(player._id)
-        .then(gi => {
-          // TODO spy on gi.turns.current.setMoves
-          sinon.spy(gi, 'setCurrentScore');
-          sinon.spy(gi, 'nextTurn');
-          return gi.addMove(1, 'AC');
-        })
-        .then(gi => {
-          expect(gi.setCurrentScore).to.have.been.called;
-          expect(gi.nextTurn).to.have.been.called;
-        });
+    it('calls setCurrentScore and nextTurn', async () => {
+      let gi = await GameInstance.createNew(player._id)
+      // TODO spy on gi.turns.current.setMoves
+      jest.spyOn(gi, 'setCurrentScore');
+      jest.spyOn(gi, 'nextTurn');
+      gi = await gi.addMove(1, 'AC');
+      expect(gi.setCurrentScore).toHaveBeenCalled();
+      expect(gi.nextTurn).toHaveBeenCalled();
     });
 
     describe('wrapUp', () => {
-      it('gets called at the end', function() {
+      it('gets called at the end', async () => {
         const _addMove = async (i, gi) => gi.addMove(i, 'AC');
 
-        return GameInstance.createNew(player._id)
-          .then(async gi => {
-            sinon.spy(gi, 'wrapUp');
-            for (let i = 0; i < config.game.size; i++) {
-              await _addMove(i + 1, gi);
-            }
-            return expect(gi.wrapUp).to.have.been.called;
-          })
+        const gi = await GameInstance.createNew(player._id);
+        jest.spyOn(gi, 'wrapUp');
+        for (let i = 0; i < config.game.size; i++) {
+          await _addMove(i + 1, gi);
+        }
+        expect(gi.wrapUp).toHaveBeenCalled();
+
       });
 
-      it('calls GameInstance.saveMoves and Triple.updateTripleScores', () => {
+      it('calls GameInstance.saveMoves and Triple.updateTripleScores', async () => {
         const _addMove = async (i, gi) => gi.addMove(i, 'AC');
 
-        return GameInstance.createNew(player._id)
-          .then(async gi => {
-            sinon.spy(gi, 'saveMoves');
-            sinon.spy(Triple, 'updateTripleScores');
-            for (let i = 0; i < config.game.size; i++) {
-              await _addMove(i + 1, gi);
-            }
-            expect(gi.saveMoves).to.have.been.called;
-            expect(Triple.updateTripleScores).to.have.been.called;
-          });
+        const gi = await GameInstance.createNew(player._id);
+        jest.spyOn(gi, 'saveMoves');
+        jest.spyOn(Triple, 'updateTripleScores');
+        for (let i = 0; i < config.game.size; i++) {
+          await _addMove(i + 1, gi);
+        }
+        expect(gi.saveMoves).toHaveBeenCalled()
+        expect(Triple.updateTripleScores).toHaveBeenCalled();
       });
 
 
@@ -240,18 +222,17 @@ describe('GameInstance', () => {
         });
     });
 
-    it('returns new GameSequence with correct number of triples', function() {
-      return gameInst._createNewGameSequence()
-        .then(triples => expect(triples.length).to.equal(config.game.size));
+    it('returns new GameSequence with correct number of triples', async () => {
+      const triples = await gameInst._createNewGameSequence();
+
+      expect(triples.length).toEqual(config.game.size);
     });
 
-    it('throws when there are not enough items', function() {
-      return Promise.join(
-        Item.remove(),
-        Pair.remove(),
-        Triple.remove()
-      )
-        .then(() => expect(gameInst._createNewGameSequence()).to.be.eventually.rejectedWith(NoMoreItemsError));
+    it('throws when there are not enough items', async () => {
+      await Item.deleteMany();
+      await Pair.deleteMany();
+      await Triple.deleteMany();
+      expect(gameInst._createNewGameSequence()).rejects.toThrow(NoMoreItemsError);
     });
 
     it.skip('selectnew selects existing sequence if available', () => {
