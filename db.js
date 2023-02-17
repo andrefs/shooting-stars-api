@@ -1,22 +1,22 @@
-import config   from './config';
+import config from './config';
 import mongoose from 'mongoose';
-import Promise  from 'bluebird';
-import {log}    from './lib/logger';
-import Lock     from './models/Lock';
+import Promise from 'bluebird';
+import { log } from './lib/logger';
+import Lock from './models/Lock';
 
 // Get correct URI
 let mongo_uri = process.env.MONGO_URI;
-if(!mongo_uri && config && config.db && config.db.uri){
-    mongo_uri = config.db.uri;
+if (!mongo_uri && config && config.db && config.db.uri) {
+  mongo_uri = config.db.uri;
 } else {
-    mongo_uri = 'mongodb://localhost/shooting-stars_noconfig';
-    log.warn(`MongoDB URI not set, using hardcoded default: ${mongo_uri} ...`);
+  mongo_uri = 'mongodb://localhost/shooting-stars_noconfig';
+  log.warn(`MongoDB URI not set, using hardcoded default: ${mongo_uri} ...`);
 }
 
 // TODO compare with Bluebird
 // Set Promise library
 mongoose.Promise = Promise;
-if(config.log.db){
+if (config.log.db) {
   mongoose.set('debug', true);
 }
 
@@ -24,7 +24,7 @@ if(config.log.db){
 // Database connection
 
 const connect = () => {
-  mongoose.connect(mongo_uri, {useNewUrlParser: true});
+  mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false });
   const conn = mongoose.connection;
 
   conn.on('error', (err) => {
@@ -44,4 +44,4 @@ const disconnect = () => {
 };
 
 
-export {mongoose, connect, disconnect};
+export { mongoose, connect, disconnect };

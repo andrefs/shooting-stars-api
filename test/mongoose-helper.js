@@ -1,17 +1,17 @@
 import mongoose from 'mongoose';
-import * as db  from '../db';
+import * as db from '../db';
 
 let conn;
 
-before(done => {
+beforeAll(done => {
   conn = db.connect();
   return done();
 });
 
 
-after(done => {
+afterAll(done => {
   db.disconnect();
   return done();
 });
 
-export {conn};
+export { conn };
