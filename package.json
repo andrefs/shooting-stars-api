@@ -1,6 +1,6 @@
 {
   "name": "shooting-stars-api",
-  "version": "5.2.2",
+  "version": "5.2.3",
   "description": "API for the Shooting Stars game",
   "main": "index.js",
   "scripts": {
@@ -40,7 +40,7 @@
     ]
   },
   "engines": {
-    "node": ">=10.1.0"
+    "node": ">=12"
   },
   "author": "André Santos",
   "license": "ISC",
