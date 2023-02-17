@@ -59,7 +59,7 @@
     "jwt-simple": "^0.5.1",
     "knuth-shuffle": "^1.0.8",
     "lobo-mongodb-fixtures": "^1.0.0",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.21",
     "md5": "^2.2.1",
     "mongodb": "^3.1.0-beta4",
     "mongoose": "^5.1.1",
