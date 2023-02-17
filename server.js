@@ -93,7 +93,7 @@ const create = () => {
     if(pathname.indexOf(config.images.path) === 0){ return true;}
     return false;
   }));
-  if(config.auth.disabled){
+  if(!config.auth.disabled){
     api.use((req, res, next) => {
       if(req.params.userId){
         req.auth = req.auth || {};

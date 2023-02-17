@@ -25,5 +25,8 @@ module.exports = {
     db: false,
     level: 'warn',
     dir: '/tmp'
+  },  images: {
+    folder: 'images',
+    path: '/items/images'
   }
 };
