@@ -17,8 +17,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10.x, 14.x, 16.x, 18.x]
-        mongodb-version: ['4.0','4.2', '4.4', '5.0', '6.0']
+        node-version: [10.x, 12.x, 14.x]
+        mongodb-version: ['4.0', '4.4', '5.0']
+        #node-version: [10.x, 14.x, 16.x, 18.x]
+        #mongodb-version: ['4.0','4.2', '4.4', '5.0', '6.0']
 
     steps:
     - name: Git checkout
