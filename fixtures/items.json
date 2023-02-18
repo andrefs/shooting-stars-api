@@ -1,0 +1,290 @@
+[
+  {
+    "seqNum": 1,
+    "isActive": false,
+    "imageUrl": "madonna.png",
+    "name": "Madonna"
+  },
+  {
+    "seqNum": 2,
+    "isActive": false,
+    "imageUrl": "gaga.png",
+    "name": "Lady Gaga"
+  },
+  {
+    "seqNum": 3,
+    "isActive": false,
+    "imageUrl": "queen.jpg",
+    "name": "Freddie Mercury (Queen)"
+  },
+  {
+    "seqNum": 4,
+    "isActive": false,
+    "imageUrl": "bono.png",
+    "name": "Bono (U2)"
+  },
+  {
+    "seqNum": 5,
+    "isActive": false,
+    "imageUrl": "bowie.jpg",
+    "name": "David Bowie"
+  },
+  {
+    "seqNum": 6,
+    "isActive": false,
+    "imageUrl": "prince.jpg",
+    "name": "Prince"
+  },
+  {
+    "seqNum": 7,
+    "isActive": false,
+    "imageUrl": "adele.jpg",
+    "name": "Adele"
+  },
+  {
+    "seqNum": 8,
+    "isActive": false,
+    "imageUrl": "amy.jpg",
+    "name": "Amy Whinehouse"
+  },
+  {
+    "seqNum": 9,
+    "isActive": false,
+    "imageUrl": "bruce.jpg",
+    "name": "Bruce Springstein"
+  },
+  {
+    "seqNum": 10,
+    "isActive": false,
+    "imageUrl": "brunomars.jpg",
+    "name": "Bruno Mars"
+  },
+  {
+    "seqNum": 11,
+    "isActive": false,
+    "imageUrl": "eltonjohn.jpg",
+    "name": "Elton John"
+  },
+  {
+    "seqNum": 12,
+    "isActive": false,
+    "imageUrl": "elvis.jpg",
+    "name": "Elvis Presley"
+  },
+  {
+    "seqNum": 13,
+    "isActive": false,
+    "imageUrl": "eminem.jpg",
+    "name": "Eminem"
+  },
+  {
+    "seqNum": 14,
+    "isActive": false,
+    "imageUrl": "bieber.jpg",
+    "name": "Justin Bieber"
+  },
+  {
+    "seqNum": 15,
+    "isActive": false,
+    "imageUrl": "mjakson.jpg",
+    "name": "Michael Jackson"
+  },
+  {
+    "seqNum": 16,
+    "isActive": false,
+    "imageUrl": "rihanna.jpg",
+    "name": "Rihanna"
+  },
+  {
+    "seqNum": 17,
+    "isActive": false,
+    "imageUrl": "shakira.jpg",
+    "name": "Shakira"
+  },
+  {
+    "seqNum": 18,
+    "isActive": false,
+    "imageUrl": "tswift.jpeg",
+    "name": "Taylor Swift"
+  },
+  {
+    "seqNum": 19,
+    "isActive": false,
+    "imageUrl": "tinaturner.jpg",
+    "name": "Tina Turner"
+  },
+  {
+    "seqNum": 20,
+    "isActive": false,
+    "imageUrl": "whitneyhouston.jpg",
+    "name": "Whitney Houston"
+  },
+  {
+    "seqNum": 21,
+    "isActive": false,
+    "imageUrl": "maroon5.jpg",
+    "name": "Adam Levine (Maroon 5)"
+  },
+  {
+    "seqNum": 22,
+    "isActive": false,
+    "imageUrl": "axlrose.jpg",
+    "name": "Axl Rose (Guns N'Roses)"
+  },
+  {
+    "seqNum": 23,
+    "isActive": false,
+    "imageUrl": "bobmarley.jpg",
+    "name": "Bob Marley"
+  },
+  {
+    "seqNum": 24,
+    "isActive": false,
+    "imageUrl": "acdc.jpg",
+    "name": "Brian Johnson (AC/DC)"
+  },
+  {
+    "seqNum": 25,
+    "isActive": false,
+    "imageUrl": "coldplay.jpg",
+    "name": "Chris Martin (Coldplay)"
+  },
+  {
+    "seqNum": 26,
+    "isActive": false,
+    "imageUrl": "eddievedder.jpg",
+    "name": "Eddie Vedder (Pearl Jam)"
+  },
+  {
+    "seqNum": 27,
+    "isActive": false,
+    "imageUrl": "metallica.png",
+    "name": "James Hetfield (Metallica)"
+  },
+  {
+    "seqNum": 28,
+    "isActive": false,
+    "imageUrl": "doors.jpg",
+    "name": "Jim Morrison (The Doors)"
+  },
+  {
+    "seqNum": 29,
+    "isActive": false,
+    "imageUrl": "johnlennon.jpg",
+    "name": "John Lennon (The Beatles)"
+  },
+  {
+    "seqNum": 30,
+    "isActive": false,
+    "imageUrl": "mickjagger.jpg",
+    "name": "Mick Jagger (The Rolling Stones)"
+  },
+  {
+    "seqNum": 31,
+    "isActive": false,
+    "imageUrl": "pinkfloyd.jpg",
+    "name": "Roger Waters (Pink Floyd)"
+  },
+  {
+    "seqNum": 32,
+    "isActive": false,
+    "imageUrl": "aerosmith.jpg",
+    "name": "Steven Tyler (Aerosmith)"
+  },
+  {
+    "seqNum": 33,
+    "isActive": false,
+    "imageUrl": "beyonce.jpg",
+    "name": "Beyonce"
+  },
+  {
+    "seqNum": 34,
+    "isActive": false,
+    "imageUrl": "bonjovi.jpg",
+    "name": "Jon Bon Jovi (Bon Jovi)"
+  },
+  {
+    "seqNum": 35,
+    "isActive": false,
+    "imageUrl": "cher.jpg",
+    "name": "Cher"
+  },
+  {
+    "seqNum": 36,
+    "isActive": false,
+    "imageUrl": "jeniferlopez.jpg",
+    "name": "Jennifer Lopez"
+  },
+  {
+    "seqNum": 37,
+    "isActive": false,
+    "imageUrl": "lenny.jpg",
+    "name": "Lenny Kravitz"
+  },
+  {
+    "seqNum": 38,
+    "isActive": false,
+    "imageUrl": "muse.jpg",
+    "name": "Matt Bellamy (Muse)"
+  },
+  {
+    "seqNum": 39,
+    "isActive": false,
+    "imageUrl": "nirvana.jpg",
+    "name": "Kurt Cobain (Nirvana)"
+  },
+  {
+    "seqNum": 40,
+    "isActive": false,
+    "imageUrl": "pavarotti.jpg",
+    "name": "Luciano Pavarotti"
+  },
+  {
+    "seqNum": 41,
+    "isActive": false,
+    "imageUrl": "piaf.jpg",
+    "name": "Edith Piaf"
+  },
+  {
+    "seqNum": 42,
+    "isActive": false,
+    "imageUrl": "radiohead.jpg",
+    "name": "Thom Yorke (Radiohead)"
+  },
+  {
+    "seqNum": 43,
+    "isActive": false,
+    "imageUrl": "sinatra.jpg",
+    "name": "Frank Sinatra"
+  },
+  {
+    "seqNum": 44,
+    "isActive": false,
+    "imageUrl": "sting.jpg",
+    "name": "Sting"
+  },
+  {
+    "seqNum": 45,
+    "isActive": false,
+    "imageUrl": "timberlake.jpg",
+    "name": "Justin Timberlake"
+  },
+  {
+    "seqNum": 46,
+    "isActive": false,
+    "imageUrl": "http://tempuri.org",
+    "name": "Stacey Kent"
+  },
+  {
+    "seqNum": 47,
+    "isActive": false,
+    "imageUrl": "http://tempuri.org",
+    "name": "Édith Piaf"
+  },
+  {
+    "seqNum": 48,
+    "isActive": false,
+    "imageUrl": "http://tempuri.org",
+    "name": "Frank Sinatra"
+  }
+]

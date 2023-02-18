@@ -1,0 +1,23 @@
+[
+  {
+    "username": "user3@example.com"
+  },
+  {
+    "username": "user1@example.com",
+    "birthYear": 1960,
+    "gender": "M"
+  },
+  {
+    "username": "user2@example.com",
+    "birthYear": 1972,
+    "gender": "F"
+  },
+  {
+    "username": "user4@example.com",
+    "birthYear": 1991
+  },
+  {
+    "username": "user5@example.com",
+    "gender": "F"
+  }
+]
