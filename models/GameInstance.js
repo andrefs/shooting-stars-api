@@ -73,27 +73,21 @@ const GameInstanceSchema = mongoose.Schema({
     Adds the created game instance to player.currentGameInstance.
     @param {Player} pID
  */
-GameInstanceSchema.statics.createNew = function(pId) {
-  let player;
+GameInstanceSchema.statics.createNew = async function(pId) {
   let gameInst = new this({ player: pId });
 
-  return User.findOne({ _id: mongoose.Types.ObjectId(pId) }).exec()
-    .then(u => {
-      player = u;
-      gameInst.player = u;
-      return gameInst._createNewGameSequence();
-    })
-    .then(triples => {
-      log.info(`New game sequence generated for player ${pId}`);
-      gameInst.gameSequence = knuthShuffle(triples);
-      player.currentGameInstance = gameInst;
-      gameInst.setOpponentNames();
-      return Promise.join(
-        gameInst.save(),
-        player.save()
-      );
-    })
-    .then(([gi]) => gi.nextTurn(0));
+  const player = await User.findOne({ _id: mongoose.Types.ObjectId(pId) });
+
+  gameInst.player = player;
+  const triples = await gameInst._createNewGameSequence();
+
+  log.info(`New game sequence generated for player ${pId}`);
+  gameInst.gameSequence = knuthShuffle(triples);
+  player.currentGameInstance = gameInst;
+  gameInst.setOpponentNames();
+  const gi = await gameInst.save();
+  await player.save()
+  return gi.nextTurn(0);
 };
 
 GameInstanceSchema.methods._createNewGameSequence = function() {
@@ -199,8 +193,8 @@ GameInstanceSchema.methods.setOpponentNames = function() {
 };
 
 
-GameInstanceSchema.methods.toSanitizedObject = function() {
-  return this.populate([{
+GameInstanceSchema.methods.toSanitizedObject = async function() {
+  const gi = await this.populate([{
     path: 'player',
     select: 'username',
     model: 'User'
@@ -228,24 +222,23 @@ GameInstanceSchema.methods.toSanitizedObject = function() {
       },
     }
     ]
-  }])
-    .execPopulate()
-    .then(gi => {
-      let obj = gi.toObject();
-      obj.seqLength = obj.gameSequence.length;
-      delete obj.gameSequence;
-      if (obj.turns.current) {
-        delete obj.turns.current.score;
-        delete obj.turns.current.moves;
-      }
-      if (obj.player) {
-        obj.player = {
-          _id: obj.player._id,
-          username: obj.player.username
-        };
-      }
-      return obj;
-    });
+  }]);
+
+
+  let obj = gi.toObject();
+  obj.seqLength = obj.gameSequence.length;
+  delete obj.gameSequence;
+  if (obj.turns.current) {
+    delete obj.turns.current.score;
+    delete obj.turns.current.moves;
+  }
+  if (obj.player) {
+    obj.player = {
+      _id: obj.player._id,
+      username: obj.player.username
+    };
+  }
+  return obj;
 };
 
 GameInstanceSchema.methods.nextTurn = function(currentTurnNumber) {
@@ -290,9 +283,9 @@ GameInstanceSchema.methods.saveMoves = function() {
   return PlayerMove.create(playerMoves);
 };
 
-GameInstanceSchema.methods.wrapUp = function() {
+GameInstanceSchema.methods.wrapUp = async function() {
   this.isFinished = true;
-  return this.populate([{
+  await this.populate([{
     path: 'player',
     model: User,
   }, {
@@ -302,56 +295,53 @@ GameInstanceSchema.methods.wrapUp = function() {
   {
     path: 'gameSequence',
     model: Triple
-  }])
-    .execPopulate()
-    .then(() => this.player.wrapUpGameInstance(this))
-    .then(() => this.saveMoves())
-    .then(moves => Triple.updateTripleScores(moves))
-    .then(() => this.save());
+  }]);
+
+  await this.player.wrapUpGameInstance(this);
+  const moves = await this.saveMoves();
+  await Triple.updateTripleScores(moves);
+  this.save();
 };
 
-GameInstanceSchema.methods.addMove = function(turnNumber, pick) {
+GameInstanceSchema.methods.addMove = async function(turnNumber, pick) {
   const tn = parseInt(turnNumber, 10);
-  return this.populate({
+  await this.populate({
     path: 'turns.current',
     model: Turn,
     populate: {
       path: 'triple',
       model: 'Triple'
     }
-  }).execPopulate()
-    .then(() => {
-      if (!this.turns.current) {
-        // no current turn, game must be over
-        return Promise.reject(new NoCurrentTurn());
-      }
+  });
 
-      this.turns.current.moves.player = pick;
-      this.turns.current.markModified('moves.player');
-      return this.turns.current.setMoves();
-    })
-    .then(() => this.nextTurn(tn))
-    ;
+  if (!this.turns.current) {
+    // no current turn, game must be over
+    return Promise.reject(new NoCurrentTurn());
+  }
+
+  this.turns.current.moves.player = pick;
+  this.turns.current.markModified('moves.player');
+  await this.turns.current.setMoves();
+
+  return this.nextTurn(tn);
 };
 
-GameInstanceSchema.methods.setCurrentScore = function() {
+GameInstanceSchema.methods.setCurrentScore = async function() {
   if (!this.turns.previous.length) { return Promise.resolve(this); }
 
-  return this.populate({
+  await this.populate({
     path: 'turns.previous',
     model: Turn,
-  })
-    .execPopulate()
-    .then(() => {
-      ['player', 'rand1', 'rand2'].forEach(p => {
-        this.currentScore[p] = this.turns.previous
-          .map(t => t.score[p])
-          .reduce((a, b) => a + b);
-      });
-      this.markModified('currentScore');
+  });
 
-      return this.save();
-    });
+  ['player', 'rand1', 'rand2'].forEach(p => {
+    this.currentScore[p] = this.turns.previous
+      .map(t => t.score[p])
+      .reduce((a, b) => a + b);
+  });
+  this.markModified('currentScore');
+
+  return this.save();
 };
 
 

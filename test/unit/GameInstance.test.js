@@ -102,30 +102,24 @@ describe('GameInstance', () => {
     });
   });
 
-  it('sets the current score correctly', function() {
-    return Promise.join(
-      GameInstance.createNew(player._id),
-      Turn.create([
-        { score: { rand1: 50, player: 50, rand2: 50 }, triple },
-        { score: { rand1: 0, player: 0, rand2: 0 }, triple },
-        { score: { rand1: 50, player: 0, rand2: 0 }, triple },
-        { score: { rand1: 0, player: 50, rand2: 0 }, triple },
-        { score: { rand1: 0, player: 0, rand2: 50 }, triple }
-      ])
-    ).then(([gi, turns]) => {
-      gi.turns = { previous: turns };
-      return gi.save();
-    })
-      .then(gi => gi.setCurrentScore())
-      .then(gi => {
-        expect(gi.currentScore).toMatchInlineSnapshot(`
-{
-  "player": 100,
-  "rand1": 100,
-  "rand2": 100,
-}
-`);
-      });
+  it('sets the current score correctly', async () => {
+    let gi = await GameInstance.createNew(player._id);
+    const turns = await Turn.create([
+      { score: { rand1: 50, player: 50, rand2: 50 }, triple },
+      { score: { rand1: 0, player: 0, rand2: 0 }, triple },
+      { score: { rand1: 50, player: 0, rand2: 0 }, triple },
+      { score: { rand1: 0, player: 50, rand2: 0 }, triple },
+      { score: { rand1: 0, player: 0, rand2: 50 }, triple }
+    ]);
+
+    gi.turns = { previous: turns };
+    gi = await gi.save();
+
+    gi = await gi.setCurrentScore();
+
+    expect(gi.currentScore.player).toBe(100);
+    expect(gi.currentScore.rand1).toBe(100);
+    expect(gi.currentScore.rand2).toBe(100);
   });
 
   describe('when adding a move', () => {
