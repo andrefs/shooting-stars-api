@@ -1,15 +1,15 @@
-import mongoose         from 'mongoose';
-import pagPlugin        from 'mongoose-paginate';
+import mongoose from 'mongoose';
+import pagPlugin from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';
-import createdModified  from 'mongoose-createdmodified';
-import {reject}         from 'lodash';
+import createdModified from 'mongoose-createdmodified';
+import { reject } from 'lodash';
 import MongooseSequence from 'mongoose-sequence';
-import Promise  from 'bluebird';
-import {NoMoreItemsError}  from '../lib/errors';
+import Promise from 'bluebird';
+import { NoMoreItemsError } from '../lib/errors';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(mongooseApiQuery);
-mongoose.plugin(createdModified.createdModifiedPlugin, {index: true});
+mongoose.plugin(createdModified.createdModifiedPlugin, { index: true });
 const autoIncrement = MongooseSequence(mongoose);
 
 const ItemSchema = mongoose.Schema({
@@ -37,26 +37,26 @@ const ItemSchema = mongoose.Schema({
   }
 });
 
-ItemSchema.plugin(autoIncrement, {id: 'item_counter', 'inc_field': 'seqNum'});
+ItemSchema.plugin(autoIncrement, { id: 'item_counter', 'inc_field': 'seqNum' });
 
 const generatePairs = (doc, otherItems) => {
-  if(otherItems.length < 1){ return []; }
+  if (otherItems.length < 1) { return []; }
   return otherItems.map(other => ({
     itemA: doc,
     itemB: other
   }));
 };
 
-ItemSchema.pre('save', function(next){
+ItemSchema.pre('save', function(next) {
   this.wasNew = this.isNew;
   return next();
 });
 
 const generateTriples = (doc, otherItems) => {
   let triples = [];
-  if(otherItems.length < 2){ return []; }
-  for(let i=0; i<otherItems.length-1; i++){
-    for(let j=i+1; j<otherItems.length; j++){
+  if (otherItems.length < 2) { return []; }
+  for (let i = 0; i < otherItems.length - 1; i++) {
+    for (let j = i + 1; j < otherItems.length; j++) {
       triples.push({
         itemA: doc,
         itemB: otherItems[i],
@@ -67,30 +67,30 @@ const generateTriples = (doc, otherItems) => {
   return triples;
 };
 
-ItemSchema.statics.activateNext = function(){
+ItemSchema.statics.activateNext = function() {
   let newItem;
   let oldItems;
 
   return Promise.join(
-    this.findOne({isActive: false}).sort('seqNum').exec(),
-    this.find({isActive:true}).exec()
+    this.findOne({ isActive: false }).sort('seqNum').exec(),
+    this.find({ isActive: true }).exec()
   )
-  .then(([_newItem, _oldItems]) => {
-    newItem  = _newItem;
-    oldItems = _oldItems;
-    if(!newItem){ return Promise.reject(new NoMoreItemsError()); }
-    return newItem.update({$set: {isActive:true}});
-  })
-  .then(() => this.findOne({_id: newItem._id}))
-  .then(_item => {
-    newItem = _item;
-    const pairs   = generatePairs(newItem,   oldItems || []);
-    return require('./Pair').create(pairs);
-  })
-  .then(() => {
-    const triples = generateTriples(newItem, oldItems || []);
-    return require('./Triple').create(triples)
-  });
+    .then(([_newItem, _oldItems]) => {
+      newItem = _newItem;
+      oldItems = _oldItems;
+      if (!newItem) { return Promise.reject(new NoMoreItemsError()); }
+      return newItem.updateOne({ $set: { isActive: true } });
+    })
+    .then(() => this.findOne({ _id: newItem._id }))
+    .then(_item => {
+      newItem = _item;
+      const pairs = generatePairs(newItem, oldItems || []);
+      return require('./Pair').create(pairs);
+    })
+    .then(() => {
+      const triples = generateTriples(newItem, oldItems || []);
+      return require('./Triple').create(triples)
+    });
 };
 
 module.exports = mongoose.model('Item', ItemSchema);
