@@ -1,160 +1,140 @@
-import Item     from '../../models/Item';
-import Pair     from '../../models/Pair';
-import Triple   from '../../models/Triple';
-import sinon    from 'sinon';
-import chai from 'chai';
-import Promise  from 'bluebird';
-import chaiAsPromised from 'chai-as-promised';
+import Item from '../../models/Item';
+import Pair from '../../models/Pair';
+import Triple from '../../models/Triple';
+import Promise from 'bluebird';
 require('../mongoose-helper');
-
-chai.use(chaiAsPromised);
-const expect = chai.expect;
 
 
 describe('Triple', () => {
-  let user;
 
-  beforeEach(() => {
-    return Promise.join(
-      Item.remove().exec(),
-      Pair.remove().exec(),
-      Triple.remove().exec()
-    );
+  beforeEach(async () => {
+    await Item.deleteMany();
+    await Pair.deleteMany();
+    await Triple.deleteMany();
   });
 
-  it('sorts items on creation', () => {
+  it('sorts items on creation', async () => {
     const imageUrl = 'http://ww.example.com';
     let triple;
 
-    return Promise.mapSeries([
-        {name: 'first item' , imageUrl},
-        {name: 'second item', imageUrl},
-        {name: 'third item' , imageUrl}
-      ], itemF => Item.create(itemF))
-    .then(() => Item.activateNext())
-    .then(() => Item.activateNext())
-    .then(() => Item.activateNext())
-    .then(() => Item.find().sort([['seqNum', 'descending']]))
-    .then(items => {
-      triple = new Triple({
-        itemA: items[2],
-        itemB: items[1],
-        itemC: items[0],
-      });
+    await Item.create({ name: 'first item', imageUrl });
+    await Item.create({ name: 'second item', imageUrl });
+    await Item.create({ name: 'third item', imageUrl });
 
-      return Triple.remove().exec();
-    })
-    .then(() => {
-      return triple.save();
-    })
-    .then(doc => {
-      return doc
-        .populate({path: 'itemA', model: Item})
-        .populate({path: 'itemB', model: Item})
-        .populate({path: 'itemC', model: Item})
-        .execPopulate();
-    })
-    .then(doc => {
-      expect(doc.itemA.seqNum).to.be.below(doc.itemB.seqNum);
-      expect(doc.itemB.seqNum).to.be.below(doc.itemC.seqNum);
+    await Item.activateNext();
+    await Item.activateNext();
+    await Item.activateNext();
+
+    const items = await Item.find().sort([['seqNum', 'descending']]);
+
+    triple = new Triple({
+      itemA: items[2],
+      itemB: items[1],
+      itemC: items[0],
     });
+
+    await Triple.deleteMany();
+
+    let doc = await triple.save();
+
+
+    doc = await doc
+      .populate({ path: 'itemA', model: Item })
+      .populate({ path: 'itemB', model: Item })
+      .populate({ path: 'itemC', model: Item })
+      .execPopulate();
+
+    expect(doc.itemA.seqNum).toBeLessThan(doc.itemB.seqNum);
+    expect(doc.itemB.seqNum).toBeLessThan(doc.itemC.seqNum);
   });
 
-  it("throws when creating triple with same items", () => {
+  it("throws when creating triple with same items", async () => {
     const imageUrl = 'http://example.com';
-    const itemFields = [
-      {name: 'itemA', imageUrl},
-      {name: 'itemB', imageUrl},
-      {name: 'itemC', imageUrl}
+    const items = [
+      await Item.create({ name: 'itemA', imageUrl }),
+      await Item.create({ name: 'itemB', imageUrl }),
+      await Item.create({ name: 'itemC', imageUrl })
     ];
-    let items;
 
-    return  Promise.mapSeries(itemFields, itemF => Item.create(itemF))
-      .then(_items => {
-        items = _items;
-        return Item.activateNext();
-      })
-      .then(() => Item.activateNext())
-      .then(() => Item.activateNext())
-      .then(() => expect(Triple.create({itemA:items[0], itemB:items[1], itemC:items[2]})).to.be.rejected);
+    await Item.activateNext();
+    await Item.activateNext();
+    await Item.activateNext();
+
+    await expect(Triple.create({ itemA: items[0], itemB: items[1], itemC: items[2] })).rejects.toThrow();
   });
 
-  it('getPairs returns correct pairs ordered', () => {
+  it('getPairs returns correct pairs ordered', async () => {
     const imageUrl = 'http://ww.example.com';
-    let triple;
 
-    return Promise.mapSeries([
-        {name: 'first item' , imageUrl},
-        {name: 'second item', imageUrl},
-        {name: 'third item' , imageUrl}
-      ], itemF => Item.create(itemF))
-      .then(() => Item.activateNext())
-      .then(() => Item.activateNext())
-      .then(() => Item.activateNext())
-      .then(() => Item.find().sort([['seqNum', 'descending']]))
-      .then(items => Triple.findOne({
-        itemA: items[2],
-        itemB: items[1],
-        itemC: items[0],
-      }).populate([
-        {path:'itemA', model: 'Item'},
-        {path:'itemB', model: 'Item'},
-        {path:'itemC', model: 'Item'},
-      ]))
-      .then(t => {
-        triple = t;
-        return triple.getPairs();
-      })
-      .then(pairs => {
-        expect(pairs.length).to.equal(3);
-        expect(pairs[0].itemA.seqNum).to.equal(triple.itemA.seqNum);
-        expect(pairs[0].itemB.seqNum).to.equal(triple.itemB.seqNum);
-        expect(pairs[1].itemA.seqNum).to.equal(triple.itemA.seqNum);
-        expect(pairs[1].itemB.seqNum).to.equal(triple.itemC.seqNum);
-        expect(pairs[2].itemA.seqNum).to.equal(triple.itemB.seqNum);
-        expect(pairs[2].itemB.seqNum).to.equal(triple.itemC.seqNum);
-        expect(pairs[0].cmp(pairs[1])).to.equal(-1);
-        expect(pairs[0].cmp(pairs[2])).to.equal(-1);
-        expect(pairs[1].cmp(pairs[2])).to.equal(-1);
-      });
+    await Item.create({ name: 'first item', imageUrl });
+    await Item.create({ name: 'second item', imageUrl });
+    await Item.create({ name: 'third item', imageUrl });
+
+    await Item.activateNext();
+    await Item.activateNext();
+    await Item.activateNext();
+
+    const items = await Item.find().sort([['seqNum', 'descending']]);
+    const triple = await Triple.findOne({
+      itemA: items[2],
+      itemB: items[1],
+      itemC: items[0],
+    }).populate([
+      { path: 'itemA', model: 'Item' },
+      { path: 'itemB', model: 'Item' },
+      { path: 'itemC', model: 'Item' },
+    ]);
+
+    const pairs = await triple.getPairs();
+
+    expect(pairs.length).toEqual(3);
+    expect(pairs[0].itemA.seqNum).toEqual(triple.itemA.seqNum);
+    expect(pairs[0].itemB.seqNum).toEqual(triple.itemB.seqNum);
+    expect(pairs[1].itemA.seqNum).toEqual(triple.itemA.seqNum);
+    expect(pairs[1].itemB.seqNum).toEqual(triple.itemC.seqNum);
+    expect(pairs[2].itemA.seqNum).toEqual(triple.itemB.seqNum);
+    expect(pairs[2].itemB.seqNum).toEqual(triple.itemC.seqNum);
+    expect(pairs[0].cmp(pairs[1])).toEqual(-1);
+    expect(pairs[0].cmp(pairs[2])).toEqual(-1);
+    expect(pairs[1].cmp(pairs[2])).toEqual(-1);
   });
 
-  it('updates ambiguity and support when addPick is called', () => {
+  it('updates ambiguity and support when addPick is called', async () => {
     const imageUrl = 'http://ww.example.com';
-    let triple;
 
-    return Promise.mapSeries([
-        {name: 'first item' , imageUrl},
-        {name: 'second item', imageUrl},
-        {name: 'third item' , imageUrl}
-      ], itemF => Item.create(itemF))
-      .then(() => Item.activateNext())
-      .then(() => Item.activateNext())
-      .then(() => Item.activateNext())
-      .then(() => Item.find().sort([['seqNum', 'descending']]))
-      .then(items => Triple.findOne({
-        itemA: items[2],
-        itemB: items[1],
-        itemC: items[0],
-      }))
-      .then(t =>{
-        t.addPick('AB');
-        expect(t.support).to.equal(1);
-        expect(t.picks.AB.count).to.equal(1);
-        expect(t.ambiguity).to.equal(1);
+    await Item.create({ name: 'first item', imageUrl });
+    await Item.create({ name: 'second item', imageUrl });
+    await Item.create({ name: 'third item', imageUrl });
 
-        t.addPick('AC');
-        expect(t.support).to.equal(2);
-        expect(t.picks.AB.count).to.equal(1);
-        expect(t.picks.AC.count).to.equal(1);
-        expect(t.ambiguity).to.equal(1);
+    await Item.activateNext();
+    await Item.activateNext();
+    await Item.activateNext();
 
-        t.addPick('AB');
-        expect(t.support).to.equal(3);
-        expect(t.picks.AB.count).to.equal(2);
-        expect(t.picks.AC.count).to.equal(1);
-        expect(t.ambiguity).to.equal(2);
-      });
+    const items = await Item.find().sort([['seqNum', 'descending']]);
+
+    const t = await Triple.findOne({
+      itemA: items[2],
+      itemB: items[1],
+      itemC: items[0],
+    });
+
+    t.addPick('AB');
+    expect(t.support).toEqual(1);
+    expect(t.picks.AB.count).toEqual(1);
+    expect(t.ambiguity).toEqual(1);
+
+    t.addPick('AC');
+    expect(t.support).toEqual(2);
+    expect(t.picks.AB.count).toEqual(1);
+    expect(t.picks.AC.count).toEqual(1);
+    expect(t.ambiguity).toEqual(1);
+
+    t.addPick('AB');
+    expect(t.support).toEqual(3);
+    expect(t.picks.AB.count).toEqual(2);
+    expect(t.picks.AC.count).toEqual(1);
+    expect(t.ambiguity).toEqual(2);
   });
 
 });
+
