@@ -70,24 +70,20 @@
     "passport": "^0.6.0",
     "passport-custom": "^1.1.1",
     "passport-local": "^1.0.0",
-    "restify": "11.0.0",
+    "restify": "10.0.0",
     "restify-cors-middleware2": "2.2.0",
     "restify-errors": "8.0.2",
     "restify-jwt-community": "^1.1.29",
-    "sinon-chai": "^3.7.0",
-    "sinon-mongoose": "^2.3.0",
     "uuid": "^9.0.0",
     "winston": "^3.8.2"
   },
   "devDependencies": {
     "babel-eslint": "^8.2.1",
-    "chai": "^4.3.7",
     "chai-as-promised": "^7.1.1",
     "jest": "29.4.3",
     "mocha": "^10.2.0",
     "nodemon": "^2.0.20",
     "nyc": "^15.1.0",
-    "sinon": "^15.0.1",
     "supertest": "^6.3.3"
   }
 }
