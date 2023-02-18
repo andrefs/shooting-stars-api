@@ -12,4 +12,4 @@ API for the Shooting Stars game
     npm run prod:cron
 ```
 
-[![Build Status](https://circleci.com/gh/andrefs/shooting-stars-api.png?style=shield&circle-token=9620405d32bebbb0656556040bf9367127a9ed26)](https://circleci.com/gh/andrefs/shooting-stars-api)
+[![Node.js CI](https://github.com/andrefs/shooting-stars-api/actions/workflows/node.js.yml/badge.svg)](https://github.com/andrefs/shooting-stars-api/actions/workflows/node.js.yml)
