@@ -30,7 +30,7 @@ describe('Pair', () => {
       .populate([
         { path: 'itemA', model: Item },
         { path: 'itemB', model: Item }
-      ]).execPopulate();
+      ]);
     await expect(doc.itemA.seqNum).toBeLessThan(doc.itemB.seqNum);
   });
 
