@@ -1,7 +1,7 @@
-import config      from '../config';
+import config from '../config';
 import * as server from '../server';
-import * as db     from '../db';
-const Promise  = require('bluebird');
+import * as db from '../db';
+const Promise = require('bluebird');
 const serverShutdown = Promise.promisify(server.shutdown);
 
 // import {Mockgoose} from 'mockgoose';
@@ -10,7 +10,7 @@ const serverShutdown = Promise.promisify(server.shutdown);
 let api;
 let conn;
 
-before(() => {
+beforeAll(() => {
   api = server.create();
   api.listen(config.server.port);
   // mockgoose.prepareStorage()
@@ -18,9 +18,9 @@ before(() => {
   db.connect();
 });
 
-after(() => {
-  return serverShutdown()
-    .then(() => db.disconnect());
+afterAll(async () => {
+  await serverShutdown();
+  db.disconnect();
 });
 
-export {api};
+export { api };

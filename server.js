@@ -1,6 +1,5 @@
 import config         from './config';
 import restify        from 'restify';
-import mongoose       from 'mongoose';
 import {log, stream}  from './lib/logger';
 import bunyanWinston  from 'bunyan-winston-adapter';
 import passport       from './lib/passport';
