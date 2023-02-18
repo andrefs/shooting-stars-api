@@ -178,7 +178,7 @@ describe('GameInstance', () => {
 
         return GameInstance.createNew(player._id)
           .then(async gi => {
-            sinon.spy(gi, 'wrapUp');
+            jest.spyOn(gi, 'wrapUp');
             for (let i = 0; i < config.game.size; i++) {
               await _addMove(i + 1, gi);
             }
@@ -265,7 +265,7 @@ describe('GameInstance', () => {
       const password = 'password';
 
       expect(gamesequence.estimateddocumentcount()).to.eventually.equal(0);
-      sinon.spy(gamesequence, 'generatenew');
+      jest.spyOn(gamesequence, 'generatenew');
 
       return promise.mapseries([
         { name: '1st item', imageurl },

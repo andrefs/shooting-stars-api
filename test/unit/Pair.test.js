@@ -87,7 +87,7 @@ describe('Pair', () => {
   });
 
   it.skip('calls Item.activateNext when there are no unplayed pairs left', () => {
-    sinon.spy(Item, 'activateNext');
+    jest.spyOn(Item, 'activateNext');
     const p = Pair.addNextCandidate();
     p.catch(() => expect(Item.activateNext).to.have.been.called);
     return expect(p).to.have.been.rejectedWith(NoMoreItemsError)
@@ -104,7 +104,7 @@ describe('Pair', () => {
     ], itemF => Item.create(itemF))
       .then(() => Pair.addNextCandidate())
       .then(() => {
-        const spy = sinon.spy(Item, 'activateNext');
+        const spy = jest.spyOn(Item, 'activateNext');
         spy.resetHistory();
       })
       .then(() => expect(Item.activateNext).to.not.have.been.called)

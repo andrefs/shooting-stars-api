@@ -7,7 +7,7 @@ import jwt            from 'restify-jwt-community';
 import url            from 'url';
 import morgan         from 'morgan';
 import uuid           from 'uuid';
-import corsMiddleware from 'restify-cors-middleware';
+import corsMiddleware from 'restify-cors-middleware2';
 import path           from 'path';
 
 let api;
