@@ -148,7 +148,7 @@ PairSchema.statics._order = function() {
     .then(() => {
       const updates = ps.keys()
         .map((sn, i) => [{ seqNum: sn }, { order: 1 + i, isOrdered: true }]);
-      return Promise.each(updates, ([query, update]) => this.update(query, update));
+      return Promise.each(updates, ([query, update]) => this.updateOne(query, update));
     })
     .then(() => ps.getRelevantTriples())
     .then(triples => {

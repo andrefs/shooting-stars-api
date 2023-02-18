@@ -133,7 +133,7 @@ describe('GameInstance', () => {
     it('throws if there\'s no current turn', async () => {
       const gi = await GameInstance.createNew(player._id)
       gi.turns.current = undefined;
-      expect(gi.addMove()).rejects.toThrow(NoCurrentTurnError);
+      await expect(gi.addMove()).rejects.toThrow(NoCurrentTurnError);
     });
 
     it('calls setCurrentScore and nextTurn', async () => {
@@ -200,26 +200,18 @@ describe('GameInstance', () => {
     let gameInst;
 
 
-    beforeEach(() => {
-      return Promise.mapSeries([
-        { name: '10th item', imageUrl },
-        { name: '11th item', imageUrl },
-        { name: '12th item', imageUrl },
-        { name: '13th item', imageUrl },
-        { name: '14th item', imageUrl },
-        { name: '15th item', imageUrl },
-        { name: '16th item', imageUrl },
-        { name: '17th item', imageUrl },
-        { name: '18th item', imageUrl },
-      ], itemF => Item.create(itemF))
-        .then(() => User.create({ username, password }))
-        .then(u => {
-          player = u;
-          return GameInstance.createNew(player._id);
-        })
-        .then(gi => {
-          gameInst = gi;
-        });
+    beforeEach(async () => {
+      await Item.create({ name: '10th item', imageUrl });
+      await Item.create({ name: '11th item', imageUrl });
+      await Item.create({ name: '12th item', imageUrl });
+      await Item.create({ name: '13th item', imageUrl });
+      await Item.create({ name: '14th item', imageUrl });
+      await Item.create({ name: '15th item', imageUrl });
+      await Item.create({ name: '16th item', imageUrl });
+      await Item.create({ name: '17th item', imageUrl });
+      await Item.create({ name: '18th item', imageUrl });
+      player = await User.create({ username, password });
+      gameInst = await GameInstance.createNew(player._id);
     });
 
     it('returns new GameSequence with correct number of triples', async () => {
@@ -232,7 +224,7 @@ describe('GameInstance', () => {
       await Item.deleteMany();
       await Pair.deleteMany();
       await Triple.deleteMany();
-      expect(gameInst._createNewGameSequence()).rejects.toThrow(NoMoreItemsError);
+      await expect(gameInst._createNewGameSequence()).rejects.toThrow(NoMoreItemsError);
     });
 
     it.skip('selectnew selects existing sequence if available', () => {
@@ -303,7 +295,7 @@ describe('GameInstance', () => {
           return promise.mapseries(gs.triples, t => t.addpick('ab').save())
         })
         .then(() => gamesequence.findone({ seqnum: gs.seqnum }).populate({ path: 'triples', model: 'triple' }))
-        .then(gs => expect(gs.updateambiguity()).to.eventually.have.property('ambiguity', 2));
+        .then(gs => expect(gs.updateAmbiguity()).to.eventually.have.property('ambiguity', 2));
     });
 
     // todo

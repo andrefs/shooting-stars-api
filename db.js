@@ -34,13 +34,11 @@ const connect = () => {
   return conn;
 };
 
-const disconnect = () => {
+const disconnect = async () => {
   // cleanup
-  return Lock.releaseAllFromClient(process.pid)
-    .then(() => {
-      log.info('Disconnecting from MongoDB');
-      mongoose.disconnect();
-    });
+  await Lock.releaseAllFromClient(process.pid)
+  log.info('Disconnecting from MongoDB');
+  await mongoose.disconnect();
 };
 
 

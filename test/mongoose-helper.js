@@ -9,9 +9,8 @@ beforeAll(done => {
 });
 
 
-afterAll(done => {
+afterAll(async () => {
   db.disconnect();
-  return done();
 });
 
 export { conn };
