@@ -1,18 +1,16 @@
-import bcrypt           from 'bcrypt';
-import mongoose         from 'mongoose';
-import pagPlugin        from 'mongoose-paginate';
-import mongooseApiQuery from 'mongoose-api-query';
-import createdModified  from 'mongoose-createdmodified';
-import Promise          from 'bluebird';
+import bcrypt from 'bcrypt';
+import mongoose from 'mongoose';
+import pagPlugin from 'mongoose-paginate';
+import createdModified from 'mongoose-createdmodified';
+import Promise from 'bluebird';
 
 mongoose.plugin(pagPlugin);
-mongoose.plugin(mongooseApiQuery);
-mongoose.plugin(createdModified.createdModifiedPlugin, {index: true});
+mongoose.plugin(createdModified.createdModifiedPlugin, { index: true });
 
 const UserSchema = mongoose.Schema({
   username: {
-    type   : String,
-    required : true,
+    type: String,
+    required: true,
     unique: true
   },
   birthYear: {
@@ -52,7 +50,7 @@ const UserSchema = mongoose.Schema({
     required: true,
     default: 0
   },
-  totalScore : {
+  totalScore: {
     type: Number,
     required: true,
     default: 0
@@ -62,7 +60,7 @@ const UserSchema = mongoose.Schema({
     required: true,
     default: true
   }
-},{minimize:false});
+}, { minimize: false });
 
 // static method
 const calcPasswordHash = (password) => {
@@ -73,9 +71,9 @@ const calcPasswordHash = (password) => {
 };
 
 
-UserSchema.pre('save', function(next){
+UserSchema.pre('save', function(next) {
   // only hash the password if it has been modified (or is new)
-  if(!this.isModified('password')){
+  if (!this.isModified('password')) {
     return next();
   }
 
@@ -92,7 +90,7 @@ UserSchema.methods.comparePassword = function(password) {
   return bcrypt.compareSync(password, this.password);
 };
 
-UserSchema.methods.wrapUpGameInstance = function(gameInst){
+UserSchema.methods.wrapUpGameInstance = function(gameInst) {
   this.totalScore += gameInst.currentScore.player;
   this.pastGameInstances.push(this.currentGameInstance);
   this.currentGameInstance = null;
@@ -100,7 +98,7 @@ UserSchema.methods.wrapUpGameInstance = function(gameInst){
   return this.save();
 };
 
-UserSchema.methods.addOptionalInfo = function(email, gender, birthYear, topicKnowledge){
+UserSchema.methods.addOptionalInfo = function(email, gender, birthYear, topicKnowledge) {
   this.email = email.trim();
   this.gender = gender;
   this.birthYear = birthYear;
@@ -108,87 +106,91 @@ UserSchema.methods.addOptionalInfo = function(email, gender, birthYear, topicKno
   return this.save();
 };
 
-UserSchema.statics.cumulativeGamesPlayed = function(){
+UserSchema.statics.cumulativeGamesPlayed = function() {
   return this.aggregate([
-    {$project: {numGames: '$totalGamesPlayed'}},
-    {$group:   {_id: '$numGames', count: {$sum: 1}}}
+    { $project: { numGames: '$totalGamesPlayed' } },
+    { $group: { _id: '$numGames', count: { $sum: 1 } } }
   ])
-  .then(aggs => aggs.map(agg => ({numGames: agg._id, totalPlayers: agg.count})));
+    .then(aggs => aggs.map(agg => ({ numGames: agg._id, totalPlayers: agg.count })));
 };
 
-UserSchema.statics.newUsersByMonth = function(){
+UserSchema.statics.newUsersByMonth = function() {
   return this.aggregate([
     // {$project: {month: {$month: "$created"}, year: {$year: "created"}}},
-    {$project: {month: {$month: '$created'}, year: {$year: '$created'}}},
-    {$group: {
-      _id: {month: '$month', year: '$year'},
-      total: {$sum: 1}}
+    { $project: { month: { $month: '$created' }, year: { $year: '$created' } } },
+    {
+      $group: {
+        _id: { month: '$month', year: '$year' },
+        total: { $sum: 1 }
+      }
     }
   ])
-  .then(aggs => aggs.map(agg => ({
-    total: agg.total,
-    month: agg._id.month,
-    year: agg._id.year
-  })));
+    .then(aggs => aggs.map(agg => ({
+      total: agg.total,
+      month: agg._id.month,
+      year: agg._id.year
+    })));
 };
 
 
-UserSchema.statics.averageGamesPerActiveUserByMonth = function(){
+UserSchema.statics.averageGamesPerActiveUserByMonth = function() {
   return this.aggregate([
     // {$project: {month: {$month: "$created"}, year: {$year: "created"}}},
     {
       $project: {
-        month: {$month: '$modified'},
-        year: {$year: '$modified'},
+        month: { $month: '$modified' },
+        year: { $year: '$modified' },
         games: '$totalGamesPlayed'
       }
     },
-    {$group: {
-      _id: {month: '$month', year: '$year'},
-      activeUsers: {$sum: 1},
-      playedGames: {$sum: '$games'}
-    }}
+    {
+      $group: {
+        _id: { month: '$month', year: '$year' },
+        activeUsers: { $sum: 1 },
+        playedGames: { $sum: '$games' }
+      }
+    }
   ])
-  .then(aggs => aggs.map(agg => ({
-    gamesPerActiveUser: agg.playedGames / agg.activeUsers,
-    month: agg._id.month,
-    year: agg._id.year
-  })));
+    .then(aggs => aggs.map(agg => ({
+      gamesPerActiveUser: agg.playedGames / agg.activeUsers,
+      month: agg._id.month,
+      year: agg._id.year
+    })));
 };
 
-UserSchema.statics.playersByGender = function(){
+UserSchema.statics.playersByGender = function() {
   return this.aggregate([
-    {$group:   {_id: '$gender', count: {$sum: 1}}}
+    { $group: { _id: '$gender', count: { $sum: 1 } } }
   ])
-  .then(aggs => aggs.map(agg => ({gender: agg._id || 'DNA', totalPlayers: agg.count})));
+    .then(aggs => aggs.map(agg => ({ gender: agg._id || 'DNA', totalPlayers: agg.count })));
 };
 
 
-UserSchema.statics.globalBestScores = function(n){
+UserSchema.statics.globalBestScores = function(n) {
   return this.find()
-  .limit(n||5)
-  .sort('-totalScore')
-  .select('username totalScore totalGamesPlayed')
-  .lean()
-  .exec()
-  .then(users => {
-    return users.map(u => {
-      return {
-        username: u.username,
-        score: u.totalScore,
-        games: u.totalGamesPlayed
-      };
+    .limit(n || 5)
+    .sort('-totalScore')
+    .select('username totalScore totalGamesPlayed')
+    .lean()
+    .exec()
+    .then(users => {
+      return users.map(u => {
+        return {
+          username: u.username,
+          score: u.totalScore,
+          games: u.totalGamesPlayed
+        };
+      });
     });
-  });
 };
 
-UserSchema.methods.playerNearestScores = function(n){
+UserSchema.methods.playerNearestScores = function(n) {
   let num = n || 5;
   return Promise.join(
     this.constructor
       .find({
-        totalScore: {$gt: this.totalScore},
-        _id: {$ne: this._id}
+        totalScore: { $gt: this.totalScore },
+        _id: { $ne: this._id }
       })
       .limit(num)
       .select('username totalScore totalGamesPlayed')
@@ -197,8 +199,8 @@ UserSchema.methods.playerNearestScores = function(n){
       .exec(),
     this.constructor
       .find({
-        totalScore: {$lte: this.totalScore},
-        _id: {$ne: this._id}
+        totalScore: { $lte: this.totalScore },
+        _id: { $ne: this._id }
       })
       .where('totalScore').lte(this.totalScore)
       .limit(num)
@@ -207,33 +209,33 @@ UserSchema.methods.playerNearestScores = function(n){
       .lean()
       .exec()
   )
-  .then(([better, worse]) => {
-    let flipFlop = false;
-    let elems = [this];
+    .then(([better, worse]) => {
+      let flipFlop = false;
+      let elems = [this];
 
-    while(elems.length < num){
-      let addBetter = false;
-      let addWorse  = false;
+      while (elems.length < num) {
+        let addBetter = false;
+        let addWorse = false;
 
-      if(worse.length === 0)      { addBetter = true; }
-      else if(better.length === 0){ addWorse  = true; }
-      else if(flipFlop)           { addBetter = true; }
-      else                        { addWorse  = true; }
+        if (worse.length === 0) { addBetter = true; }
+        else if (better.length === 0) { addWorse = true; }
+        else if (flipFlop) { addBetter = true; }
+        else { addWorse = true; }
 
-      if(addBetter){  elems.unshift(better.pop()); }
-      if(addWorse ){  elems.push(worse.shift());   }
-      flipFlop = !flipFlop;
-    }
+        if (addBetter) { elems.unshift(better.pop()); }
+        if (addWorse) { elems.push(worse.shift()); }
+        flipFlop = !flipFlop;
+      }
 
-    return elems.filter(u => !!u).map(u => {
-      return {
-        username: u.username,
-        score: u.totalScore,
-        games: u.totalGamesPlayed
-      };
+      return elems.filter(u => !!u).map(u => {
+        return {
+          username: u.username,
+          score: u.totalScore,
+          games: u.totalGamesPlayed
+        };
+      });
     });
-  });
 };
 
-UserSchema.index({username: 1}, {unique: true});
+UserSchema.index({ username: 1 }, { unique: true });
 module.exports = mongoose.model('User', UserSchema);

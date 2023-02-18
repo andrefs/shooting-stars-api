@@ -1,13 +1,11 @@
-import mongoose         from 'mongoose';
-import pagPlugin        from 'mongoose-paginate';
-import mongooseApiQuery from 'mongoose-api-query';
-import createdModified  from 'mongoose-createdmodified';
-import Triple           from './Triple';
-import User             from './User';
+import mongoose from 'mongoose';
+import pagPlugin from 'mongoose-paginate';
+import createdModified from 'mongoose-createdmodified';
+import Triple from './Triple';
+import User from './User';
 
 mongoose.plugin(pagPlugin);
-mongoose.plugin(mongooseApiQuery);
-mongoose.plugin(createdModified.createdModifiedPlugin, {index: true});
+mongoose.plugin(createdModified.createdModifiedPlugin, { index: true });
 
 const PlayerMoveSchema = mongoose.Schema({
   player: {
@@ -27,6 +25,6 @@ const PlayerMoveSchema = mongoose.Schema({
   },
 });
 
-PlayerMoveSchema.index({player: 1, triple: 1}, {unique: true});
+PlayerMoveSchema.index({ player: 1, triple: 1 }, { unique: true });
 
 module.exports = mongoose.model('PlayerMove', PlayerMoveSchema);

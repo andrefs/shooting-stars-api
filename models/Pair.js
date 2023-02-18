@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import pagPlugin from 'mongoose-paginate';
-import mongooseApiQuery from 'mongoose-api-query';
 import createdModified from 'mongoose-createdmodified';
 import { createHash } from 'crypto';
 import { log } from '../lib/logger';
@@ -12,7 +11,6 @@ import config from '../config';
 
 
 mongoose.plugin(pagPlugin);
-mongoose.plugin(mongooseApiQuery);
 mongoose.plugin(createdModified.createdModifiedPlugin, { index: true });
 const autoIncrement = MongooseSequence(mongoose);
 

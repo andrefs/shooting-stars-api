@@ -61,7 +61,6 @@
     "lodash": "^4.17.21",
     "md5": "^2.3.0",
     "mongoose": "6.9.2",
-    "mongoose-api-query": "^0.1.1-pre",
     "mongoose-createdmodified": "^0.0.2",
     "mongoose-paginate": "^5.0.3",
     "mongoose-sequence": "5.3.1",

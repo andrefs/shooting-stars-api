@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import Turn from './Turn';
 import pagPlugin from 'mongoose-paginate';
-import mongooseApiQuery from 'mongoose-api-query';
 import createdModified from 'mongoose-createdmodified';
 import { log } from '../lib/logger';
 import User from './User';
@@ -17,7 +16,6 @@ import config from '../config';
 
 
 mongoose.plugin(pagPlugin);
-mongoose.plugin(mongooseApiQuery);
 mongoose.plugin(createdModified.createdModifiedPlugin, { index: true });
 
 const GameInstanceSchema = mongoose.Schema({

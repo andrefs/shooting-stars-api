@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import Promise from 'bluebird';
 import pagPlugin from 'mongoose-paginate';
-import mongooseApiQuery from 'mongoose-api-query';
 import createdModified from 'mongoose-createdmodified';
 import { createHash } from 'crypto';
 import { log } from '../lib/logger';
@@ -12,7 +11,6 @@ import PairSorter from '../lib/PairSorter';
 import { MissingPairsRelationException } from '../lib/errors';
 
 mongoose.plugin(pagPlugin);
-mongoose.plugin(mongooseApiQuery);
 mongoose.plugin(createdModified.createdModifiedPlugin, { index: true });
 
 const TripleSchema = mongoose.Schema({
