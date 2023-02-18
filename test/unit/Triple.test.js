@@ -39,10 +39,7 @@ describe('Triple', () => {
 
 
     doc = await doc
-      .populate({ path: 'itemA', model: Item })
-      .populate({ path: 'itemB', model: Item })
-      .populate({ path: 'itemC', model: Item })
-      .execPopulate();
+      .populate([{ path: 'itemA', model: Item }, { path: 'itemB', model: Item }, { path: 'itemC', model: Item }])
 
     expect(doc.itemA.seqNum).toBeLessThan(doc.itemB.seqNum);
     expect(doc.itemB.seqNum).toBeLessThan(doc.itemC.seqNum);
