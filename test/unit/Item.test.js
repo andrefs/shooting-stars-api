@@ -11,7 +11,7 @@ describe('Item', () => {
   beforeEach(async () => {
     await Item.deleteMany();
     await Pair.deleteMany();
-    await Triple.deleteMany();
+    return Triple.deleteMany();
   });
 
   it('initializes with default values', async () => {
