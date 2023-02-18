@@ -67,30 +67,22 @@ const generateTriples = (doc, otherItems) => {
   return triples;
 };
 
-ItemSchema.statics.activateNext = function() {
-  let newItem;
-  let oldItems;
+ItemSchema.statics.activateNext = async function() {
+  let newItem = await this.findOne({ isActive: false }).sort('seqNum');
+  let oldItems = await this.find({ isActive: true });
 
-  return Promise.join(
-    this.findOne({ isActive: false }).sort('seqNum').exec(),
-    this.find({ isActive: true }).exec()
-  )
-    .then(([_newItem, _oldItems]) => {
-      newItem = _newItem;
-      oldItems = _oldItems;
-      if (!newItem) { return Promise.reject(new NoMoreItemsError()); }
-      return newItem.updateOne({ $set: { isActive: true } });
-    })
-    .then(() => this.findOne({ _id: newItem._id }))
-    .then(_item => {
-      newItem = _item;
-      const pairs = generatePairs(newItem, oldItems || []);
-      return require('./Pair').create(pairs);
-    })
-    .then(() => {
-      const triples = generateTriples(newItem, oldItems || []);
-      return require('./Triple').create(triples)
-    });
+  if (!newItem) {
+    return Promise.reject(new NoMoreItemsError());
+  }
+
+  await newItem.updateOne({ $set: { isActive: true } });
+  newItem = await this.findOne({ _id: newItem._id });
+
+  const pairs = generatePairs(newItem, oldItems || []);
+  await require('./Pair').create(pairs);
+
+  const triples = generateTriples(newItem, oldItems || []);
+  return require('./Triple').create(triples)
 };
 
 module.exports = mongoose.model('Item', ItemSchema);

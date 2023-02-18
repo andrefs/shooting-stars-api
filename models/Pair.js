@@ -67,51 +67,44 @@ PairSchema.methods.cmp = function(otherPair) {
 };
 
 
-PairSchema.statics.rebuildOrder = function() {
+PairSchema.statics.rebuildOrder = async function() {
+  let lockStart = process.hrtime();
   let lock;
-  let lockStart;
-  let rebuildStart;
-  let lockWait;
-  let rebuildTime;
 
-  lockStart = process.hrtime();
-  return Lock.acquire('pairOrder', process.pid)
-    .then(_l => {
-      lockWait = process.hrtime(lockStart);
-      rebuildStart = process.hrtime();
-      lock = _l;
-      return Promise.join(
-        this.estimatedDocumentCount(),
-        this.countDocuments({ isOrdered: true })
-      );
-    })
-    .then(([pairs, ord]) => {
-      // all pairs are ordered
-      if (pairs === ord) {
-        // activate next item and rebuild pairs order
-        return Item.activateNext()
-          .then(() => this._rebuildOrder());
-      }
-      return this._rebuildOrder();
-    })
-    .then(res => {
-      rebuildTime = process.hrtime(rebuildStart);
-      return Promise.join(
-        require('./Triple').countDocuments({ isRelevant: true }),
-        this.find({ isOrdered: true }).select('seqNum order').sort('order').lean()
-      );
-    })
-    .then(([triples, pairs]) => {
-      log.info(`Pairs order rebuilt, waited ${lockWait}s for the lock and took ${rebuildTime}s to produce ${triples} relevant triples and ${pairs.length} ordered pairs`);
-      return Promise.resolve({
-        rebuildTime,
-        lockWait,
-        relevantTriples: triples,
-        totalOrderedPairs: pairs.length,
-        pairs: pairs.map(p => p.seqNum)
-      });
-    })
-    .finally(() => lock ? lock.release() : Promise.resolve());
+  try {
+    lock = await Lock.acquire('pairOrder', process.pid);
+    let lockWait = process.hrtime(lockStart);
+    let rebuildStart = process.hrtime();
+
+    let pairs = await this.estimatedDocumentCount();
+    let ord = await this.countDocuments({ isOrdered: true });
+    // all pairs are ordered
+    if (pairs === ord) {
+      // activate next item and rebuild pairs order
+      await Item.activateNext()
+    }
+    await this._rebuildOrder();
+
+    let rebuildTime = process.hrtime(rebuildStart);
+    let triples = await require('./Triple').countDocuments({ isRelevant: true });
+    pairs = await this.find({ isOrdered: true }).select('seqNum order').sort('order').lean()
+
+
+
+    log.info(`Pairs order rebuilt, waited ${lockWait}s for the lock and took ${rebuildTime}s to produce ${triples} relevant triples and ${pairs.length} ordered pairs`);
+    return Promise.resolve({
+      rebuildTime,
+      lockWait,
+      relevantTriples: triples,
+      totalOrderedPairs: pairs.length,
+      pairs: pairs.map(p => p.seqNum)
+    });
+  } catch (e) {
+    return Promise.reject(e);
+  }
+  finally {
+    return lock ? lock.release() : Promise.resolve();
+  }
 };
 
 PairSchema.statics._rebuildOrder = function() {

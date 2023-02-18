@@ -90,15 +90,15 @@ GameInstanceSchema.statics.createNew = async function(pId) {
   return gi.nextTurn(0);
 };
 
-GameInstanceSchema.methods._createNewGameSequence = function() {
+GameInstanceSchema.methods._createNewGameSequence = async function() {
   const pId = mongoose.Types.ObjectId(this.player._id || this.player);
   log.info('Creating new game sequence for player ' + pId.toString());
-  let player;
+
   let maxScore;
   let normScore;
   let playedTriples;
 
-  return require('./User').findOne()
+  const player = await require('./User').findOne()
     .where({ _id: pId })
     .select('totalGamesPlayed totalScore pastGameInstances currentGameInstance')
     .populate([{
@@ -110,47 +110,47 @@ GameInstanceSchema.methods._createNewGameSequence = function() {
       model: 'GameInstance',
       select: 'gameSequence'
     }])
-    .lean().exec()
-    .then(_player => {
-      player = _player;
-      maxScore = config.game.scores.win
-        * config.game.size
-        * player.totalGamesPlayed;
-      normScore = maxScore ? player.totalScore / maxScore : 0.5;
+    .lean();
 
-      playedTriples = [];
-      if (player.pastGameInstances && player.pastGameInstances.length) {
-        player.pastGameInstances.forEach(gi => playedTriples.push(...gi.gameSequence));
-      }
-      if (player.currentGameInstance) {
-        playedTriples.push(...player.currentGameInstance.gameSequence);
-      }
 
-      return Triple.find()
-        .where('_id').nin(playedTriples)
-        .countDocuments();
-    })
-    .then(availableTriples => {
-      // No triples unplayed by this player, need to generate more
-      if (availableTriples < config.game.size) {
-        log.info(`No triples available for player ${pId}, generating new`);
-        return Pair.rebuildOrder()
-          .then(() => this._createNewGameSequence(pId));
-      }
+  maxScore = config.game.scores.win
+    * config.game.size
+    * player.totalGamesPlayed;
+  normScore = maxScore ? player.totalScore / maxScore : 0.5;
 
-      log.info(`Found ${availableTriples} triples available for player ${pId} to play`);
+  playedTriples = [];
+  if (player.pastGameInstances && player.pastGameInstances.length) {
+    player.pastGameInstances.forEach(gi => playedTriples.push(...gi.gameSequence));
+  }
+  if (player.currentGameInstance) {
+    playedTriples.push(...player.currentGameInstance.gameSequence);
+  }
 
-      let skip = Math.floor(availableTriples * normScore);
-      skip = skip - config.game.size / 2;
-      skip = skip < 0 ? 0 : skip;
+  const availableTriples = await Triple.find()
+    .where('_id').nin(playedTriples)
+    .countDocuments();
 
-      return Triple.find()
-        .skip(skip)
-        .where('_id').nin(playedTriples)
-        .select('ambiguity isRelevant')
-        .sort('-isRelevant ambiguity')
-        .limit(config.game.size)
-    });
+
+  // No triples unplayed by this player, need to generate more
+  if (availableTriples < config.game.size) {
+    log.info(`No triples available for player ${pId}, generating new`);
+    await Pair.rebuildOrder();
+    return this._createNewGameSequence(pId);
+  }
+
+  log.info(`Found ${availableTriples} triples available for player ${pId} to play`);
+
+  let skip = Math.floor(availableTriples * normScore);
+  skip = skip - config.game.size / 2;
+  skip = skip < 0 ? 0 : skip;
+
+  return Triple.find()
+    .skip(skip)
+    .where('_id').nin(playedTriples)
+    .select('ambiguity isRelevant')
+    .sort('-isRelevant ambiguity')
+    .limit(config.game.size)
+});
 };
 
 
