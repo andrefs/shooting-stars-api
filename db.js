@@ -24,7 +24,7 @@ if (config.log.db) {
 // Database connection
 
 const connect = () => {
-  mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true });
+  mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true });
   const conn = mongoose.connection;
 
   conn.on('error', (err) => {
