@@ -40,20 +40,20 @@ LockSchema.statics.acquire = async function(lockId, clientId, options = {}) {
   return this.acquire(lockId, clientId, options);
 };
 
-LockSchema.methods.release = function() {
-  return this.constructor.deleteOne({
+LockSchema.methods.release = async function() {
+  const res = await this.constructor.deleteOne({
     name: this.name,
     clientId: this.clientId,
     execId: this.execId
-  })
-    .then(res => {
-      if (res.n === 1) {
-        log.verbose(`Client ${this.clientId} released lock ${this.name} with execId ${this.execId}`);
-        return Promise.resolve();
-      }
-      if (res.n === 0) { throw new LockNotOwnedException(); }
-      return Promise.reject(res.ok);
-    });
+  });
+
+  if (res.deletedCount === 1) {
+    log.verbose(`Client ${this.clientId} released lock ${this.name} with execId ${this.execId}`);
+    return Promise.resolve();
+  }
+  if (res.deletedCount === 0) { throw new LockNotOwnedException(); }
+  return Promise.reject(res.ok);
+
 };
 
 LockSchema.statics.releaseAllFromClient = function(clientId) {

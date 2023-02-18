@@ -134,7 +134,10 @@ GameInstanceSchema.methods._createNewGameSequence = async function() {
   // No triples unplayed by this player, need to generate more
   if (availableTriples < config.game.size) {
     log.info(`No triples available for player ${pId}, generating new`);
-    await Pair.rebuildOrder();
+    await Pair.rebuildOrder().catch(err => {
+      return Promise.reject(err);
+    });
+
     return this._createNewGameSequence(pId);
   }
 
@@ -149,8 +152,7 @@ GameInstanceSchema.methods._createNewGameSequence = async function() {
     .where('_id').nin(playedTriples)
     .select('ambiguity isRelevant')
     .sort('-isRelevant ambiguity')
-    .limit(config.game.size)
-});
+    .limit(config.game.size);
 };
 
 

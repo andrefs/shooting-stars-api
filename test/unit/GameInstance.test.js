@@ -218,7 +218,7 @@ describe('GameInstance', () => {
       await Item.deleteMany();
       await Pair.deleteMany();
       await Triple.deleteMany();
-      await expect(gameInst._createNewGameSequence()).rejects.toBe(5);
+      await expect(gameInst._createNewGameSequence()).rejects.toThrow(NoMoreItemsError);
     });
 
     it.skip('selectnew selects existing sequence if available', () => {

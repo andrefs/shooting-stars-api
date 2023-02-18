@@ -70,6 +70,7 @@ PairSchema.methods.cmp = function(otherPair) {
 PairSchema.statics.rebuildOrder = async function() {
   let lockStart = process.hrtime();
   let lock;
+  let err;
 
   try {
     lock = await Lock.acquire('pairOrder', process.pid);
@@ -100,10 +101,11 @@ PairSchema.statics.rebuildOrder = async function() {
       pairs: pairs.map(p => p.seqNum)
     });
   } catch (e) {
-    return Promise.reject(e);
+    err = e;
   }
   finally {
-    return lock ? lock.release() : Promise.resolve();
+    lock && lock.release();
+    return err ? Promise.reject(err) : Promise.resolve();
   }
 };
 
