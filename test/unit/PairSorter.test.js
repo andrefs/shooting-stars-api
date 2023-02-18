@@ -68,9 +68,9 @@ describe('PairSorter', () => {
 
     triple = await Triple.findOne({ _id: mongoose.Types.ObjectId(triple._id) })
       .populate([
-        { path: 'triple.picks.AB.pair', model: 'Pair', select: 'seqNum _id' },
-        { path: 'triple.picks.AC.pair', model: 'Pair', select: 'seqNum _id' },
-        { path: 'triple.picks.BC.pair', model: 'Pair', select: 'seqNum _id' },
+        { path: 'picks.AB.pair', model: 'Pair', select: 'seqNum _id' },
+        { path: 'picks.AC.pair', model: 'Pair', select: 'seqNum _id' },
+        { path: 'picks.BC.pair', model: 'Pair', select: 'seqNum _id' },
       ]);
     await ps.tryInsert(pairs[0]);
     await ps.tryInsert(pairs[1]);
