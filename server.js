@@ -1,14 +1,14 @@
-import config         from './config';
-import restify        from 'restify';
-import {log, stream}  from './lib/logger';
-import bunyanWinston  from 'bunyan-winston-adapter';
-import passport       from './lib/passport';
-import jwt            from 'restify-jwt-community';
-import url            from 'url';
-import morgan         from 'morgan';
-import uuid           from 'uuid';
+import config from './config';
+import restify from 'restify';
+import { log, stream } from './lib/logger';
+import bunyanWinston from 'bunyan-winston-adapter';
+import passport from './lib/passport';
+import jwt from 'restify-jwt-community';
+import url from 'url';
+import morgan from 'morgan';
+import { v4 as uuidv4 } from 'uuid';
 import corsMiddleware from 'restify-cors-middleware2';
-import path           from 'path';
+import path from 'path';
 
 let api;
 
@@ -19,9 +19,9 @@ const create = () => {
    */
   log.level = process.env.LOG_LEVEL || config.log.level;
   api = restify.createServer({
-    name    : config.server.name,
-    version : config.version,
-    log     : bunyanWinston.createAdapter(log),
+    name: config.server.name,
+    version: config.version,
+    log: bunyanWinston.createAdapter(log),
   });
 
 
@@ -32,7 +32,7 @@ const create = () => {
   const cors = corsMiddleware({
     preflightMaxAge: 5,
     origins: ['*'],
-    allowHeaders: ['API-Token','Authorization'],
+    allowHeaders: ['API-Token', 'Authorization'],
     exposeHeaders: ['API-Token-Expiry']
   });
 
@@ -44,9 +44,9 @@ const create = () => {
    */
   api.use(restify.plugins.requestLogger());
   api.use(restify.plugins.acceptParser(api.acceptable));
-  api.use(restify.plugins.queryParser({mapParams: true}));
+  api.use(restify.plugins.queryParser({ mapParams: true }));
   api.use(restify.plugins.fullResponse());
-  api.use(restify.plugins.bodyParser({mapParams: true}));
+  api.use(restify.plugins.bodyParser({ mapParams: true }));
 
   /* Static images */
   api.get('/items/images/*', restify.plugins.serveStatic({
@@ -59,8 +59,8 @@ const create = () => {
    * Request id and logging
    */
   morgan.token('id', req => req.id);
-  api.use((req,res,next) => { req.id = uuid.v4(); return next(); });
-  api.use(morgan(':id :method :url :response-time',{stream}));
+  api.use((req, res, next) => { req.id = uuidv4(); return next(); });
+  api.use(morgan(':id :method :url :response-time', { stream }));
 
 
   /**
@@ -75,7 +75,7 @@ const create = () => {
   api.use(jwt({
     secret: config.auth.jwt.secret,
     requestProperty: 'auth',
-    getToken: function fromHeaderOrQuerystring (req) {
+    getToken: function fromHeaderOrQuerystring(req) {
       if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
         return req.headers.authorization.split(' ')[1];
       } else if (req.query && req.query.token) {
@@ -84,21 +84,22 @@ const create = () => {
       return null;
     }
   })
-  .unless(req => {
-    if(config.auth.disabled){ return true; }
-    if(req.query.token === 'ichbintherealOG'){ return true; } // hard coded super admin
-    const pathname = url.parse(req.url).pathname;
-    if(unauthPaths.indexOf(pathname) >= 0){ return true; }
-    if(pathname.indexOf(config.images.path) === 0){ return true;}
-    return false;
-  }));
-  if(!config.auth.disabled){
+    .unless(req => {
+      if (config.auth.disabled) { return true; }
+      if (req.query.token === 'ichbintherealOG') { return true; } // hard coded super admin
+      const pathname = url.parse(req.url).pathname;
+      if (unauthPaths.indexOf(pathname) >= 0) { return true; }
+      if (pathname.indexOf(config.images.path) === 0) { return true; }
+      return false;
+    }));
+  if (!config.auth.disabled) {
     api.use((req, res, next) => {
-      if(req.params.userId){
+      if (req.params.userId) {
         req.auth = req.auth || {};
         req.auth.sub = req.params.userId;
         delete req.params.userId;
       }
+      console.log('XXXXXXX', req.auth)
       log.info(`Request by user ${req.auth.sub}`);
       return next();
     });
@@ -138,4 +139,4 @@ const shutdown = callback => {
 };
 
 
-export {create, shutdown};
+export { create, shutdown };
