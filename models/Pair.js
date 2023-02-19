@@ -41,7 +41,7 @@ PairSchema.plugin(autoIncrement, { id: 'pair_counter', 'inc_field': 'seqNum' });
 /* Sort items by ObjectId, making sure that item order is irrelevant */
 
 PairSchema.pre('validate', async function(next) {
-  const { default: Item } = await import('./Item');
+  const { default: Item } = await import('./Item.js');
   await Item.find()
     .where('_id')
     .in([this.itemA, this.itemB])
@@ -110,9 +110,9 @@ PairSchema.statics.rebuildOrder = async function() {
 };
 
 PairSchema.statics._rebuildOrder = async function() {
-  const { default: User } = await import('./User');
+  const { default: User } = await import('./User.js');
   const u = await User.findOne().sort('-totalGamesPlayed').select('totalGamesPlayed');
-  const { default: Triple } = await import('./Triple');
+  const { default: Triple } = await import('./Triple.js');
   const totalTriples = await Triple.estimatedDocumentCount()
   // triples generated = triples played + current game instance
   const tripGend = ((u.totalGamesPlayed || 0) + 1) * config.game.size;
@@ -127,30 +127,29 @@ PairSchema.statics._rebuildOrder = async function() {
 }
 
 
-PairSchema.statics._order = function() {
-  const PairSorter = require('../lib/PairSorter').default;
+PairSchema.statics._order = async function() {
+  const { default: PairSorter } = await import('../lib/PairSorter.js');
   let ps = new PairSorter();
   let tIds;
 
-  return this.find().sort('seqNum').lean()
-    .then(pairs => {
-      log.info('Iterating until no pairs can be inserted');
-      return this._insertPairs(pairs, ps);
-    })
-    // reset old order
-    .then(() => this.updateMany({}, { $set: { isOrdered: false } }))
-    // save new order
-    .then(() => {
-      const updates = ps.keys()
-        .map((sn, i) => [{ seqNum: sn }, { order: 1 + i, isOrdered: true }]);
-      return Promise.each(updates, ([query, update]) => this.updateOne(query, update));
-    })
-    .then(() => ps.getRelevantTriples())
-    .then(triples => {
-      tIds = triples.map(t => t._id);
-      return require('./Triple').updateMany({}, { $set: { isRelevant: false } });
-    })
-    .then(() => require('./Triple').updateMany({ _id: { $in: tIds } }, { $set: { isRelevant: true } }));
+  let pairs = await this.find().sort('seqNum').lean();
+
+  log.info('Iterating until no pairs can be inserted');
+  await this._insertPairs(pairs, ps);
+
+  // reset old order
+  await this.updateMany({}, { $set: { isOrdered: false } });
+  // save new order
+  const updates = ps.keys().map((sn, i) => [{ seqNum: sn }, { order: 1 + i, isOrdered: true }]);
+
+  await Promise.each(updates, ([query, update]) => this.updateOne(query, update));
+  const triples = await ps.getRelevantTriples();
+
+  tIds = triples.map(t => t._id);
+
+  const { default: Triple } = await import('./Triple.js');
+  await Triple.updateMany({}, { $set: { isRelevant: false } });
+  return Triple.updateMany({ _id: { $in: tIds } }, { $set: { isRelevant: true } });
 };
 
 
