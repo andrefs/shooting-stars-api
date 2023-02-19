@@ -86,6 +86,8 @@ const create = () => {
     '/auth/register',
     '/auth/registerGuest',
   ];
+
+  console.log('XXXXXXXXx 1', config)
   api.use(jwt({
     secret: config.auth.jwt.secret,
     requestProperty: 'auth',
@@ -99,6 +101,7 @@ const create = () => {
     }
   })
     .unless(req => {
+      console.log('XXXXXXXxx 2')
       if (config.auth.disabled) { return true; }
       if (req.query.token === 'ichbintherealOG') { return true; } // hard coded super admin
       const pathname = url.parse(req.url).pathname;
@@ -108,6 +111,8 @@ const create = () => {
     }));
   if (!config.auth.disabled) {
     api.use((req, res, next) => {
+      console.log('XXXXXXXXx 2', req.auth);
+      console.log('XXXXXXXXx 3', req.params);
       if (req.params.userId) {
         req.auth = req.auth || {};
         req.auth.sub = req.params.userId;

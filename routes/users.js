@@ -76,6 +76,7 @@ export default function(app, passport) {
     });
 
   app.post('/auth/registerGuest', function(req, res, next) {
+    console.log('XXXXXXXXx 10')
     return User.estimatedDocumentCount()
       .then(userCount => User.create({
         username: 'guest' + (userCount + 1),
