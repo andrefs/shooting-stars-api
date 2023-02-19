@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 import pagPlugin from 'mongoose-paginate';
 import createdModified from 'mongoose-createdmodified';
-import Triple from './Triple';
-import PlayerMove from './PlayerMove';
+import Triple from './Triple.js';
+import PlayerMove from './PlayerMove.js';
 import _ from 'lodash';
-import config from '../config';
-import randProb from '../lib/randProb';
+import config from '../config/index.cjs';
+import randProb from '../lib/randProb.js';
 
 const ScoreSchema = mongoose.Schema({
   player: { type: Number, default: 0 },
@@ -90,4 +90,4 @@ TurnSchema.methods.setScores = function() {
   this.markModified('score');
 };
 
-module.exports = mongoose.model('Turn', TurnSchema);
+export default mongoose.model('Turn', TurnSchema);

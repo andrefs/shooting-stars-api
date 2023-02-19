@@ -1,14 +1,28 @@
-import config from './config';
+import config from './config/index.cjs';
 import restify from 'restify';
-import { log, stream } from './lib/logger';
+import { log, stream } from './lib/logger.js';
 import bunyanWinston from 'bunyan-winston-adapter';
-import passport from './lib/passport';
+import passport from './lib/passport.js';
 import jwt from 'restify-jwt-community';
 import url from 'url';
 import morgan from 'morgan';
 import { v4 as uuidv4 } from 'uuid';
 import corsMiddleware from 'restify-cors-middleware2';
 import path from 'path';
+
+
+// add routes
+import routesStats from './routes/stats.js';
+import routesUsers from './routes/users.js';
+import routesGameInstances from './routes/gameInstances.js';
+import routesMoves from './routes/playerMoves.js';
+import routesTurns from './routes/turns.js';
+import routesItems from './routes/items.js';
+import routesPairs from './routes/pairs.js';
+import routesTriples from './routes/triples.js';
+import routesAdmin from './routes/admin.js';
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 let api;
 
@@ -99,7 +113,6 @@ const create = () => {
         req.auth.sub = req.params.userId;
         delete req.params.userId;
       }
-      console.log('XXXXXXX', req.auth)
       log.info(`Request by user ${req.auth.sub}`);
       return next();
     });
@@ -121,15 +134,15 @@ const create = () => {
   });
 
   // add routes
-  require('./routes/stats')(api, passport);
-  require('./routes/users')(api, passport);
-  require('./routes/gameInstances')(api);
-  require('./routes/playerMoves')(api);
-  require('./routes/turns')(api);
-  require('./routes/items')(api);
-  require('./routes/pairs')(api);
-  require('./routes/triples')(api);
-  require('./routes/admin')(api);
+  routesStats(api, passport);
+  routesUsers(api, passport);
+  routesGameInstances(api);
+  routesMoves(api);
+  routesTurns(api);
+  routesItems(api);
+  routesPairs(api);
+  routesTriples(api);
+  routesAdmin(api);
 
   return api;
 };

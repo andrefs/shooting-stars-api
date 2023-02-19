@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import { log } from '../lib/logger';
+import { log } from '../lib/logger.js';
 import Promise from 'bluebird';
-import { LockNotOwnedException } from '../lib/errors';
+import { LockNotOwnedException } from '../lib/errors/index.js';
 
 const LockSchema = mongoose.Schema({
   name: {
@@ -69,4 +69,4 @@ function timeoutPromise(delay) {
   });
 }
 
-module.exports = mongoose.model('Lock', LockSchema);
+export default mongoose.model('Lock', LockSchema);

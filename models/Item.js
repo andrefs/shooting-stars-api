@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 import pagPlugin from 'mongoose-paginate';
 import createdModified from 'mongoose-createdmodified';
-import { reject } from 'lodash';
+import _ from 'lodash';
 import MongooseSequence from 'mongoose-sequence';
 import Promise from 'bluebird';
-import { NoMoreItemsError } from '../lib/errors';
+import { NoMoreItemsError } from '../lib/errors/index.js';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(createdModified.createdModifiedPlugin, { index: true });
@@ -77,10 +77,12 @@ ItemSchema.statics.activateNext = async function() {
   newItem = await this.findOne({ _id: newItem._id });
 
   const pairs = generatePairs(newItem, oldItems || []);
-  await require('./Pair').create(pairs);
+  const { default: Pair } = await import('./Pair.js');
+  await Pair.create(pairs);
 
   const triples = generateTriples(newItem, oldItems || []);
-  return require('./Triple').create(triples)
+  const { default: Triple } = await import('./Triple.js');
+  return Triple.create(triples)
 };
 
-module.exports = mongoose.model('Item', ItemSchema);
+export default mongoose.model('Item', ItemSchema);

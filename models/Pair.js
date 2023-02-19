@@ -2,12 +2,12 @@ import mongoose from 'mongoose';
 import pagPlugin from 'mongoose-paginate';
 import createdModified from 'mongoose-createdmodified';
 import { createHash } from 'crypto';
-import { log } from '../lib/logger';
+import { log } from '../lib/logger.js';
 import Promise from 'bluebird';
 import MongooseSequence from 'mongoose-sequence';
-import Item from './Item';
-import Lock from './Lock';
-import config from '../config';
+import Item from './Item.js';
+import Lock from './Lock.js';
+import config from '../config/index.cjs';
 
 
 mongoose.plugin(pagPlugin);
@@ -40,8 +40,9 @@ PairSchema.plugin(autoIncrement, { id: 'pair_counter', 'inc_field': 'seqNum' });
 
 /* Sort items by ObjectId, making sure that item order is irrelevant */
 
-PairSchema.pre('validate', function(next) {
-  return require('./Item').find()
+PairSchema.pre('validate', async function(next) {
+  const { default: Item } = await import('./Item');
+  await Item.find()
     .where('_id')
     .in([this.itemA, this.itemB])
     .limit(2)
@@ -85,7 +86,8 @@ PairSchema.statics.rebuildOrder = async function() {
     await this._rebuildOrder();
 
     let rebuildTime = process.hrtime(rebuildStart);
-    let triples = await require('./Triple').countDocuments({ isRelevant: true });
+    const { default: Triple } = await import('./Triple');
+    let triples = Triple.countDocuments({ isRelevant: true });
     pairs = await this.find({ isOrdered: true }).select('seqNum order').sort('order').lean()
 
 
@@ -107,22 +109,22 @@ PairSchema.statics.rebuildOrder = async function() {
   }
 };
 
-PairSchema.statics._rebuildOrder = function() {
-  return Promise.join(
-    require('./User').findOne().sort('-totalGamesPlayed').select('totalGamesPlayed'),
-    require('./Triple').estimatedDocumentCount()
-  )
-    .then(([u, totalTriples]) => {
-      // triples generated = triples played + current game instance
-      const tripGend = ((u.totalGamesPlayed || 0) + 1) * config.game.size;
+PairSchema.statics._rebuildOrder = async function() {
+  const { default: User } = await import('./User');
+  const u = await User.findOne().sort('-totalGamesPlayed').select('totalGamesPlayed');
+  const { default: Triple } = await import('./Triple');
+  const totalTriples = await Triple.estimatedDocumentCount()
+  // triples generated = triples played + current game instance
+  const tripGend = ((u.totalGamesPlayed || 0) + 1) * config.game.size;
 
-      if (totalTriples < tripGend + config.game.size) {
-        return Item.activateNext()
-          .then(() => this._rebuildOrder());
-      }
-      return this._order();
-    });
-};
+  if (totalTriples < tripGend + config.game.size) {
+    await Item.activateNext()
+    await this._rebuildOrder();
+    this._order();
+
+
+  };
+}
 
 
 PairSchema.statics._order = function() {
@@ -189,4 +191,4 @@ PairSchema.methods._removeOrder = function() {
 
 PairSchema.index({ itemA: 1, itemB: 1 }, { unique: true });
 
-module.exports = mongoose.model('Pair', PairSchema);
+export default mongoose.model('Pair', PairSchema);

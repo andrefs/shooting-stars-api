@@ -1,22 +1,22 @@
 'use strict';
 
-import GameInstance from '../models/GameInstance';
-import errors          from 'restify-errors';
-import {log}           from '../lib/logger';
-import mongoose        from 'mongoose';
-import {InvalidObjectId, UnfinishedGameInstance, NoCurrentGame, NoMoreItemsError} from '../lib/errors';
-import User            from '../models/User';
-import Promise         from 'bluebird';
+import GameInstance from '../models/GameInstance.js';
+import errors from 'restify-errors';
+import { log } from '../lib/logger.js';
+import mongoose from 'mongoose';
+import { InvalidObjectId, UnfinishedGameInstance, NoCurrentGame, NoMoreItemsError } from '../lib/errors/index.js';
+import User from '../models/User.js';
+import Promise from 'bluebird';
 
-module.exports = function(app){
+export default function(app) {
 
- app.get('/gameInstances/current', function(req, res, next){
-    return User.findOne({'_id': mongoose.Types.ObjectId(req.auth.sub)})
+  app.get('/gameInstances/current', function(req, res, next) {
+    return User.findOne({ '_id': mongoose.Types.ObjectId(req.auth.sub) })
       .then(user => {
-        if(!user.currentGameInstance){
+        if (!user.currentGameInstance) {
           return Promise.resolve();
         }
-        return GameInstance.findOne({'_id': user.currentGameInstance})
+        return GameInstance.findOne({ '_id': user.currentGameInstance })
       })
       .catch(err => {
         log.warn(err);
@@ -24,14 +24,14 @@ module.exports = function(app){
         return;
       })
       .then(gi => {
-        if(!gi){
+        if (!gi) {
           res.send(404);
           return;
         }
         return gi.toSanitizedObject();
       })
       .then(obj => {
-        if(obj){ res.send(obj); }
+        if (obj) { res.send(obj); }
         return next();
       });
   });
@@ -40,15 +40,15 @@ module.exports = function(app){
    * Create new
    */
 
-  app.post('/gameInstances/current', function(req, res, next){
+  app.post('/gameInstances/current', function(req, res, next) {
     let user;
-    return User.findOne({'_id': mongoose.Types.ObjectId(req.auth.sub)})
+    return User.findOne({ '_id': mongoose.Types.ObjectId(req.auth.sub) })
       .then(u => {
         user = u;
-        if(user.currentGameInstance){
-          return GameInstance.findOne({'_id': user.currentGameInstance})
+        if (user.currentGameInstance) {
+          return GameInstance.findOne({ '_id': user.currentGameInstance })
             .then(gi => {
-              if(!gi.isFinished){
+              if (!gi.isFinished) {
                 return next(new UnfinishedGameInstance());
               }
               return GameInstance.createNew(user._id);
@@ -62,9 +62,9 @@ module.exports = function(app){
         return next();
       })
       .catch(err => {
-        if(err instanceof NoMoreItemsError){
+        if (err instanceof NoMoreItemsError) {
           log.info(`Player ${user._id} finished all available game sequences`);
-          res.send(400, {err: {name: err.name, message: err.message}});
+          res.send(400, { err: { name: err.name, message: err.message } });
           return next(err);
         }
         log.error(err);
@@ -73,11 +73,11 @@ module.exports = function(app){
       });
   });
 
-  app.post('/gameInstances/current/:turn/:pick', function(req, res, next){
-    return User.findOne({'_id': mongoose.Types.ObjectId(req.auth.sub)})
-      .then(user => GameInstance.findOne({'_id': user.currentGameInstance}))
+  app.post('/gameInstances/current/:turn/:pick', function(req, res, next) {
+    return User.findOne({ '_id': mongoose.Types.ObjectId(req.auth.sub) })
+      .then(user => GameInstance.findOne({ '_id': user.currentGameInstance }))
       .then(gi => {
-        if(!gi){ throw new NoCurrentGame(); }
+        if (!gi) { throw new NoCurrentGame(); }
         return gi.addMove(req.params.turn, req.params.pick);
       })
       .then(gi => gi.toSanitizedObject())
@@ -92,8 +92,8 @@ module.exports = function(app){
   });
 
 
-  app.get('/gameInstances/:id', function(req, res, next){
-    if(!mongoose.Types.ObjectId.isValid(req.params.id)){
+  app.get('/gameInstances/:id', function(req, res, next) {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return next(new InvalidObjectId(req.params.id));
     }
     const query = {
@@ -105,7 +105,7 @@ module.exports = function(app){
         return next(new errors.InvalidContentError(err.errors.name.message));
       })
       .then(gi => {
-        if(!gi){
+        if (!gi) {
           return res.send(404);
         }
         res.send(gi);

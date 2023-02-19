@@ -238,4 +238,4 @@ UserSchema.methods.playerNearestScores = function(n) {
 };
 
 UserSchema.index({ username: 1 }, { unique: true });
-module.exports = mongoose.model('User', UserSchema);
+export default mongoose.model('User', UserSchema);

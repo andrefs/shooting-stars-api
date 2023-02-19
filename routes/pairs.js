@@ -1,26 +1,26 @@
-import Pair from '../models/Pair';
-import Item from '../models/Item';
+import Pair from '../models/Pair.js';
+import Item from '../models/Item.js';
 import errors from 'restify-errors';
-import {log}           from '../lib/logger';
+import { log } from '../lib/logger.js';
 import mongoose from 'mongoose';
-import {InvalidObjectId} from '../lib/errors';
+import { InvalidObjectId } from '../lib/errors/index.js';
 
-module.exports = function(app){
+export default function(app) {
 
-  app.get('/pairs', function(req, res, next){
+  app.get('/pairs', function(req, res, next) {
     let query = {};
     let options = {
-      offset:  0,
-      limit : 10,
-      lean  : true,
+      offset: 0,
+      limit: 10,
+      lean: true,
     };
-    if(req.params.includeItems){
-      options.populate = {path: 'itemA itemB', model: Item};
+    if (req.params.includeItems) {
+      options.populate = { path: 'itemA itemB', model: Item };
     }
-    if(req.params.limit){
+    if (req.params.limit) {
       options.limit = parseInt(req.params.limit, 10);
     }
-    if(req.params.orderedOnly){
+    if (req.params.orderedOnly) {
       options.sort = 'order';
       query.isOrdered = true;
     }
@@ -37,8 +37,8 @@ module.exports = function(app){
   });
 
 
-  app.get('/pairs/:id', function(req, res, next){
-    if(!mongoose.Types.ObjectId.isValid(req.params.id)){
+  app.get('/pairs/:id', function(req, res, next) {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return next(new InvalidObjectId(req.params.id));
     }
     const query = {
@@ -50,7 +50,7 @@ module.exports = function(app){
         return next(new errors.InvalidContentError(err.errors.name.message));
       })
       .then(doc => {
-        if(!doc){
+        if (!doc) {
           return res.send(404);
         }
         res.send(doc);

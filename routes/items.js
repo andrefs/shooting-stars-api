@@ -1,33 +1,33 @@
 'use strict';
 
-import Item from '../models/Item';
+import Item from '../models/Item.js';
 import errors from 'restify-errors';
-import {log}           from '../lib/logger';
+import { log } from '../lib/logger.js';
 import mongoose from 'mongoose';
-import {InvalidObjectId} from '../lib/errors';
+import { InvalidObjectId } from '../lib/errors/index.js';
 import md5 from 'md5';
-const fs = require('fs').promises;
-import config   from '../config';
+import { readFile } from 'fs/promises';
+import config from '../config/index.cjs';
 import path from 'path';
 import Jimp from 'jimp';
 
-module.exports = function(app){
+export default function(app) {
 
   // Create item
-  app.post('/items', function(req, res, next){
+  app.post('/items', function(req, res, next) {
     let item = new Item();
     item.name = req.params.name;
     item.description = req.params.description;
     item.imageUrl = req.params.imageUrl;
 
-    if(req.files && req.files.image){
+    if (req.files && req.files.image) {
       const tmpFile = req.files.image.path;
       let filePath;
 
-      fs.readFile(tmpFile)
+      readFile(tmpFile)
         .then(buf => md5(buf))
         .then(fileName => {
-          filePath = path.join(config.images.folder, fileName)+'.jpg';
+          filePath = path.join(config.images.folder, fileName) + '.jpg';
           log.info(`Copying image file to ${filePath}`);
           return Jimp.read(tmpFile);
         })
@@ -60,12 +60,12 @@ module.exports = function(app){
 
 
   // Get list of items
-  app.get('/items', function(req, res, next){
-    let offset =  0;
-    let limit  = 10;
+  app.get('/items', function(req, res, next) {
+    let offset = 0;
+    let limit = 10;
     let lean = true;
 
-    Item.paginate({},{offset, limit, lean})
+    Item.paginate({}, { offset, limit, lean })
       .catch(err => {
         log.error(err);
         return next(new errors.InvalidContentError(err.errors.name.message));
@@ -78,8 +78,8 @@ module.exports = function(app){
 
 
   // Get item by ID
-  app.get('/items/:id', function(req, res, next){
-    if(!mongoose.Types.ObjectId.isValid(req.params.id)){
+  app.get('/items/:id', function(req, res, next) {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return next(new InvalidObjectId(req.params.id));
     }
     const query = {
@@ -91,7 +91,7 @@ module.exports = function(app){
         return next(new errors.InvalidContentError(err.errors.name.message));
       })
       .then(doc => {
-        if(!doc){
+        if (!doc) {
           return res.send(404);
         }
         res.send(doc);

@@ -1,13 +1,13 @@
-import User     from '../models/User';
-import GameInstance     from '../models/GameInstance';
-import errors   from 'restify-errors';
-import {log}           from '../lib/logger';
+import User from '../models/User.js';
+import GameInstance from '../models/GameInstance.js';
+import errors from 'restify-errors';
+import { log } from '../lib/logger.js';
 import mongoose from 'mongoose';
-import config   from '../config';
-import Promise          from 'bluebird';
+import config from '../config/index.cjs';
+import Promise from 'bluebird';
 
-module.exports = function(app, passport){
-  app.get('/stats', function(req, res, next){
+export default function(app, passport) {
+  app.get('/stats', function(req, res, next) {
     return Promise.join(
       User.cumulativeGamesPlayed(),
       User.newUsersByMonth(),
@@ -15,11 +15,11 @@ module.exports = function(app, passport){
       User.averageGamesPerActiveUserByMonth(),
       GameInstance.newGamesByMonth(),
     )
-    .then(([cumulativeGames, newUsersByMonth, playersByGender, gamesByMonth
+      .then(([cumulativeGames, newUsersByMonth, playersByGender, gamesByMonth
       ]) => {
-      res.send({cumulativeGames, newUsersByMonth, playersByGender, gamesByMonth});
-      return next();
-    });
+        res.send({ cumulativeGames, newUsersByMonth, playersByGender, gamesByMonth });
+        return next();
+      });
   });
 
 };

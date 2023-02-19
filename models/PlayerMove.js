@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import pagPlugin from 'mongoose-paginate';
 import createdModified from 'mongoose-createdmodified';
-import Triple from './Triple';
-import User from './User';
+import Triple from './Triple.js';
+import User from './User.js';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(createdModified.createdModifiedPlugin, { index: true });
@@ -27,4 +27,4 @@ const PlayerMoveSchema = mongoose.Schema({
 
 PlayerMoveSchema.index({ player: 1, triple: 1 }, { unique: true });
 
-module.exports = mongoose.model('PlayerMove', PlayerMoveSchema);
+export default mongoose.model('PlayerMove', PlayerMoveSchema);

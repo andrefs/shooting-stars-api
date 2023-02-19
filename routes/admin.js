@@ -1,13 +1,13 @@
-import errors   from 'restify-errors';
-import {log}           from '../lib/logger';
+import errors from 'restify-errors';
+import { log } from '../lib/logger.js';
 import mongoose from 'mongoose';
-import config   from '../config';
-import Promise          from 'bluebird';
-import Pair from '../models/Pair';
+import config from '../config/index.cjs';
+import Promise from 'bluebird';
+import Pair from '../models/Pair.js';
 
-module.exports = function(app, passport){
+export default function(app, passport) {
   // TODO auth
-  app.get('/admin/rebuildOrder', function(req, res, next){
+  app.get('/admin/rebuildOrder', function(req, res, next) {
     const start = process.hrtime();
     return Pair.rebuildOrder()
       .then(resp => {

@@ -1,12 +1,13 @@
-import User from '../models/User';
+import User from '../models/User.js';
+import GameInstance from '../models/GameInstance.js';
 import errors from 'restify-errors';
-import { log } from '../lib/logger';
+import { log } from '../lib/logger.js';
 import mongoose from 'mongoose';
-import config from '../config';
-import { getJwt } from '../lib/jwt';
+import config from '../config/index.cjs';
+import { getJwt } from '../lib/jwt.js';
 import Promise from 'bluebird';
 
-module.exports = function(app, passport) {
+export default function(app, passport) {
   app.get('/users', function(req, res, next) {
     const options = {
       offset: 0,

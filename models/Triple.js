@@ -3,12 +3,12 @@ import Promise from 'bluebird';
 import pagPlugin from 'mongoose-paginate';
 import createdModified from 'mongoose-createdmodified';
 import { createHash } from 'crypto';
-import { log } from '../lib/logger';
-import Pair from './Pair';
-import Item from './Item';
-import max from 'lodash/max';
-import PairSorter from '../lib/PairSorter';
-import { MissingPairsRelationException } from '../lib/errors';
+import { log } from '../lib/logger.js';
+import Pair from './Pair.js';
+import Item from './Item.js';
+import _ from 'lodash';
+import PairSorter from '../lib/PairSorter.js';
+import { MissingPairsRelationException } from '../lib/errors/index.js';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(createdModified.createdModifiedPlugin, { index: true });
@@ -141,7 +141,7 @@ TripleSchema.methods.addPick = function(pick) {
 };
 
 TripleSchema.methods.updateAmbiguity = function() {
-  this.ambiguity = max([
+  this.ambiguity = _.max([
     this.picks.AB.count,
     this.picks.AC.count,
     this.picks.BC.count,
@@ -162,4 +162,4 @@ TripleSchema.methods.getPairs = function() {
 
 TripleSchema.index({ itemA: 1, itemB: 1, itemC: 1 }, { unique: true });
 
-module.exports = mongoose.model('Triple', TripleSchema);
+export default mongoose.model('Triple', TripleSchema);

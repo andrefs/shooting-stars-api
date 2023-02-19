@@ -1,8 +1,8 @@
-import config from './config';
+import config from './config/index.cjs';
 import mongoose from 'mongoose';
 import Promise from 'bluebird';
-import { log } from './lib/logger';
-import Lock from './models/Lock';
+import { log } from './lib/logger.js';
+import Lock from './models/Lock.js';
 
 // Get correct URI
 let mongo_uri = process.env.MONGO_URI;

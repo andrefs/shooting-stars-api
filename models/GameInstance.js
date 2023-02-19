@@ -1,17 +1,17 @@
 import mongoose from 'mongoose';
-import Turn from './Turn';
+import Turn from './Turn.js';
 import pagPlugin from 'mongoose-paginate';
 import createdModified from 'mongoose-createdmodified';
-import { log } from '../lib/logger';
-import User from './User';
-import Pair from './Pair';
-import Triple from './Triple';
-import PlayerMove from './PlayerMove';
+import { log } from '../lib/logger.js';
+import User from './User.js';
+import Pair from './Pair.js';
+import Triple from './Triple.js';
+import PlayerMove from './PlayerMove.js';
 import Promise from 'bluebird';
-import { CurrentTurnMismatch, NoCurrentTurn, TripleIdMismatchError } from '../lib/errors';
-import { sampleSize } from 'lodash';
+import { CurrentTurnMismatch, NoCurrentTurn, TripleIdMismatchError } from '../lib/errors/index.js';
+import _ from 'lodash';
 import { knuthShuffle } from 'knuth-shuffle';
-import config from '../config';
+import config from '../config/index.cjs';
 
 
 
@@ -96,7 +96,10 @@ GameInstanceSchema.methods._createNewGameSequence = async function() {
   let normScore;
   let playedTriples;
 
-  const player = await require('./User').findOne()
+  const { default: User } = await import('./User.js');
+  console.log('XXXXXXXx 1', User)
+
+  const player = await User.findOne()
     .where({ _id: pId })
     .select('totalGamesPlayed totalScore pastGameInstances currentGameInstance')
     .populate([{
@@ -186,7 +189,7 @@ GameInstanceSchema.methods.setOpponentNames = function() {
     'Chappie',        // Chappie
   ];
 
-  const [rand1, rand2] = sampleSize(namesList, 2);
+  const [rand1, rand2] = _.sampleSize(namesList, 2);
 
   this.opponentNames.rand1 = rand1 || 'Alice';
   this.opponentNames.rand2 = rand2 || 'Bob';
@@ -363,4 +366,4 @@ GameInstanceSchema.statics.newGamesByMonth = function() {
     })));
 };
 
-module.exports = mongoose.model('GameInstance', GameInstanceSchema);
+export default mongoose.model('GameInstance', GameInstanceSchema);
