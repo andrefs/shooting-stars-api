@@ -73,7 +73,7 @@
     "restify": "10.0.0",
     "restify-cors-middleware2": "2.2.0",
     "restify-errors": "6.1.1",
-    "restify-jwt-community": "^1.1.29",
+    "restify-jwt-community": "^2.0.0",
     "uuid": "^9.0.0",
     "winston": "^3.8.2"
   },
