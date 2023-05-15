@@ -61,7 +61,7 @@
     "knuth-shuffle": "^1.0.8",
     "lodash": "^4.17.21",
     "md5": "^2.3.0",
-    "mongoose": "6.9.2",
+    "mongoose": "7.1.1",
     "mongoose-createdmodified": "^0.0.2",
     "mongoose-paginate": "^5.0.3",
     "mongoose-sequence": "5.3.1",
