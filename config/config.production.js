@@ -14,7 +14,7 @@ module.exports = {
   server: {
     name: 'shooting-stars-api',
     port: 15111,
-    host: 'localhost'
+    host: '0.0.0.0'
   },
   auth: {
     disabled: false,
