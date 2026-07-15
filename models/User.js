@@ -1,4 +1,4 @@
-import bcrypt           from 'bcrypt';
+import bcrypt           from 'bcryptjs';
 import mongoose         from 'mongoose';
 import pagPlugin        from 'mongoose-paginate';
 import mongooseApiQuery from 'mongoose-api-query';

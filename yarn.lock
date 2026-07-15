@@ -1088,13 +1088,6 @@ bcrypt-pbkdf@^1.0.0:
   dependencies:
     tweetnacl "^0.14.3"
 
-bcrypt@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/bcrypt/-/bcrypt-2.0.1.tgz#229c5afe09379789f918efe86e5e5b682e509f85"
-  dependencies:
-    nan "2.10.0"
-    node-pre-gyp "0.9.1"
-
 binary-extensions@^1.0.0:
   version "1.11.0"
   resolved "https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-1.11.0.tgz#46aa1751fb6a2f93ee5e689bb1087d4b14c6c205"
@@ -5094,3 +5087,8 @@ yargs@~3.10.0:
     cliui "^2.1.0"
     decamelize "^1.0.0"
     window-size "0.1.0"
+
+bcryptjs@^2.4.3:
+  version "2.4.3"
+  resolved "https://registry.yarnpkg.com/bcryptjs/-/bcryptjs-2.4.3.tgz#1bd3e70db8b614bbc4f792059672ee8d7f8a1dea"
+  integrity sha512-V/Hy/X9Vt7f3BbPJEi8BdVFMByHi+jNXrYkW3huaybV/kQ0KJg0Y6PkEMbn+zeT+i+SiKZ/HMqJGIIt4LZDqNQ==
