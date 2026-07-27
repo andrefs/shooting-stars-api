@@ -31,7 +31,6 @@ const connect = async () => {
   log.info('Connecting to MongoDB ' + uri);
   return mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 };
-};
 
 const disconnect = async () => {
   // cleanup

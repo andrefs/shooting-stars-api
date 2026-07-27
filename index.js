@@ -39,23 +39,23 @@ const loadItemsJson = async () => {
   }
 
   const jfile = path.join(loadItems.folder, loadItems.file);
-  return fs.access(jfile)
-    .then(() => {
-      log.info(`Loading items from file ${jfile}`);
-      const itemsData = JSON.parse(await fs.readFile(jfile, 'utf8')).map(item => {
-        item.tmpPath = path.join(config.loadItems.folder, item.imagePath);
-        return item;
-      });
-      return Promise.all(itemsData.map(item => Item.loadItem(item)));
-    })
-    .catch(e => {
-      if (e.code && e.code === 'ENOENT') {
-        log.info(`File ${jfile} not found, skipping loading items from file...`);
-      } else {
-        log.warn(`Error accessing file ${jfile}`, e);
-        throw e;
-      }
+  try {
+    await fs.access(jfile);
+    log.info(`Loading items from file ${jfile}`);
+    const content = await fs.readFile(jfile, 'utf8');
+    const itemsData = JSON.parse(content).map(item => {
+      item.tmpPath = path.join(config.loadItems.folder, item.imagePath);
+      return item;
     });
+    return Promise.all(itemsData.map(item => Item.loadItem(item)));
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      log.info(`File ${jfile} not found, skipping loading items from file...`);
+    } else {
+      log.warn(`Error accessing file ${jfile}`, e);
+      throw e;
+    }
+  }
 };
 
 
