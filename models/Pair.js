@@ -8,6 +8,9 @@ import MongooseSequence from 'mongoose-sequence';
 import Item from './Item.js';
 import Lock from './Lock.js';
 import config from '../config/index.cjs';
+import Triple from './Triple.js';
+import User from './User.js';
+import PairSorter from '../lib/PairSorter.js';
 
 
 mongoose.plugin(pagPlugin);
@@ -41,7 +44,6 @@ PairSchema.plugin(autoIncrement, { id: 'pair_counter', 'inc_field': 'seqNum' });
 /* Sort items by ObjectId, making sure that item order is irrelevant */
 
 PairSchema.pre('validate', async function(next) {
-  const { default: Item } = await import('./Item.js');
   await Item.find()
     .where('_id')
     .in([this.itemA, this.itemB])
@@ -86,7 +88,6 @@ PairSchema.statics.rebuildOrder = async function() {
     await this._rebuildOrder();
 
     let rebuildTime = process.hrtime(rebuildStart);
-    const { default: Triple } = await import('./Triple');
     let triples = Triple.countDocuments({ isRelevant: true });
     pairs = await this.find({ isOrdered: true }).select('seqNum order').sort('order').lean()
 
@@ -110,9 +111,7 @@ PairSchema.statics.rebuildOrder = async function() {
 };
 
 PairSchema.statics._rebuildOrder = async function() {
-  const { default: User } = await import('./User.js');
   const u = await User.findOne().sort('-totalGamesPlayed').select('totalGamesPlayed');
-  const { default: Triple } = await import('./Triple.js');
   const totalTriples = await Triple.estimatedDocumentCount()
   // triples generated = triples played + current game instance
   const tripGend = ((u.totalGamesPlayed || 0) + 1) * config.game.size;
@@ -128,7 +127,6 @@ PairSchema.statics._rebuildOrder = async function() {
 
 
 PairSchema.statics._order = async function() {
-  const { default: PairSorter } = await import('../lib/PairSorter.js');
   let ps = new PairSorter();
   let tIds;
 
@@ -147,7 +145,6 @@ PairSchema.statics._order = async function() {
 
   tIds = triples.map(t => t._id);
 
-  const { default: Triple } = await import('./Triple.js');
   await Triple.updateMany({}, { $set: { isRelevant: false } });
   return Triple.updateMany({ _id: { $in: tIds } }, { $set: { isRelevant: true } });
 };

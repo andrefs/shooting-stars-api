@@ -12,6 +12,8 @@ import { promises as fs } from 'fs';
 import MongooseSequence from 'mongoose-sequence';
 import Promise from 'bluebird';
 import { NoMoreItemsError } from '../lib/errors/index.js';
+import Pair from './Pair.js';
+import Triple from './Triple.js';
 
 mongoose.plugin(pagPlugin);
 mongoose.plugin(createdModified.createdModifiedPlugin, { index: true });
@@ -84,11 +86,9 @@ ItemSchema.statics.activateNext = async function() {
   newItem = await this.findOne({ _id: newItem._id });
 
   const pairs = generatePairs(newItem, oldItems || []);
-  const { default: Pair } = await import('./Pair.js');
   await Pair.create(pairs);
 
   const triples = generateTriples(newItem, oldItems || []);
-  const { default: Triple } = await import('./Triple.js');
   return Triple.create(triples)
 };
 

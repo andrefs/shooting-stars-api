@@ -96,9 +96,6 @@ GameInstanceSchema.methods._createNewGameSequence = async function() {
   let normScore;
   let playedTriples;
 
-  const { default: User } = await import('./User.js');
-  console.log('XXXXXXXx 1', User)
-
   const player = await User.findOne()
     .where({ _id: pId })
     .select('totalGamesPlayed totalScore pastGameInstances currentGameInstance')
