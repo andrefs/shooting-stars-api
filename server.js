@@ -134,6 +134,9 @@ const create = () => {
    */
   api.on('uncaughtException', (req, res, route, err) => {
     log.error(err.stack);
+    if (req.headers.origin) {
+      res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+    }
     res.send(err);
   });
 

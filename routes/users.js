@@ -93,7 +93,8 @@ export default function(app, passport) {
           }
         });
         return next();
-      });
+      })
+      .catch(next);
   });
 
   app.post('/auth/login',
