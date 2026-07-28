@@ -4,6 +4,10 @@
 *.out
 *.pid
 
+# env files
+.env
+.env.*
+
 node_modules
 npm-debug.log
 .nyc_output
