@@ -65,7 +65,7 @@
     "mongoose-createdmodified": "^0.0.2",
     "mongoose-paginate": "^5.0.3",
     "mongoose-sequence": "5.3.1",
-    "morgan": "1.10.0",
+    "morgan": "1.12.0",
     "node-mongodb-fixtures": "3.2.9",
     "passport": "^0.6.0",
     "passport-custom": "^1.1.1",
